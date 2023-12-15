@@ -42,8 +42,8 @@ class registrationSerializer(serializers.ModelSerializer):
 
 class userSpecificLinkSerializer(serializers.Serializer):
     title = serializers.CharField()
-    link_type = serializers.CharField()
-    link = serializers.CharField()
+    # link_type = serializers.CharField()
+    navigation = serializers.CharField()
 
 
 

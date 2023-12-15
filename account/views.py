@@ -210,7 +210,7 @@ def userSpecificLinkHeader(user_id):
     links = user_links.objects.filter(access_department = usr_role, link_status = True)
     usr_link = []
     for link in links:
-        usr_link.append({"title": link.title, 'link_type': link.link_type, 'link': link.user_link })
+        usr_link.append({"title": link.title, 'navigation': link.user_link })
     serializer = userSpecificLinkSerializer(data=usr_link, many=True)
     # print(serializer.data)
     # res = Response()
