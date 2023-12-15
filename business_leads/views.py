@@ -111,7 +111,7 @@ class uploadBusLdAmzSPNC(GenericAPIView):
                 res.status_code = status.HTTP_400_BAD_REQUEST
                 res.data = {
                     'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'not file provided',
+                    'message': 'file object not provided with key "file"',
                     'data': []
                 }
             return res
@@ -149,7 +149,7 @@ class viewAllLeads(GenericAPIView):
         with connection.cursor() as cursor:
             if user_role == 'lead_manager' or 'admin':
 
-                cursor.execute(f"SELECT a.lead_id, a.requester_name, b.service_category, b.lead_status, a.upload_date FROM business_leads_all_identifiers as a JOIN business_leads_service as b WHERE a.lead_id = b.lead_id ORDER BY b.lead_id LIMIT {offset}, {limit}")
+                cursor.execute(f"SELECT a.lead_id, a.requester_name, b.service_category, b.lead_status, a.upload_date FROM business_leads_all_identifiers as a JOIN business_leads_service as b WHERE a.id = b.lead_id_id ORDER BY b.lead_id_id LIMIT {offset}, {limit}")
 
                 column = [col[0] for col in cursor.description]
                 for row in cursor.fetchall():

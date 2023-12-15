@@ -8,7 +8,7 @@ class lead_managerBlSerializer(serializers.Serializer):
     lead_id = serializers.CharField()
     requester_name = serializers.CharField()
     service_category = serializers.CharField()
-    lead_status = serializers.CharField()
+    lead_status = serializers.CharField(read_only=True)
 
 
 class BusinessDevelopmentLeadSerializer(serializers.Serializer):

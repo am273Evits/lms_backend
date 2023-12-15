@@ -124,7 +124,7 @@ class service(models.Model):
     team_leader_id = models.CharField(max_length=50, blank=True, default='')
     associate = models.CharField(max_length=50, blank=True, default='')
     associate_id = models.CharField(max_length=50, blank=True, default='')
-    lead_status = models.CharField(max_length=50, blank=True, default='')
+    lead_status = models.CharField(max_length=50, blank=True, default='yet to contact')
     lead_status_reason = models.CharField(max_length=50, blank=True, default='')
     fees_slab = models.CharField(max_length=50, blank=True, default='')
     def __str__(self): return str(self.lead_id)
