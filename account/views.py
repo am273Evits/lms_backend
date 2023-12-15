@@ -155,7 +155,7 @@ class LoginView(GenericAPIView):
                 res.data = {
                     'status': 200,
                     'message': "registrations successful",
-                    'data': {'user_details': user_VF(user.id),"token": token},
+                    'data': {'user_details': user_VF(user.id),"token": token, "user_links": userSpecificLinkHeader(user.id)},
                 } 
             else:
                 res.status_code =status.HTTP_404_NOT_FOUND
@@ -201,29 +201,56 @@ class registration_VF(GenericAPIView):
 
 
 
-class userSpecificLinkHeader(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = userSpecificLinkSerializer
-    def get(self, request, format=None, *args, **kwargs):
-        user = request.user
+def userSpecificLinkHeader(user_id):
+    # user = request.user
+    # print(user_id)
+    usr_role = employee_official.objects.filter(emp = user_id).first()
+    usr_role = usr_role.user_role
+    # print(usr_role)
+    links = user_links.objects.filter(access_department = usr_role, link_status = True)
+    usr_link = []
+    for link in links:
+        usr_link.append({"title": link.title, 'link_type': link.link_type, 'link': link.user_link })
+    serializer = userSpecificLinkSerializer(data=usr_link, many=True)
+    # print(serializer.data)
+    # res = Response()
+    if serializer.is_valid(raise_exception=True):
+        # res.status_code = status.HTTP_200_OK
+        return serializer.data
+    else:        
+        # res.status_code = status.HTTP_400_BAD_REQUEST
+        return "unsuccessful"
+    # return res
+    
 
-        usr_role = employee_official.objects.filter(emp = user.id).first()
-        print(usr_role)
-        usr_role = usr_role.user_role
-        links = user_links.objects.filter(access_department = usr_role, link_status = True)
-        usr_link = []
-        for link in links:
-            usr_link.append({"title": link.title, 'link_type': link.link_type, 'link': link.user_link })
 
-        serializer = userSpecificLinkSerializer(data=usr_link, many=True)
-        res = Response()
-        if serializer.is_valid(raise_exception=True):
-            res.status_code = status.HTTP_200_OK
-            res.data = {"status": status.HTTP_200_OK, "message": "successfully fetched", "data":{ "user_link" : serializer.data}}
-        else:        
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {"status": status.HTTP_200_OK, "message": "unsuccessful", "data":{}}
-        return res
+
+
+
+
+# class userSpecificLinkHeader(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = userSpecificLinkSerializer
+#     def get(self, request, format=None, *args, **kwargs):
+#         user = request.user
+
+#         usr_role = employee_official.objects.filter(emp = user.id).first()
+
+#         usr_role = usr_role.user_role
+#         links = user_links.objects.filter(access_department = usr_role, link_status = True)
+#         usr_link = []
+#         for link in links:
+#             usr_link.append({"title": link.title, 'link_type': link.link_type, 'link': link.user_link })
+
+#         serializer = userSpecificLinkSerializer(data=usr_link, many=True)
+#         res = Response()
+#         if serializer.is_valid(raise_exception=True):
+#             res.status_code = status.HTTP_200_OK
+#             res.data = {"status": status.HTTP_200_OK, "message": "successfully fetched", "data":{ "user_link" : serializer.data}}
+#         else:        
+#             res.status_code = status.HTTP_400_BAD_REQUEST
+#             res.data = {"status": status.HTTP_200_OK, "message": "unsuccessful", "data":{}}
+#         return res
     
 
 
