@@ -45,13 +45,16 @@ class uploadBusLdAmzSPNC(GenericAPIView):
     permission_classes = [IsAuthenticated]
     # @api_view(['POST'])
     def post(self, request, format=None, *args, **kwargs):
-        print(request)
+        # print(request)
         if request.method == 'POST':
             if request.FILES:
                 file = request.FILES['file']
                 # print('file', file)
                 obj = File.objects.create(file = file)
                 df = pd.read_csv(obj.file, delimiter=',',   header=0)
+                df = pd.DataFrame(df)
+                df.fillna('', inplace=True)
+                # print(df)
                 head_row = df.columns.values
                 h_row = [f.replace(' ', '_').replace('(', '').replace(')', '').replace('/', '_').replace('__', '_').replace('__', '_').lower() for f in head_row]
                 db_head_row_all_rw = all_identifiers._meta.get_fields()
@@ -60,52 +63,155 @@ class uploadBusLdAmzSPNC(GenericAPIView):
                 db_head_row_serv_rw = service._meta.get_fields()
                 db_head_row_serv = [field.name for field in db_head_row_serv_rw]
                 list_of_csv = [list(row) for row in df.values]
+                # print(list_of_csv)
+
+                output_data = []
+
+                break_out = True
 
                 ref_id = ''
 
                 for ls in list_of_csv:
+                    # print(db_head_row_all)cls
+                    # print('isna',pd.DataFrame(ls).isna())
                     dt = {}
                     lead_id = getLeadId()
                     all_identifiers_instance = all_identifiers()
                     for i in range (len(db_head_row_all)):
                         if not (db_head_row_all[i] == 'id' or db_head_row_all[i] == 'lead_id') and db_head_row_all[i] in h_row:
                                 ind = h_row.index(db_head_row_all[i])
-                                dt[db_head_row_all[i]] = ls[ind] if db_head_row_all[i] != 'service_category' else ls[ind].lower()
-                    dt['lead_id'] = str(lead_id)
-                    for field_name, value in dt.items():
-                        setattr(all_identifiers_instance, field_name, value)
-                    all_identifiers_instance.save()
 
-                    ref_id = all_identifiers.objects.filter(lead_id = lead_id).values('id').first()
-                    ref_id = ref_id['id']
-                    print(ref_id)
+                                # print(db_head_row_all[i])
 
-                    service_instance = service()
-                    dt = {}
-                    for i in range (len(db_head_row_serv)):
-                        if not (db_head_row_serv[i] == 'id' or db_head_row_serv[i] == 'lead_id') and db_head_row_serv[i] in h_row:
-                            ind = h_row.index(db_head_row_serv[i])
-                            dt[db_head_row_serv[i]] = ls[ind].lower().strip()
-                    dt['lead_id'] = all_identifiers_instance
-                    for field_name, value in dt.items():
-                        setattr(service_instance, field_name, value)
-                    service_instance.save()
+                                
+                                if db_head_row_all[i] == 'service_category':
+                                    dt[db_head_row_all[i]] = ls[ind]
+                                
+
+                                elif db_head_row_all[i] == 'request_id':
+                                    if ls[ind] != '':
+                                        if len(str(ls[ind])) > 0:
+                                            dt[db_head_row_all[i]] = ls[ind]
+                                    else:
+                                        break_out = False
+                                        break
+
+                                elif db_head_row_all[i] == 'phone_number':
+                                    if ls[ind] != '':
+                                        dt[db_head_row_all[i]] = str(int(ls[ind]))
+                                        print(str(int(ls[ind])))
+                                    else:
+                                        dt[db_head_row_all[i]] = ''
+
+                                else:
+
+                                    if isinstance(ls[ind], str):
+                                        # if len(ls[ind]) >= 0:
+                                           dt[db_head_row_all[i]] = ls[ind].lower()
+                                        # else:
+                                        #    print(ls[ind].lower())
+
+                                    elif isinstance(ls[ind], float):
+                                        if ls[ind] != '':
+                                            dt[db_head_row_all[i]] = str(ls[ind])
+                                        else:
+                                            dt[db_head_row_all[i]] = ''
+                                        # print(str(ls[ind]))
+                                    elif isinstance(ls[ind], int):
+                                        if ls[ind] != '':
+                                            dt[db_head_row_all[i]] = str(ls[ind])
+                                        else:
+                                            dt[db_head_row_all[i]] = ''
+                                        # print('int', ls[ind])
+                                    
+                                    else: 
+                                        # len(ls[ind])>0 else
+                                        dt[db_head_row_all[i]] = ls[ind]
+
+                                
+
+                    # print('function passed')
+                    # print(break_out)
+                    if break_out:
+                        d = [lead_id]
+                        d = d + ls
+                        output_data.append(d)
+
+                        dt['lead_id'] = str(lead_id)
+                        for field_name, value in dt.items():
+                            setattr(all_identifiers_instance, field_name, value)
+                        all_identifiers_instance.save()
+
+                        ref_id = all_identifiers.objects.filter(lead_id = lead_id).values('id').first()
+                        ref_id = ref_id['id']
+                        # print(ref_id)
+
+                        service_instance = service()
+                        dt = {}
+                        for i in range (len(db_head_row_serv)):
+                            if not (db_head_row_serv[i] == 'id' or db_head_row_serv[i] == 'lead_id') and db_head_row_serv[i] in h_row:
+                                ind = h_row.index(db_head_row_serv[i])
+                                # print('working till here')
 
 
-                    all_instances = [business_identifiers(), comment(), contact_preference(), followup(), seller_address(), website_store()]
-                    dl = []
-                    for i in range(len(all_instances)):
-                        dl.append({"lead_id": all_identifiers_instance})
-                    for model_instace, data in zip(all_instances, dl):
-                        for field_name, value in data.items():
-                            setattr(model_instace, field_name, value)
-                        model_instace.save()
+                                if isinstance(ls[ind], str):
+                                    dt[db_head_row_serv[i]] = ls[ind].lower().strip()
+                                elif isinstance(ls[ind], float):
+                                    if ls[ind] == '':
+                                        dt[db_head_row_all[i]] = ''
+                                    else:
+                                        dt[db_head_row_all[i]] = str(ls[ind])
+                                    # print(str(ls[ind]))
+                                elif isinstance(ls[ind], int):
+                                    if ls[ind] != '':
+                                        dt[db_head_row_all[i]] = ''
+                                    else:
+                                        dt[db_head_row_all[i]] = str(ls[ind])
+
+
+                                # if db_head_row_all[i] != 'service_category': 
+                                #     dt[db_head_row_serv[i]] = ls[ind]
+
+                                # else:
+                                #     if isinstance(ls[ind], str):
+                                #         dt[db_head_row_serv[i]] = ls[ind].lower() 
+                                #     else: 
+                                #         # len(ls[ind])>0 else
+                                #         dt[db_head_row_serv[i]] = ls[ind]
+
+
+                        dt['lead_id'] = all_identifiers_instance
+                        for field_name, value in dt.items():
+                            setattr(service_instance, field_name, value)
+                        service_instance.save()
+
+
+                        all_instances = [business_identifiers(), comment(), contact_preference(), followup(), seller_address(), website_store()]
+                        dl = []
+                        for i in range(len(all_instances)):
+                            dl.append({"lead_id": all_identifiers_instance})
+                        for model_instace, data in zip(all_instances, dl):
+                            for field_name, value in data.items():
+                                setattr(model_instace, field_name, value)
+                            model_instace.save()
+                    else:
+                        d = ['not generated']
+                        d = d + ls
+                        output_data.append(d)
+
+                        
+                    
                 res =  Response()
                 res.status_code = status.HTTP_201_CREATED
                 # res['Access-Control-Allow-Origin'] = '*'
                 # res['Access-Control-Allow-Credentials'] = True
                 # res['Allow_'] = status.HTTP_201_CREATED
-                res.data = {"status": status.HTTP_201_CREATED,"message": 'all records saved successfully', "data": []}
+                res.data = {
+                    "status": status.HTTP_201_CREATED,
+                    "message": 'all records saved successfully', 
+                    "data": output_data
+                    }
+                print('working here')
             else :
                 res =  Response()
                 res.status_code = status.HTTP_400_BAD_REQUEST
