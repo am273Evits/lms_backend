@@ -110,6 +110,9 @@ class ev_servicesSerializer(serializers.ModelSerializer):
 
 class uploadFileSerializer(serializers.Serializer):
     file = serializers.FileField()
+    class Meta:
+        models=all_identifiers
+        fields=["file"]
 
 
 
@@ -117,3 +120,6 @@ class getTableFieldsSerializer(serializers.Serializer):
     field = serializers.CharField()
     type = serializers.CharField()
     
+
+class statusUpdateSerializer(serializers.Serializer):
+    status = serializers.CharField()

@@ -12,6 +12,7 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from datetime import datetime
 
@@ -39,12 +40,13 @@ from account.views import getLeadId, getProduct, getUserRole, getTeamLeader, get
 
 
 class uploadBusLdAmzSPNC(GenericAPIView):
+    parser_classes = [MultiPartParser, FormParser]
     serializer_class = uploadFileSerializer
     permission_classes = [IsAuthenticated]
     # @api_view(['POST'])
     def post(self, request, format=None, *args, **kwargs):
         if request.method == 'POST':
-            file = request.FILES['fileinp']
+            file = request.FILES['file']
             obj = File.objects.create(file = file)
             df = pd.read_csv(obj.file, delimiter=',',   header=0)
             head_row = df.columns.values
@@ -134,7 +136,7 @@ class viewAllLeads(GenericAPIView):
         )
 
         with connection.cursor() as cursor:
-            if user_role == 'lead_manager':
+            if user_role == 'lead_manager' or 'admin':
 
                 cursor.execute(f"SELECT a.lead_id, a.requester_name, b.service_category, b.lead_status, a.upload_date FROM business_leads_all_identifiers as a JOIN business_leads_service as b WHERE a.lead_id = b.lead_id ORDER BY b.lead_id LIMIT {offset}, {limit}")
 
@@ -239,7 +241,7 @@ class viewLeadsAllIdentifiers(GenericAPIView):
             lead_id = lead_ref.id
 
         # print(models)
-        if user_role == 'lead_manager':
+        if user_role == 'lead_manager' or 'admin':
             data = models.objects.filter(lead_id = lead_id).values()
             data = list(data)
 
@@ -810,7 +812,7 @@ class formsSubmit(GenericAPIView):
         if model is not None:
             dynamic = dynamic_serializer_submit(model)
 
-            if user_role == 'lead_manager':
+            if user_role == 'lead_manager' or 'admin':
 
                 if table == 'followup':
                     main_data['created_by'] = request.user.employee_id
@@ -923,28 +925,55 @@ class assignAssociate(GenericAPIView):
     def put(self, request, format=None, *args, **kwargs):
         print('request.data',request.data)
 
-        lead_id = request.data.get('lead_id')
-        assoc_employee_id = request.data.get('employee_id')
-        team_leader_id = getTeamLeader(assoc_employee_id)
-        print(team_leader_id)
-        
-        req_data = {"team_leader_id": team_leader_id, "associate_id": assoc_employee_id}
-        
-        # with connection.cursor() as cursor:
+        obj_user = employee_official.objects.filter(emp__id = request.user.id).first()
+        user_role = obj_user.user_role
+        print('user_role', user_role)
+
         res = Response()
-        if isinstance(lead_id, list):
-            for ld in lead_id:
-                data = service.objects.filter(lead_id__lead_id = ld).first()
+        if user_role == 'admin' or 'lead_manager' or 'bd_tl':
+            lead_id = request.data.get('lead_id')
+            assoc_employee_id = request.data.get('employee_id')
+            team_leader_id = getTeamLeader(assoc_employee_id)
+            print(team_leader_id)
+
+            req_data = {"team_leader_id": team_leader_id, "associate_id": assoc_employee_id}
+
+            # with connection.cursor() as cursor:
+            if isinstance(lead_id, list):
+                for ld in lead_id:
+                    data = service.objects.filter(lead_id__lead_id = ld).first()
+                    print(data)
+                    serializer = assignAssociateSerializer(data, data=req_data, partial=True)
+                    if serializer.is_valid(raise_exception=True):
+                        serializer.save()
+                        res.status_code = status.HTTP_201_CREATED
+                        res.data = {
+                            'status' : status.HTTP_201_CREATED,
+                            'message' : 'associate assigned',
+                            'data' : {'message': 'this lead has been updated'}
+                            }
+                        return res
+                    else:
+                        res.status_code = status.HTTP_400_BAD_REQUEST
+                        res.data = {
+                            'status' : status.HTTP_400_BAD_REQUEST,
+                            'message' : 'request failed',
+                            'data' : []
+                            }
+                        return res
+                    # d = cursor.execute(f"UPDATE api_business_leads_service set associate_id = '{assoc_employee_id}', team_leader_id = '{team_leader_id}' WHERE lead_id = '{ld}'")
+            else: 
+                data = service.objects.filter(lead_id__lead_id = lead_id).first()
                 print(data)
-                serializer = assignAssociateSerializer(data, data=req_data, partial=True)
-                if serializer.is_valid(raise_exception=True):
-                    serializer.save()
+                serialize = assignAssociateSerializer(data, data=req_data, partial=True)
+                if serialize.is_valid(raise_exception=True):
+                    serialize.save()
                     res.status_code = status.HTTP_201_CREATED
                     res.data = {
                         'status' : status.HTTP_201_CREATED,
                         'message' : 'associate assigned',
                         'data' : {'message': 'this lead has been updated'}
-                        }
+                    }
                     return res
                 else:
                     res.status_code = status.HTTP_400_BAD_REQUEST
@@ -952,30 +981,24 @@ class assignAssociate(GenericAPIView):
                         'status' : status.HTTP_400_BAD_REQUEST,
                         'message' : 'request failed',
                         'data' : []
-                        }
+                    }
                     return res
-                # d = cursor.execute(f"UPDATE api_business_leads_service set associate_id = '{assoc_employee_id}', team_leader_id = '{team_leader_id}' WHERE lead_id = '{ld}'")
         else: 
-            data = service.objects.filter(lead_id__lead_id = lead_id).first()
-            print(data)
-            serialize = assignAssociateSerializer(data, data=req_data, partial=True)
-            if serialize.is_valid(raise_exception=True):
-                serialize.save()
-                res.status_code = status.HTTP_201_CREATED
-                res.data = {
-                    'status' : status.HTTP_201_CREATED,
-                    'message' : 'associate assigned',
-                    'data' : {'message': 'this lead has been updated'}
-                }
-                return res
-            else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'status' : status.HTTP_400_BAD_REQUEST,
-                    'message' : 'request failed',
-                    'data' : []
-                }
-                return res
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'status' : status.HTTP_400_BAD_REQUEST,
+                'message' : 'you are not authorized to assign leads',
+                'data' : []
+            }
+            return res
+        
+
+
+# class statusUpdate(GenericAPIView):
+#     serializer_class = statusUpdateSerializer
+#     permission_classes = [IsAuthenticated]
+#     def put(self, request, lead_id, format=None, *args, **kwargs):
+
             # d = cursor.execute(f"UPDATE api_business_leads_service set associate_id = '{assoc_employee_id}', team_leader_id = '{team_leader_id}' WHERE lead_id = '{lead_id}'")
         # cursor.close()
         # connection.close()

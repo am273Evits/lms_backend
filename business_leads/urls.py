@@ -13,6 +13,7 @@ urlpatterns = [
             path('forms_submit/<str:table>/<str:lead_id>', formsSubmit.as_view()), #all tables submit
 
             path('assign_associate', assignAssociate.as_view()), #all tables submit
+            # path('status_update/<str:lead_id>', statusUpdate.as_view()), #all tables submit
 
 
 
