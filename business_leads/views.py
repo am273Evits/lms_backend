@@ -321,9 +321,7 @@ class viewAllLeads(GenericAPIView):
                         "data": {'data': [], 'total_pages': pagecount, "current_page": page}
                         }
                 # print({'data': serializer.data, 'pagecount': pagecount})
-
             return res
-        
     
 
 
