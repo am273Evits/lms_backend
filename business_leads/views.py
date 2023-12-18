@@ -237,6 +237,46 @@ class uploadBusLdAmzSPNC(GenericAPIView):
             }
         
         return res
+    
+
+class businessLeadsAllTables(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = businessLeadsAllTablesSerializer
+    def get(self, request, format=None, *args, **kwargs):
+        user_role = getUserRole(request.user.id)
+        res = Response()
+        if user_role == 'admin' or 'lead_manager' or 'bd_tl' or 'bd_t_member':
+
+            tables = list_business_leads.objects.all()
+            # print(tables)
+            tablesList = [tb.table_name for tb in tables]
+            # print('tablesList',tablesList)
+            tables = {'tables': tablesList}
+            print(tables)
+                    
+            serializer = businessLeadsAllTablesSerializer(data=tables)
+            if serializer.is_valid(raise_exception=True):
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    'status': status.HTTP_200_OK,
+                    'message': 'successful',
+                    'data': serializer.data
+                }
+            else :
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': 'unsuccessful',
+                    'data': serializer.data
+                }
+        else :
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'you are not authorized',
+                'data': []
+            }
+        return res
 
 
 

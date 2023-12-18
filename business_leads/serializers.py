@@ -123,3 +123,7 @@ class getTableFieldsSerializer(serializers.Serializer):
 
 class statusUpdateSerializer(serializers.Serializer):
     status = serializers.CharField()
+
+
+class businessLeadsAllTablesSerializer(serializers.Serializer):
+    tables = serializers.ListField()

@@ -144,10 +144,11 @@ class unresponsive_reason(models.Model):
     def __str__ (self): return self.title
 
 
-# class list_business_leads(models.Model):
-#     table_name = models.CharField(max_length=500, null=True)
-#     table_type = models.CharField(max_length=500, null=True)
-#     table_atr = models.CharField(max_length=500, null=True)
+class list_business_leads(models.Model):
+    table_name = models.CharField(max_length=500, blank=True, default='')
+    table_type = models.CharField(max_length=500, blank=True, default='')
+    table_atr = models.CharField(max_length=500, blank=True, default='')
+    def __str__ (self): return self.table_name
 
 # class list_client(models.Model):
 #     table_name = models.CharField(max_length=500, null=True)
