@@ -3,6 +3,12 @@ from django.db import connection
 from django.core.mail import EmailMultiAlternatives
 from django.apps import apps
 from django.core.mail import send_mail
+from django.template.loader import get_template
+from django.http import FileResponse
+
+from io import BytesIO
+
+from xhtml2pdf import pisa
 
 import pandas as pd
 
@@ -268,12 +274,20 @@ class viewAllLeads(GenericAPIView):
                 serializer = lead_managerBlSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
                 
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    "status": status.HTTP_200_OK,
-                    "message": 'successful',
-                    "data": {'data': serializer.data, 'pagecount': pagecount}
-                    }
+                if int(page) <= pagecount:
+                    res.status_code = status.HTTP_200_OK
+                    res.data = {
+                        "status": status.HTTP_200_OK,
+                        "message": 'successful',
+                        "data": {'data': serializer.data, 'total_pages': pagecount, "current_page": page}
+                        }
+                else :
+                    res.status_code = status.HTTP_400_BAD_REQUEST
+                    res.data = {
+                        "status": status.HTTP_400_BAD_REQUEST,
+                        "message": 'the page is unavailable',
+                        "data": {'data': [], 'total_pages': pagecount, "current_page": page}
+                        }
 
             elif user_role == 'bd_tl':
                 product = getProduct(user.id)
@@ -291,12 +305,21 @@ class viewAllLeads(GenericAPIView):
                 serializer = BusinessDevelopmentLeadSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
 
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'status': status.HTTP_200_OK,
-                    'message': 'successful',
-                    'data': {'data': serializer.data, 'pagecount': pagecount}
-                    }
+                if int(page) <= pagecount:
+                    res.status_code = status.HTTP_200_OK
+                    res.data = {
+                        'status': status.HTTP_200_OK,
+                        'message': 'successful',
+                        'data': {'data': serializer.data, 'pagecount': pagecount}
+                        }
+                
+                else :
+                    res.status_code = status.HTTP_400_BAD_REQUEST
+                    res.data = {
+                        "status": status.HTTP_400_BAD_REQUEST,
+                        "message": 'the page is unavailable',
+                        "data": {'data': [], 'total_pages': pagecount, "current_page": page}
+                        }
                 # print({'data': serializer.data, 'pagecount': pagecount})
 
             return res
@@ -1108,6 +1131,254 @@ class assignAssociate(GenericAPIView):
                 'data' : []
             }
             return res
+        
+
+
+
+class apiSubmitEmailAskForDetails(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, lead_id, format=None, *args, **kwargs):
+        # user = cookieAuth(request)
+        # employee_id = user.employee_id
+        product = getProduct(request.user.id)
+        user_role = getUserRole(request.user.id)
+        res =  Response()
+        if user_role == 'bd_tl' or 'bd_t_member': 
+    
+            message = email_ask_for_details.objects.filter(service = product).first()
+            message = message.email
+            message = message.replace('{***sender***}', request.user.name)
+
+            data_basic = all_identifiers.objects.get(lead_id=lead_id)
+            email = data_basic.email_id
+
+            subject = 'details required to proceed further'
+            text = ''
+            from_email = 'akshatnigamcfl@gmail.com'
+            recipient = [email]
+
+            email = EmailMultiAlternatives(subject, text, from_email, recipient)
+            email.attach_alternative(message, 'text/html')
+            email = email.send()
+            if email:
+                status_update = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = 'asked for details')
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    'status': status.HTTP_200_OK,
+                    'message': 'email sent',
+                    'data': []}
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': 'email not sent sent',
+                    'data': []
+                    }
+            return res
+        else :
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'you are not authorized for this action',
+                'data' : []
+            }
+
+
+class mouFun(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, lead_id, format=None, *args, **kwargs):
+        # user = cookieAuth(request)
+        # employee_id = user['user'].employee_id
+        user_role = getUserRole(request.user.id)
+        if user_role == 'bd_tl' or 'bd_t_member':
+
+            data_service = service.objects.get(lead_id__lead_id=lead_id)
+            service_name = data_service.service_category
+            fees_slab = data_service.fees_slab
+
+            res = Response()
+            if not service_name:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': 'add service name in the lead details',
+                    'data': []
+                    }
+                return res 
+            if not fees_slab:
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': 'add fees slab in the lead details',
+                    'data': []
+                    }
+                return res
+
+
+            data_basic = all_identifiers.objects.get(lead_id = lead_id)
+            requester_name = data_basic.requester_name
+            email_id = data_basic.email_id
+            phone_number = data_basic.phone_number
+
+            # res = Response()
+            if not requester_name:
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'error': 'add requester name in the lead details',
+                    'data': []
+                    }
+                return res
+            if not email_id:
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'error': 'add email id in the lead details',
+                    'data': []
+                    }
+                return res 
+            if not phone_number:
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'error': 'add phone number in the lead details',
+                    'data': []
+                    }
+                return res
+
+
+            data_business_identifiers = business_identifiers.objects.get(lead_id__lead_id = lead_id)
+            business_name = data_business_identifiers.business_name
+            brand_name = data_business_identifiers.brand_name
+            name_for_mou = data_business_identifiers.name_for_mou
+            designation = data_business_identifiers.designation
+            gst = data_business_identifiers.gst
+
+            # res = Response()
+            if not business_name:
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'error': 'add business name in the lead details',
+                    'data': []
+                    }
+                return res 
+            if not brand_name:
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'error': 'add brand name in the lead details',
+                    'data': []
+                    }
+                return res
+            if not name_for_mou:
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'error': 'add name for mou in the lead details',
+                    'data': []
+                    }
+                return res
+            if not designation:
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'error': 'add designation in the lead details',
+                    'data': []
+                    }
+                return res
+            if not gst:
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'error': 'add gst in the lead details',
+                    'data': []
+                    }
+                return res
+
+            data_seller_address = seller_address.objects.get(lead_id__lead_id = lead_id)
+            address_line1 = data_seller_address.address_line1
+            address_line2 = data_seller_address.address_line2
+            city = data_seller_address.city
+            state = data_seller_address.state
+            country = data_seller_address.country
+            pin_code = data_seller_address.pin_code
+
+            if not address_line1:
+                res.status_code = status.HTTP_400_BAD_REQUEST,
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'error': 'add addredd line1 in the lead details',
+                    'data': []
+                    }
+            else:
+                address_line = address_line1
+                if address_line2:
+                    address_line += ' '+address_line2 
+
+            if not city:
+                res.data ={
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'error': 'add city in the lead details',
+                    'data': []
+                    }
+                return res 
+            if not state:
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'error': 'add state in the lead details',
+                    'data': []
+                    }
+                return res
+            if not country:
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'error': 'add country in the lead details',
+                    'data': []
+                    }
+                return res
+            if not pin_code:
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'error': 'add pin code in the lead details',
+                    'data': []
+                    }
+                return res 
+
+            address = address_line +' '+ city +' '+ state+' '+ country +' '+ pin_code
+
+
+            if address:
+                template = get_template('mou/mou.html')
+                date = datetime.datetime.now()
+                date = f"{date.strftime('%d')}/{date.strftime('%m')}/{date.strftime('%Y')}"
+
+                context = {
+                    'current_date': date, 
+                    'business_name': business_name, 
+                    'brand_name': brand_name, 
+                    'business_address': address, 
+                    "service_name": service_name, 
+                    "fees_slab": fees_slab, 
+                    "name_for_mou": name_for_mou, 
+                    'designation': designation, 
+                    'requester_name': requester_name, 
+                    "email_id": email_id, 
+                    "gst": gst, 
+                    "phone_number": phone_number
+                    }
+
+                html = template.render(context)
+
+                res = BytesIO()
+                result = pisa.CreatePDF(html, dest=res)
+
+                # res = HttpResponse(content_type = 'application/pdf')
+                # res['Content_Disposition'] = 'filename = "mou.pdf"'
+
+                if result.err:
+                    return Response({
+                        'status': status.HTTP_400_BAD_REQUEST,
+                        'error': 'error generating pdf',
+                        'data': []
+                        })
+
+                status_update = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = 'mou generated')
+                res.seek(0)
+                return FileResponse(res, content_type='application/pdf', as_attachment=True, filename=f'{business_name}.pdf')
+
+
         
 
 
