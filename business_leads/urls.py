@@ -18,6 +18,8 @@ urlpatterns = [
             path('assign_associate', assignAssociate.as_view()), #all tables submit
             path('email_ask_for_details/<str:lead_id>', apiSubmitEmailAskForDetails.as_view()),
             path('generate_mou/<str:lead_id>', mouFun.as_view()),
+            path('email_mou/<str:lead_id>', emailMouFun.as_view()),
+
             # path('status_update/<str:lead_id>', statusUpdate.as_view()), #all tables submit
 
 
@@ -41,6 +43,15 @@ urlpatterns = [
             path('field_email_proposal/<str:country>/<str:marketplace>/<str:services>', apiFieldEmailProposalService.as_view()),
 
             path('email_proposal/<str:lead_id>', apiSubmitEmailProposal.as_view()),
+
+
+            path('field_add_new_service', fieldsAddNewServiceCountry.as_view()),
+            path('field_add_new_service/<str:country>', fieldsAddNewServiceMarketplace.as_view()),
+            path('field_add_new_service/<str:country>/<str:marketplace>', fieldsAddNewServiceServices.as_view()),
+            path('field_add_new_service/<str:country>/<str:marketplace>/<str:services>', fieldsAddNewServiceTeamLeader.as_view()),
+
+            path('add_new_service/<str:lead_id>', addNewService.as_view()),
+
 
             
 

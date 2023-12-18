@@ -350,7 +350,7 @@ class viewAllLeads(GenericAPIView):
                     res.data = {
                         'status': status.HTTP_200_OK,
                         'message': 'successful',
-                        'data': {'data': serializer.data, 'pagecount': pagecount}
+                        'data': {'data': serializer.data, 'total_pages': pagecount, "current_page": page}
                         }
                 
                 else :
@@ -432,7 +432,7 @@ class viewLeadsAllIdentifiers(GenericAPIView):
             res.data = {
                 'status': status.HTTP_200_OK,
                 'message': 'successful',
-                'data': serializer.data
+                'data': {'data': serializer.data, "current_table": table, 'lead_id': lead_id}
                 }
             # return res
         elif user_role == 'bd_tl':
@@ -449,12 +449,16 @@ class viewLeadsAllIdentifiers(GenericAPIView):
                 res.data = {
                     "status": status.HTTP_200_OK,
                     'message': 'successful',
-                    'data': serializer.data
+                    'data': {'data': serializer.data,"current_table": table, 'lead_id': lead_id}
                     }
                 # return res
         else:
             res.status_code = status.HTTP_203_NON_AUTHORITATIVE_INFORMATION
-            res.data = {'error': 'you are not authorized to see this lead'}
+            res.data = {
+                "status": status.HTTP_203_NON_AUTHORITATIVE_INFORMATION,
+                'error': 'you are not authorized to see this lead',
+                'data': []
+                }
         
         return res
 
@@ -1417,7 +1421,266 @@ class mouFun(GenericAPIView):
                 return FileResponse(res, content_type='application/pdf', as_attachment=True, filename=f'{business_name}.pdf')
 
 
+class emailMouFun(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, lead_id, format=None, *args, **kwargs):
+        print(lead_id)
+        if request.method == 'POST':
+            file = request.FILES.get('file')
+            print(file)
+    
+        email = all_identifiers.objects.get(lead_id=lead_id)
+        email = email.email_id
+    
+        subject = 'Test email with attachment'
+        text = 'PFA'
+        from_email = 'akshatnigamcfl@gmail.com'
+        recipient = [email]
+    
+        email = EmailMultiAlternatives(subject, text, from_email, recipient)
+        email.attach_alternative('<h1>Test email with attachment</h1>', 'text/html')
+        email.attach(filename = file.name, content = file.read(), mimetype='application/pdf')
+    
+        email.send()
+    
+        res = Response()
+        if email.send():
+            status_update = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = 'pending for payment') 
+    
+            res.status_code = status.HTTP_200_OK
+            res.data = {
+                'status': status.HTTP_200_OK,
+                'email': 'email sent',
+                'data': []
+                }
+        else:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'status': status.HTTP_400_BAD_REQUEST,
+                'email': 'email not sent',
+                'data': []
+                }
+        return res
+    
+
+
+ 
+class addNewService(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, lead_id ,format=None, *args, **kwargs):
+        user_role = getUserRole(request.user.id)
+
+        res = Response()
+        if user_role == 'admin' or 'lead_manager' or 'bd_tl' or 'bd_t_member':
+            try:
+                # user = cookieAuth(request)
+                data = request.data
+
+                # print('dataplatform',data.platform)
+                # associate_id = data.get('associate_id')
+
+                if not data.get('platform'):
+                    res.status_code = status.HTTP_400_BAD_REQUEST
+                    res.data = {
+                        'status': status.HTTP_400_BAD_REQUEST,
+                        'message': 'platform field is required',
+                        'data': []
+                    }
+                    return res
+                if not data.get('service_country'):
+                    res.status_code = status.HTTP_400_BAD_REQUEST
+                    res.data = {
+                        'status': status.HTTP_400_BAD_REQUEST,
+                        'message': 'service_country field is required',
+                        'data': []
+                    }
+                    return res
+                if not data.get('service_category'):
+                    res.status_code = status.HTTP_400_BAD_REQUEST
+                    res.data = {
+                        'status': status.HTTP_400_BAD_REQUEST,
+                        'message': 'service_category field is required',
+                        'data': []
+                    }
+                    return res
+                if not data.get('team_leader_id'):
+                    res.status_code = status.HTTP_400_BAD_REQUEST
+                    res.data = {
+                        'status': status.HTTP_400_BAD_REQUEST,
+                        'message': 'team_leader_id field is required',
+                        'data' : []
+                    }
+                    return res
+
+
+                AI_data = all_identifiers.objects.filter(lead_id = lead_id).first()
+                data['lead_id'] = int(AI_data.id)
+
+                S_data = service.objects.filter(lead_id__lead_id = lead_id)
+                for d in S_data:
+                    if d.service_category == data.get('service_category'):
+                        res.status_code = status.HTTP_208_ALREADY_REPORTED
+                        res.data = {
+                            'status': status.HTTP_208_ALREADY_REPORTED,
+                            'message': 'service category already registered for this lead_id',
+                            'data':[]
+                        }
+                        return res
+                print(S_data[0].service_category)
+                
+
+                # lead_id = getLeadId()
+                # data = request.data
+                # data['lead_id'] = lead_id
+                serializer = serviceFieldSubSerializer(data=data)
+                if serializer.is_valid(raise_exception=True):
+                    if serializer.save():
+                        res.status_code = status.HTTP_200_OK
+                        res.data = {
+                            'status': status.HTTP_200_OK,
+                            'message': 'new lead created',
+                            'data': []
+                        }
+                        return res
+                else: 
+                        res.status_code = status.HTTP_200_OK
+                        res.data = {
+                            'status': status.HTTP_200_OK,
+                            'message': 'request failed',
+                            'data': serializer.errors
+                        }
+                        return res
+
+            except ValueError as e:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    "message": str(e),
+                    'data': []
+                    }
+
+        else :
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'you are not authorized for this action',
+                'data': []
+            }
+
+        return res
+                        
+
+
+class fieldsAddNewServiceCountry(GenericAPIView):
+    serializer_class = fieldEmailProposalCountry
+    permission_classes = [IsAuthenticated]
+    def get(self, request, format=None, *args, **kwargs):
+        data = list(ev_services.objects.values('country').distinct())
+        serializer = fieldEmailProposalCountry(data=data, many=True)
+        res = Response()
+        if serializer.is_valid(raise_exception=True):
+            res.status_code = status.HTTP_200_OK
+            res.data = {
+                'status': status.HTTP_200_OK,
+                'message': 'successful',
+                'data': {'country': serializer.data}
+                }
+        else :
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'request failed',
+                'data': []
+            }
+        return res
+
+class fieldsAddNewServiceMarketplace(GenericAPIView):
+    serializer_class = fieldEmailProposalMarketplace
+    permission_classes = [IsAuthenticated]
+    def get(self, request, country, format=None, *args, **kwargs):
+        data = list(ev_services.objects.filter(country = country).values('marketplace').distinct())
+        serializer = fieldEmailProposalMarketplace(data=data, many=True)
+        res = Response()
+        if serializer.is_valid(raise_exception=True):
+            res.status_code = status.HTTP_200_OK
+            res.data = {
+                'status': status.HTTP_200_OK,
+                'message': 'successful',
+                'data': {'marketplace': serializer.data}
+                }
+        else: 
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'request failed',
+                'data': []
+                }
+        return res
+    
+    
+
+class fieldsAddNewServiceServices(GenericAPIView):
+    def get(self,request, country, marketplace, format=None, *args, **kwargs):
+        # user = cookieAuth(request)
+        # employee_id = user['user'].employee_id
+        product = getProduct(request.user.id)
+        dt_list = []
+        data = ev_services.objects.filter(country = country, marketplace = marketplace).values('services').distinct()
+        for d in data:
+            print(d['services'])
+            print(product)
+            if d['services'] == product:
+                dt_list.append(d)
+
+        print(dt_list)
+        serializer = fieldEmailProposalService(data=dt_list, many=True)
+        res = Response()
+        if serializer.is_valid(raise_exception=True):
+            res.status_code = status.HTTP_200_OK
+            res.data = {
+                'status': status.HTTP_200_OK,
+                'message': 'successful',
+                'data': {'service': serializer.data}
+                }
+        else:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'request failed',
+                'data': []
+            }
+        return res
+    
+
+class fieldsAddNewServiceTeamLeader(GenericAPIView):
+    serializer_class = fieldaddNewServiceTLSerializer
+    permission_classes = [IsAuthenticated]
+    def get(self, request, country, marketplace, services, format=None, *args, **kwargs ):
+        # data = list(ev_services.objects.filter(country = country, marketplace = marketplace, services = services).values('slab').distinct())
+        data = list(employee_official.objects.filter(team_leader = 'self', product = services))
+        team_lead = []
+        # print('data', data)
+        for d in data:
+            team_lead.append({'team_leader' : d.emp.name, 'employee_id': d.emp.employee_id})
         
+        serializer = fieldaddNewServiceTLSerializer(data=team_lead, many=True)
+        res = Response()
+        if serializer.is_valid(raise_exception=True):
+            res.status_code = status.HTTP_200_OK
+            res.data = {
+                'status': status.HTTP_200_OK,
+                'message': 'successful',
+                'data':{'slab': serializer.data}
+                }
+        else:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'request failed',
+                'data': []
+                }
+            
+        return res
 
 
 # class statusUpdate(GenericAPIView):

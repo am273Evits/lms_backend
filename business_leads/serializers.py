@@ -101,6 +101,10 @@ class fieldEmailProposalService(serializers.Serializer):
 class fieldEmailProposalSlab(serializers.Serializer):
     slab = serializers.CharField()
 
+class fieldaddNewServiceTLSerializer(serializers.Serializer):
+    team_leader = serializers.CharField()
+    employee_id = serializers.CharField()
+
 
 class ev_servicesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -127,3 +131,23 @@ class statusUpdateSerializer(serializers.Serializer):
 
 class businessLeadsAllTablesSerializer(serializers.Serializer):
     tables = serializers.ListField()
+
+
+
+class serviceFieldSubSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = service
+        fields = '__all__'
+
+
+# class fieldAddNewPlatformSerializer(serializers.Serializer):
+#     platform = serializers.CharField()
+
+# class fieldAddNewCountrySerializer(serializers.Serializer):
+#     service_country = serializers.CharField()
+
+# class fieldAddNewCategorySerializer(serializers.Serializer):
+#     service_category = serializers.CharField()
+
+# class fieldAddNewTeamLeaderIdSerializer(serializers.Serializer):
+#     team_leader_id = serializers.CharField()

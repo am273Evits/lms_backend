@@ -61,10 +61,10 @@ class contact_preference(models.Model):
 
 
 
-# class ev_commercials(models.Model):
-#     platform = models.CharField(max_length=500, null=True)
-#     service_country = models.CharField(max_length=200, null=True)
-#     service_category = models.CharField(max_length=500, null=True)
+class ev_commercials(models.Model):
+    platform = models.CharField(max_length=500, null=True)
+    service_country = models.CharField(max_length=200, null=True)
+    service_category = models.CharField(max_length=500, null=True)
 
 # class ev_department_designation(models.Model):
 #     title = models.CharField(max_length=500, null=True)
