@@ -151,12 +151,14 @@ class createLeadManualSerializer(serializers.Serializer):
     phone_number = serializers.CharField() 
     email_id = serializers.CharField() 
     service_category = serializers.CharField()
+    marketplace = serializers.CharField()
 
     def validate(self, attrs):
         requester_name = attrs.get('requester_name')
         phone_number = attrs.get('phone_number')
         email_id = attrs.get('email_id')
         service_category = attrs.get('service_category')
+        marketplace = attrs.get('marketplace')
 
         AI_data = all_identifiers.objects.filter(Q(service_category = service_category) & Q(phone_number = phone_number) | Q(email_id = email_id))
 
@@ -164,6 +166,10 @@ class createLeadManualSerializer(serializers.Serializer):
             raise serializers.ValidationError('lead already registered with given phone number or email id')
         if requester_name is None:
             raise serializers.ValidationError('requester name is required')
+        if service_category is None:
+            raise serializers.ValidationError('service category is required')
+        if marketplace is None:
+            raise serializers.ValidationError('maketplace is required')
         if len(phone_number) < 10:
             raise serializers.ValidationError('a valid 10 digit number is required')
 
@@ -185,8 +191,9 @@ class createLeadManualSerializer(serializers.Serializer):
             contact_preference.objects.create(**d)
             seller_address.objects.create(**d)
             followup.objects.create(**d)
-            service.objects.create(**d)
             website_store.objects.create(**d)
+            d['service_category'] = validated_data['service_category']
+            service.objects.create(**d)
 
         return data
         
