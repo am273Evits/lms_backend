@@ -89,8 +89,13 @@ class comment(models.Model):
 
 class contact_preference(models.Model):
     lead_id = models.ForeignKey(all_identifiers, on_delete=models.DO_NOTHING)
-    contact_preference = models.CharField(max_length=500, blank=True, default='')
+    contact_preferences = models.CharField(max_length=500, blank=True, default='')
+    
+    # class Meta:
+    #     db_table = "contac_preference"
+    
     def __str__(self): return str(self.lead_id)
+
 
 
 class followup(models.Model):

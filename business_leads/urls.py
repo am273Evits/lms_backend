@@ -7,6 +7,7 @@ urlpatterns = [
 
         # lead_manager:
             path('upload', uploadBusLdAmzSPNC.as_view()), #file upload
+            path('create_lead_manual', createLeadManual.as_view()), #file upload
             path('view_all_leads/<int:page>', viewAllLeads.as_view()), #view_all_leads
             path('view_lead/<str:table>/<str:lead_id>', viewLeadsAllIdentifiers.as_view()), #view_all_leads
             path('get_table_fields/<str:table>', getTableFields.as_view()), #file upload
@@ -18,7 +19,7 @@ urlpatterns = [
             path('assign_associate', assignAssociate.as_view()), #all tables submit
             path('email_ask_for_details/<str:lead_id>', apiSubmitEmailAskForDetails.as_view()),
             path('generate_mou/<str:lead_id>', mouFun.as_view()),
-            path('email_mou/<str:lead_id>', emailMouFun.as_view()),
+            path('email_mou/<str:lead_id>', emailMouFun.as_view()), 
 
             # path('status_update/<str:lead_id>', statusUpdate.as_view()), #all tables submit
 

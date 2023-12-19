@@ -5,6 +5,7 @@ from django.apps import apps
 from django.core.mail import send_mail
 from django.template.loader import get_template
 from django.http import FileResponse
+from django.db.models import Q
 
 from io import BytesIO
 
@@ -15,7 +16,7 @@ import pandas as pd
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -28,7 +29,7 @@ import random
 
 import math
 
-from business_leads.models import all_identifiers as all_identifiers, business_identifiers as business_identifiers, comment as comment, contact_preference as contact_preference, followup as followup, seller_address as seller_address, service as service, website_store as website_store
+from business_leads.models import all_identifiers, business_identifiers, comment, followup , seller_address, service, website_store
 
 # from evitamin.models import email_ask_for_details, email_service_proposal
 
@@ -456,12 +457,38 @@ class viewLeadsAllIdentifiers(GenericAPIView):
             res.status_code = status.HTTP_203_NON_AUTHORITATIVE_INFORMATION
             res.data = {
                 "status": status.HTTP_203_NON_AUTHORITATIVE_INFORMATION,
-                'error': 'you are not authorized to see this lead',
+                'message': 'you are not authorized to see this lead',
                 'data': []
                 }
         
         return res
 
+
+class createLeadManual(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = createLeadManualSerializer
+    def post(self, request, format=None, *args, **kwargs):
+        # user_role = getUserRole(request.user.id)
+        res = Response()
+        serializer = createLeadManualSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            # pass
+            if serializer.save():
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    "status": status.HTTP_200_OK,
+                    "message" : 'lead registered successfully',
+                    "data": serializer.data
+                }
+                return res
+            else :
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    "status": status.HTTP_400_BAD_REQUEST,
+                    "message" : 'request failed',
+                    "data": []
+                }
+        return res
 
 
         

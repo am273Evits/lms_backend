@@ -2,6 +2,12 @@ from rest_framework import serializers
 from .models import *
 from dropdown.models import *
 from evitamin.models import *
+from django.db.models import Q
+from rest_framework import status
+from rest_framework.response import Response
+# from rest_framework.exceptions import ValidationError
+
+from account.views import getLeadId
 
 
 class lead_managerBlSerializer(serializers.Serializer):
@@ -138,6 +144,67 @@ class serviceFieldSubSerializer(serializers.ModelSerializer):
     class Meta:
         model = service
         fields = '__all__'
+
+
+class createLeadManualSerializer(serializers.Serializer):
+    requester_name = serializers.CharField() 
+    phone_number = serializers.CharField() 
+    email_id = serializers.CharField() 
+    service_category = serializers.CharField()
+
+    def validate(self, attrs):
+        requester_name = attrs.get('requester_name')
+        phone_number = attrs.get('phone_number')
+        email_id = attrs.get('email_id')
+        service_category = attrs.get('service_category')
+
+        AI_data = all_identifiers.objects.filter(Q(service_category = service_category) & Q(phone_number = phone_number) | Q(email_id = email_id))
+
+        if AI_data.exists():
+            raise serializers.ValidationError('lead already registered with given phone number or email id')
+        if requester_name is None:
+            raise serializers.ValidationError('requester name is required')
+        if len(phone_number) < 10:
+            raise serializers.ValidationError('a valid 10 digit number is required')
+
+        return attrs
+    
+
+    def create(self, validated_data):
+        lead_id = getLeadId()
+        validated_data['lead_id'] = lead_id
+
+
+        data = all_identifiers.objects.create(**validated_data)
+        print('data', data.id)
+        if data:
+            d = {'lead_id': data}
+
+            business_identifiers.objects.create(**d)
+            comment.objects.create(**d)
+            contact_preference.objects.create(**d)
+            seller_address.objects.create(**d)
+            followup.objects.create(**d)
+            service.objects.create(**d)
+            website_store.objects.create(**d)
+
+        return data
+        
+        
+
+    # def create(self, validated_data):
+    #     print(self)
+    #     requester_name = self.validated_data['requester_name']
+    #     poc_name = self.validated_data['poc_name']
+    #     email_id = self.validated_data['email_id']
+    #     service_category = self.validated_data['service_category']
+    #     phone_number = self.validated_data['phone_number']
+
+    #     print(requester_name)
+
+        # return super().create(validated_data)
+
+
 
 
 # class fieldAddNewPlatformSerializer(serializers.Serializer):
