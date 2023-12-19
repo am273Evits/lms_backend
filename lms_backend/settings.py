@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'employees',
     'dropdown',
     'business_leads',
-    'evitamin'
+    'evitamin',
+    'records'
 ]
 
 MIDDLEWARE = [

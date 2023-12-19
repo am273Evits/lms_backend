@@ -413,11 +413,20 @@ class viewLeadsAllIdentifiers(GenericAPIView):
         res = Response()
 
         models = apps.get_model('business_leads', table)
+        model_fields = getModelFields(models)
+        print(model_fields)
+
         serializer_class = models
 
         if table != 'all_identifiers':
             lead_ref = all_identifiers.objects.filter(lead_id = lead_id)[0]
             lead_id = lead_ref.id
+            for i in range(len(model_fields)):
+                print(model_fields[i])
+                if model_fields[i]['field'] == 'lead_id':
+                    # model_fields.pop(i)
+                    model_fields[i] = ''
+            # print(model_fields)
 
         # print(models)
         if user_role == 'lead_manager' or 'admin':
@@ -433,7 +442,7 @@ class viewLeadsAllIdentifiers(GenericAPIView):
             res.data = {
                 'status': status.HTTP_200_OK,
                 'message': 'successful',
-                'data': {'data': serializer.data, "current_table": table, 'lead_id': lead_id}
+                'data': {'data': serializer.data, "current_table": table, 'lead_id': lead_id, 'data_type': model_fields}
                 }
             # return res
         elif user_role == 'bd_tl':
@@ -450,7 +459,7 @@ class viewLeadsAllIdentifiers(GenericAPIView):
                 res.data = {
                     "status": status.HTTP_200_OK,
                     'message': 'successful',
-                    'data': {'data': serializer.data,"current_table": table, 'lead_id': lead_id}
+                    'data': {'data': serializer.data,"current_table": table, 'lead_id': lead_id, 'field_type': [model_fields]}
                     }
                 # return res
         else:
@@ -1606,11 +1615,18 @@ class fieldsAddNewServiceCountry(GenericAPIView):
         serializer = fieldEmailProposalCountry(data=data, many=True)
         res = Response()
         if serializer.is_valid(raise_exception=True):
+            s_data = serializer.data[0]
+            
+            datalist = []
+            for key in s_data:
+                print('key',key)
+                datalist.append(s_data[key])
+
             res.status_code = status.HTTP_200_OK
             res.data = {
                 'status': status.HTTP_200_OK,
                 'message': 'successful',
-                'data': {'country': serializer.data}
+                'data': datalist
                 }
         else :
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -1629,11 +1645,19 @@ class fieldsAddNewServiceMarketplace(GenericAPIView):
         serializer = fieldEmailProposalMarketplace(data=data, many=True)
         res = Response()
         if serializer.is_valid(raise_exception=True):
+            s_data = serializer.data[0]
+            
+            datalist = []
+            
+            for key in s_data:
+                print('key',key)
+                datalist.append(s_data[key])
+
             res.status_code = status.HTTP_200_OK
             res.data = {
                 'status': status.HTTP_200_OK,
                 'message': 'successful',
-                'data': {'marketplace': serializer.data}
+                'data': datalist
                 }
         else: 
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -1663,11 +1687,18 @@ class fieldsAddNewServiceServices(GenericAPIView):
         serializer = fieldEmailProposalService(data=dt_list, many=True)
         res = Response()
         if serializer.is_valid(raise_exception=True):
+            s_data = serializer.data[0]
+            
+            datalist = []
+            
+            for key in s_data:
+                print('key',key)
+                datalist.append(s_data[key])
             res.status_code = status.HTTP_200_OK
             res.data = {
                 'status': status.HTTP_200_OK,
                 'message': 'successful',
-                'data': {'service': serializer.data}
+                'data': datalist
                 }
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST

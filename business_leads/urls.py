@@ -36,6 +36,9 @@ urlpatterns = [
 
             # path('dashboard', dbTableAddData), #view_all_leads
 
+            # path('field_email_proposal/<str:country>/<str:marketplace>', apiFieldEmailProposalMarkeplace.as_view()),
+            # path('field_email_proposal/<str:country>/<str:marketplace>/<str:services>', apiFieldEmailProposalService.as_view()),
+
 
             #email proposal fields
             path('field_email_proposal', apiFieldEmailProposal.as_view()),

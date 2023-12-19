@@ -149,9 +149,10 @@ class serviceFieldSubSerializer(serializers.ModelSerializer):
 class createLeadManualSerializer(serializers.Serializer):
     requester_name = serializers.CharField() 
     phone_number = serializers.CharField() 
-    email_id = serializers.CharField() 
+    email_id = serializers.EmailField() 
     service_category = serializers.CharField()
     marketplace = serializers.CharField()
+    country = serializers.CharField()
 
     def validate(self, attrs):
         requester_name = attrs.get('requester_name')
@@ -159,17 +160,22 @@ class createLeadManualSerializer(serializers.Serializer):
         email_id = attrs.get('email_id')
         service_category = attrs.get('service_category')
         marketplace = attrs.get('marketplace')
+        country = attrs.get('country')
+
+        print(attrs)
 
         AI_data = all_identifiers.objects.filter(Q(service_category = service_category) & Q(phone_number = phone_number) | Q(email_id = email_id))
 
         if AI_data.exists():
             raise serializers.ValidationError('lead already registered with given phone number or email id')
-        if requester_name is None:
-            raise serializers.ValidationError('requester name is required')
-        if service_category is None:
-            raise serializers.ValidationError('service category is required')
+        if country is None:
+            raise serializers.ValidationError('country is required')
         if marketplace is None:
             raise serializers.ValidationError('maketplace is required')
+        if service_category is None:
+            raise serializers.ValidationError('service category is required')
+        if requester_name is None:
+            raise serializers.ValidationError('requester name is required')
         if len(phone_number) < 10:
             raise serializers.ValidationError('a valid 10 digit number is required')
 
@@ -180,6 +186,11 @@ class createLeadManualSerializer(serializers.Serializer):
         lead_id = getLeadId()
         validated_data['lead_id'] = lead_id
 
+        for key in validated_data:
+            if isinstance(validated_data[key] ,str):
+                validated_data[key] = validated_data[key].lower()
+            else :
+                validated_data[key] = validated_data[key]
 
         data = all_identifiers.objects.create(**validated_data)
         print('data', data.id)
@@ -196,6 +207,17 @@ class createLeadManualSerializer(serializers.Serializer):
             service.objects.create(**d)
 
         return data
+    
+
+class tableFieldSerializer(serializers.Serializer):
+    key = serializers.CharField()
+    value = serializers.CharField(max_length=500, default='')
+    type = serializers.CharField()
+    dropdown = serializers.CharField()
+    dropdown_data = serializers.ListField()
+
+    # class Meta:
+    #     extra_kwargs = {'value': {'write_only': True}}
         
         
 

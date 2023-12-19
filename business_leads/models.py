@@ -4,6 +4,7 @@ from django.db import models
 
 class all_identifiers(models.Model):
     lead_id = models.CharField(max_length=100, blank=True, default='')
+    country = models.CharField(max_length=100, blank=True, default='')
     marketplace = models.CharField(max_length=100, blank=True, default='')
     request_id = models.CharField(max_length=150, blank=True, default='')
     provider_id = models.CharField(max_length=150, blank=True, default='')
