@@ -36,6 +36,7 @@ from business_leads.models import all_identifiers, business_identifiers, comment
 from account.models import *
 from employees.models import *
 from evitamin.models import *
+from records.models import *
 
 # from lms_backend.models import File
 
@@ -46,10 +47,10 @@ from account.views import getLeadId, getProduct, getUserRole, getTeamLeader, get
 
 
 
-class uploadBusLdAmzSPNC(GenericAPIView):
+class uploadBusinessLeads(CreateAPIView):
+    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
     serializer_class = uploadFileSerializer
-    permission_classes = [IsAuthenticated]
     # @api_view(['POST'])
     def post(self, request, format=None, *args, **kwargs):
         # print(request)
@@ -201,6 +202,11 @@ class uploadBusLdAmzSPNC(GenericAPIView):
                             for field_name, value in data.items():
                                 setattr(model_instace, field_name, value)
                             model_instace.save()
+
+                        lead_status_instance = lead_status.objects.get(title = 'yet to contact')
+                        lead_status_record.objects.create(**{'lead_id': all_identifiers_instance, 'status': lead_status_instance})
+                        
+
                     else:
                         d = ['not generated']
                         d = d + ls
@@ -238,6 +244,186 @@ class uploadBusLdAmzSPNC(GenericAPIView):
             }
         
         return res
+    
+
+class updateBusinessLeads(CreateAPIView):
+    parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [IsAuthenticated]
+    serializer_class = uploadFileSerializer
+    def post(self, request, format=None, *args, **kwargs):
+        # print('this working')
+        if request.method == 'POST':
+            if request.FILES:
+                file = request.FILES['file']
+                obj = File.objects.create(file = file)
+                df = pd.read_csv(obj.file, delimiter=',',   header=0)
+                # print(df)
+                df = pd.DataFrame(df)
+                df.fillna('', inplace=True)
+                head_row = df.columns.values
+                h_row = [f.replace(' ', '_').replace('(', '').replace(')', '').replace('/', '_').replace('__', '_').replace('__', '_').lower() for f in head_row]
+                # print(h_row)
+                db_head_row_all_rw = all_identifiers._meta.get_fields()
+                db_head_row_all = [field.name for field in db_head_row_all_rw]
+                db_head_row_all_type = [field.get_internal_type() for field in db_head_row_all_rw]
+                db_head_row_serv_rw = service._meta.get_fields()
+                db_head_row_serv = [field.name for field in db_head_row_serv_rw]
+                list_of_csv = [list(row) for row in df.values]
+
+                output_data = []
+
+                break_out = True
+
+                ref_id = ''
+
+                for ls in list_of_csv:
+                    print(ls)
+                    dt = {}
+                    lead_id = ''
+
+                    # all_identifiers_instance = all_identifiers()
+                    # for i in range (len(db_head_row_all)):
+                    #     if not (db_head_row_all[i] == 'id') and db_head_row_all[i] in h_row:
+                    #             ind = h_row.index(db_head_row_all[i])
+                    #             # print(ls[ind])
+
+                    #             if db_head_row_all[i] == 'service_category':
+                    #                 dt[db_head_row_all[i]] = ls[ind]
+                                
+
+                    #             elif db_head_row_all[i] == 'request_id':
+                    #                 if ls[ind] != '':
+                    #                     if len(str(ls[ind])) > 0:
+                    #                         dt[db_head_row_all[i]] = ls[ind]
+                    #                 else:
+                    #                     break_out = False
+                    #                     break
+
+                    #             elif db_head_row_all[i] == 'phone_number':
+                    #                 if ls[ind] != '':
+                    #                     dt[db_head_row_all[i]] = str(int(ls[ind]))
+                    #                     # print(str(int(ls[ind])))
+                    #                 else:
+                    #                     dt[db_head_row_all[i]] = ''
+
+                    #             elif db_head_row_all[i] == 'lead_id':
+                    #                 # dt[db_head_row_all[i]] = ls[ind]
+                    #                 lead_id = ls[ind]
+
+
+                    #             else:
+
+                    #                 if isinstance(ls[ind], str):
+                    #                        dt[db_head_row_all[i]] = ls[ind].lower()
+
+                    #                 elif isinstance(ls[ind], float):
+                    #                     if ls[ind] != '':
+                    #                         dt[db_head_row_all[i]] = str(ls[ind])
+                    #                     else:
+                    #                         dt[db_head_row_all[i]] = ''
+                    #                 elif isinstance(ls[ind], int):
+                    #                     if ls[ind] != '':
+                    #                         dt[db_head_row_all[i]] = str(ls[ind])
+                    #                     else:
+                    #                         dt[db_head_row_all[i]] = ''
+                                    
+                    #                 else: 
+                    #                     dt[db_head_row_all[i]] = ls[ind]
+
+                    # print('dt***********************', lead_id)
+
+                    # if break_out:
+                    #     d = [lead_id]
+                    #     d = d + ls
+                    #     output_data.append(d)
+
+
+                    #     all_identifiers_instance = all_identifiers.objects.update_or_create(lead_id = lead_id, defaults=dt)
+
+                    #     # dt['lead_id'] = str(lead_id)
+                    #     # for field_name, value in dt.items():
+                    #     #     setattr(all_identifiers_instance, field_name, value)
+                    #     # all_identifiers_instance.save()
+
+                    #     ref_id = all_identifiers.objects.filter(lead_id = lead_id).values('id').first()
+                    #     ref_id = ref_id['id']
+
+                    #     service_instance = service()
+                    #     dt = {}
+                    #     for i in range (len(db_head_row_serv)):
+                    #         if not (db_head_row_serv[i] == 'id' or db_head_row_serv[i] == 'lead_id') and db_head_row_serv[i] in h_row:
+                    #             ind = h_row.index(db_head_row_serv[i])
+
+
+                    #             if isinstance(ls[ind], str):
+                    #                 dt[db_head_row_serv[i]] = ls[ind].lower().strip()
+                    #             elif isinstance(ls[ind], float):
+                    #                 if ls[ind] == '':
+                    #                     dt[db_head_row_all[i]] = ''
+                    #                 else:
+                    #                     dt[db_head_row_all[i]] = str(ls[ind])
+                    #             elif isinstance(ls[ind], int):
+                    #                 if ls[ind] != '':
+                    #                     dt[db_head_row_all[i]] = ''
+                    #                 else:
+                    #                     dt[db_head_row_all[i]] = str(ls[ind])
+
+
+                    #     # dt['lead_id'] = all_identifiers_instance
+                    #     # for field_name, value in dt.items():
+                    #     #     setattr(service_instance, field_name, value)
+                    #     # service_instance.save()
+
+                    #     service_instance.objects.update_or_create(lead_id = all_identifiers_instance, defaults=dt)
+
+
+                    #     all_instances = [business_identifiers(), comment(), contact_preference(), followup(), seller_address(), website_store()]
+                    #     dl = []
+                    #     for i in range(len(all_instances)):
+                    #         dl.append({"lead_id": all_identifiers_instance})
+                    #     for model_instace, data in zip(all_instances, dl):
+                    #         # for field_name, value in data.items():
+                    #         #     setattr(model_instace, field_name, value)
+                    #         # model_instace.save()
+                    #         model_instace.objects.update_or_create(lead_id = all_identifiers, default = data)
+                    # else:
+                    #     d = ['not generated']
+                    #     d = d + ls
+                    #     output_data.append(d)
+
+                        
+                    
+                res =  Response()
+                res.status_code = status.HTTP_201_CREATED
+                # res['Access-Control-Allow-Origin'] = '*'
+                # res['Access-Control-Allow-Credentials'] = True
+                # res['Allow_'] = status.HTTP_201_CREATED
+                res.data = {
+                    "status": status.HTTP_201_CREATED,
+                    "message": 'all records updated successfully', 
+                    "data": ['output_data']
+                    }
+            else :
+                res =  Response()
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': 'file object not provided with key "file"',
+                    'data': []
+                }
+            return res
+        else:
+            res = Response()
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                "status" : status.HTTP_400_BAD_REQUEST,
+                "message": "unsuccessful",
+                "data": []
+            }
+        
+        return res
+
+
     
 
 class businessLeadsAllTables(GenericAPIView):
@@ -413,31 +599,95 @@ class viewLeadsAllIdentifiers(GenericAPIView):
         res = Response()
 
         models = apps.get_model('business_leads', table)
-        model_fields = getModelFields(models)
-        print(model_fields)
+        modelFields = list(getModelFields(models))
+        # print(model_fields)
 
+        model_fields = [mod for mod in modelFields if mod['type'] != 'ForeignKey' if mod['field'] != 'lead_id']
         serializer_class = models
 
         if table != 'all_identifiers':
             lead_ref = all_identifiers.objects.filter(lead_id = lead_id)[0]
             lead_id = lead_ref.id
             for i in range(len(model_fields)):
-                print(model_fields[i])
-                if model_fields[i]['field'] == 'lead_id':
-                    # model_fields.pop(i)
-                    model_fields[i] = ''
-            # print(model_fields)
+                if model_fields[i]:
+                    if model_fields[i]['field'] == 'lead_id':
+                        model_fields.pop(i)
+                        break
+
+        # if table =='service':
+        #     employee_id = models.objects.filter(lead_id = lead_id)
 
         # print(models)
         if user_role == 'lead_manager' or 'admin':
-            data = models.objects.filter(lead_id = lead_id).values()
-            data = list(data)
+            if table != 'service':
+                data = models.objects.filter(lead_id = lead_id).values()
+                data = list(data)
+                print('data', data)
+            else :
+                data = models.objects.select_related().filter(lead_id = lead_id)
+                associate_name = data[0].associate_id.name
+                print(associate_name)
+                data = data.values()
+                data[0]['associate_id'] = associate_name
+                print(data[0])
+                data = list(data.values())
+                
+                # associate_id = data.first().associate_id_id
+                # associate_id = employee_official.objects.filter(emp__id = data.first().associate_id_id).first()
+                # # print(associate_id.emp.name)
+                # # data = data.values().first()
+                # # data['associate_id'] = associate_id.emp.name
+                # # data = [data]
+                # # data = list(data)
+                # # print('data', data)
+
 
             dynamic = dynamic_serializer(models)
             serializer = dynamic(data=data, many=True)
             
             # serializer = allIdentifiersSerializer(data=data, many=True)
             serializer.is_valid(raise_exception=True)
+
+            s_data = dict(serializer.data[0])
+
+            # print(s_data)
+            for md in model_fields:
+                if table == 'all_identifiers' and (md['field'] == 'upload_date'):
+                    del md
+                    
+                elif not md['type'] == 'ForeignKey':
+                    # print(md)
+                    for key in md:
+                        # print('data',)
+                        # print(key)
+                        # print(md['field'])
+                        md['value'] =  s_data[md['field']]
+                        break
+
+            
+            for mod in model_fields:
+                mod['key'] = mod['field']
+                del mod['field']
+
+            dropdown_fields_data = dropdown_fields.objects.all()
+            for m in model_fields:
+                # print(m['key'])
+                for d in dropdown_fields_data:
+                    if d.title == m['key']:
+                        print(d.title)
+                        m['type'] = 'dropdown'
+                        # selectBoxData = []
+                        if d.ref_tb:
+                            m['table'] = d.ref_tb
+                            # refModel = apps.get_model('dropdown', d.ref_tb)
+                            # refModelData = refModel.objects.all()
+                            # for rmd in refModelData:
+                            #     selectBoxData.append(rmd.title)
+                            # m['dropdown'] = selectBoxData
+                        else:
+                            pass
+
+
             res.status_code = status.HTTP_200_OK
             res.data = {
                 'status': status.HTTP_200_OK,
@@ -482,6 +732,7 @@ class createLeadManual(CreateAPIView):
         serializer = createLeadManualSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             # pass
+            print('working out of function')
             if serializer.save():
                 res.status_code = status.HTTP_200_OK
                 res.data = {
@@ -498,6 +749,10 @@ class createLeadManual(CreateAPIView):
                     "data": []
                 }
         return res
+
+
+
+
 
 
         
@@ -799,11 +1054,20 @@ class apiFieldEmailProposal(GenericAPIView):
         serializer = fieldEmailProposalCountry(data=data, many=True)
         res = Response()
         if serializer.is_valid(raise_exception=True):
+            s_data = serializer.data
+            
+            datalist = []
+            for i in s_data:
+                print(i)
+                for key in i:
+                    print('key',key)
+                    datalist.append(i[key])
+
             res.status_code = status.HTTP_200_OK
             res.data = {
                 'status': status.HTTP_200_OK,
                 'message': 'successful',
-                'data': {'country': serializer.data}
+                'data': datalist
                 }
         else :
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -823,11 +1087,21 @@ class apiFieldEmailProposalCountry(GenericAPIView):
         serializer = fieldEmailProposalMarketplace(data=data, many=True)
         res = Response()
         if serializer.is_valid(raise_exception=True):
+            s_data = serializer.data
+            
+            datalist = []
+            for i in s_data:
+                print(i)
+                for key in i:
+                    print('key',key)
+                    datalist.append(i[key])
+
+            
             res.status_code = status.HTTP_200_OK
             res.data = {
                 'status': status.HTTP_200_OK,
                 'message': 'successful',
-                'data': {'marketplace': serializer.data}
+                'data': datalist
                 }
         else: 
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -858,11 +1132,20 @@ class apiFieldEmailProposalMarkeplace(GenericAPIView):
         serializer = fieldEmailProposalService(data=dt_list, many=True)
         res = Response()
         if serializer.is_valid(raise_exception=True):
+            s_data = serializer.data
+            
+            datalist = []
+            for i in s_data:
+                print(i)
+                for key in i:
+                    print('key',key)
+                    datalist.append(i[key])
+
             res.status_code = status.HTTP_200_OK
             res.data = {
                 'status': status.HTTP_200_OK,
                 'message': 'successful',
-                'data': {'service': serializer.data}
+                'data': datalist
                 }
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -882,11 +1165,22 @@ class apiFieldEmailProposalService(GenericAPIView):
         serializer = fieldEmailProposalSlab(data=data, many=True)
         res = Response()
         if serializer.is_valid(raise_exception=True):
+            print(serializer.data)
+            s_data = serializer.data
+            
+            datalist = []
+            for i in s_data:
+                print(i)
+                for key in i:
+                    print('key',key)
+                    datalist.append(i[key])
+
+
             res.status_code = status.HTTP_200_OK
             res.data = {
                 'status': status.HTTP_200_OK,
                 'message': 'successful',
-                'data':{'slab': serializer.data}
+                'data':datalist
                 }
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -1048,8 +1342,12 @@ class formsSubmit(GenericAPIView):
 
                 if serializer.is_valid(raise_exception=True):
                     serializer.save()
+
+                    
                     if table == 'followup':
-                        service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = 'follow up')
+                        serviceObjData = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = 'follow up')
+                        lead_status_instance = lead_status.objects.get(title = 'yet to contact')
+                        lead_status_record.objects.create(**{'lead_id': serviceObjData.lead_id, 'status': lead_status_instance})
                     res.status_code = status.HTTP_200_OK
                     res.data = {
                         "status":status.HTTP_200_OK,
@@ -1092,6 +1390,8 @@ class formsSubmit(GenericAPIView):
 
                             if table == 'followup':
                                 service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = 'follow up')
+                                lead_status_instance = lead_status.objects.get(title = 'yet to contact')
+                                lead_status_record.objects.create(**{'lead_id': serviceObjData.lead_id, 'status': lead_status_instance})
 
                             res.status_code = status.HTTP_200_OK
                             res.data = {
@@ -1151,10 +1451,12 @@ class assignAssociate(GenericAPIView):
         if user_role == 'admin' or 'lead_manager' or 'bd_tl':
             lead_id = request.data.get('lead_id')
             assoc_employee_id = request.data.get('employee_id')
-            team_leader_id = getTeamLeader(assoc_employee_id)
-            print(team_leader_id)
+            empData = employee_official.objects.filter(emp__employee_id = assoc_employee_id).first()
+            print('empData', empData.id)
 
-            req_data = {"team_leader_id": team_leader_id, "associate_id": assoc_employee_id}
+            team_leader_id = getTeamLeader(assoc_employee_id)
+
+            req_data = {"team_leader_id": team_leader_id, "associate_id": empData.id}
 
             # with connection.cursor() as cursor:
             if isinstance(lead_id, list):
@@ -1164,6 +1466,8 @@ class assignAssociate(GenericAPIView):
                     serializer = assignAssociateSerializer(data, data=req_data, partial=True)
                     if serializer.is_valid(raise_exception=True):
                         serializer.save()
+                        lead_status_instance = lead_status.objects.get(title = 'pitch in progress')
+                        lead_status_record.objects.create(**{'lead_id': data.lead_id, 'status': lead_status_instance})
                         res.status_code = status.HTTP_201_CREATED
                         res.data = {
                             'status' : status.HTTP_201_CREATED,
@@ -1186,6 +1490,8 @@ class assignAssociate(GenericAPIView):
                 serialize = assignAssociateSerializer(data, data=req_data, partial=True)
                 if serialize.is_valid(raise_exception=True):
                     serialize.save()
+                    lead_status_instance = lead_status.objects.get(title = 'pitch in progress')
+                    lead_status_record.objects.create(**{'lead_id': data.lead_id, 'status': lead_status_instance})
                     res.status_code = status.HTTP_201_CREATED
                     res.data = {
                         'status' : status.HTTP_201_CREATED,
@@ -1615,12 +1921,14 @@ class fieldsAddNewServiceCountry(GenericAPIView):
         serializer = fieldEmailProposalCountry(data=data, many=True)
         res = Response()
         if serializer.is_valid(raise_exception=True):
-            s_data = serializer.data[0]
+            s_data = serializer.data
             
             datalist = []
-            for key in s_data:
-                print('key',key)
-                datalist.append(s_data[key])
+            for i in s_data:
+                print(i)
+                for key in i:
+                    print('key',key)
+                    datalist.append(i[key])
 
             res.status_code = status.HTTP_200_OK
             res.data = {
@@ -1645,13 +1953,14 @@ class fieldsAddNewServiceMarketplace(GenericAPIView):
         serializer = fieldEmailProposalMarketplace(data=data, many=True)
         res = Response()
         if serializer.is_valid(raise_exception=True):
-            s_data = serializer.data[0]
+            s_data = serializer.data
             
             datalist = []
-            
-            for key in s_data:
-                print('key',key)
-                datalist.append(s_data[key])
+            for i in s_data:
+                print(i)
+                for key in i:
+                    print('key',key)
+                    datalist.append(i[key])
 
             res.status_code = status.HTTP_200_OK
             res.data = {
@@ -1687,13 +1996,15 @@ class fieldsAddNewServiceServices(GenericAPIView):
         serializer = fieldEmailProposalService(data=dt_list, many=True)
         res = Response()
         if serializer.is_valid(raise_exception=True):
-            s_data = serializer.data[0]
+            s_data = serializer.data
             
             datalist = []
-            
-            for key in s_data:
-                print('key',key)
-                datalist.append(s_data[key])
+            for i in s_data:
+                print(i)
+                for key in i:
+                    print('key',key)
+                    datalist.append(i[key])
+
             res.status_code = status.HTTP_200_OK
             res.data = {
                 'status': status.HTTP_200_OK,
@@ -1728,7 +2039,7 @@ class fieldsAddNewServiceTeamLeader(GenericAPIView):
             res.data = {
                 'status': status.HTTP_200_OK,
                 'message': 'successful',
-                'data':{'slab': serializer.data}
+                'data': serializer.data
                 }
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -1739,6 +2050,45 @@ class fieldsAddNewServiceTeamLeader(GenericAPIView):
                 }
             
         return res
+    
+
+
+
+class deleteLeadApprovalWrite(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, lead_id, format=None, *args, **kwargs):
+        res = Response()
+        if not lead_delete_approval.objects.filter(lead_id__lead_id = lead_id).exists():
+            data = all_identifiers.objects.filter(lead_id=lead_id).first()
+            if data:
+                lda = lead_delete_approval.objects.create(**{'lead_id': data})
+                if lda:
+                    res.status_code = status.HTTP_201_CREATED
+                    res.data = {
+                        'status': status.HTTP_201_CREATED,
+                        'message': 'sent for approval, this lead will be deleted after the approval of admin',
+                        'data': []
+                    }
+            else :
+                res.status_code = status.HTTP_400_BAD_REQUEST,
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': 'lead id do not exists',
+                    'data': []
+                }
+        else :
+            res.status_code = status.HTTP_208_ALREADY_REPORTED
+            res.data = {
+                'status': status.HTTP_208_ALREADY_REPORTED,
+                'message': 'already submitted',
+                'data': [] 
+            }
+
+        return res
+
+
+        # pass
+
 
 
 # class statusUpdate(GenericAPIView):

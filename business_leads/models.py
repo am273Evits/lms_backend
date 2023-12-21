@@ -1,10 +1,11 @@
 from django.db import models
+from account.models import UserAccount
 
 # Create your models here.
 
 class all_identifiers(models.Model):
     lead_id = models.CharField(max_length=100, blank=True, default='')
-    country = models.CharField(max_length=100, blank=True, default='')
+    service_country = models.CharField(max_length=100, blank=True, default='')
     marketplace = models.CharField(max_length=100, blank=True, default='')
     request_id = models.CharField(max_length=150, blank=True, default='')
     provider_id = models.CharField(max_length=150, blank=True, default='')
@@ -67,14 +68,14 @@ class all_identifiers(models.Model):
     
 
 class business_identifiers(models.Model):
-    lead_id = models.ForeignKey(all_identifiers, on_delete=models.DO_NOTHING)
+    lead_id = models.ForeignKey(all_identifiers, on_delete=models.CASCADE)
     business_name = models.CharField(max_length=500, blank=True,default='')
     business_type = models.CharField(max_length=500, blank=True,default='')
     business_category = models.CharField(max_length=500, blank=True,default='')
     brand_name = models.CharField(max_length=500, blank=True,default='')
     firm_type = models.CharField(max_length=500, blank=True,default='')
     name_for_mou = models.CharField(max_length=500, blank=True,default='')
-    designation = models.CharField(max_length=500, blank=True,default='')
+    designation_in_company= models.CharField(max_length=500, blank=True,default='')
     turnover = models.CharField(max_length=500, blank=True,default='')
     monthly_sales = models.CharField(max_length=500, blank=True,default='')
     gst = models.CharField(max_length=500, blank=True,default='')
@@ -82,14 +83,14 @@ class business_identifiers(models.Model):
 
 
 class comment(models.Model):
-    lead_id = models.ForeignKey(all_identifiers, on_delete=models.DO_NOTHING)
+    lead_id = models.ForeignKey(all_identifiers, on_delete=models.CASCADE)
     comment = models.CharField(max_length=500, blank=True, default='') 
     comment_date = models.DateField( auto_now=False, auto_now_add=False, blank=True, default='0001-01-01')
     def __str__(self): return str(self.lead_id)
 
 
 class contact_preference(models.Model):
-    lead_id = models.ForeignKey(all_identifiers, on_delete=models.DO_NOTHING)
+    lead_id = models.ForeignKey(all_identifiers, on_delete=models.CASCADE)
     contact_preferences = models.CharField(max_length=500, blank=True, default='')
     
     # class Meta:
@@ -100,17 +101,17 @@ class contact_preference(models.Model):
 
 
 class followup(models.Model):
-    lead_id = models.ForeignKey(all_identifiers, on_delete=models.DO_NOTHING)
+    lead_id = models.ForeignKey(all_identifiers, on_delete=models.CASCADE)
     followup_date = models.DateField(auto_now=False, auto_now_add=False, blank=True, default='0001-01-01')
     followup_time = models.TimeField(auto_now=False, auto_now_add=False, null=True)
     followup_notes = models.TextField(blank=True, default='')
     created_by = models.CharField(max_length=50, blank=True, default='')
-    service_category = models.CharField(max_length=50, blank=True, default='')
+    service = models.CharField(max_length=50, blank=True, default='')
     def __str__(self): return str(self.lead_id)
 
 
 class seller_address(models.Model):
-    lead_id = models.ForeignKey(all_identifiers, on_delete=models.DO_NOTHING)
+    lead_id = models.ForeignKey(all_identifiers, on_delete=models.CASCADE)
     address_line1 = models.CharField(max_length=50, blank=True, default='')
     address_line2 = models.CharField(max_length=50, blank=True, default='')
     country = models.CharField(max_length=50, blank=True, default='')
@@ -121,15 +122,15 @@ class seller_address(models.Model):
 
 
 class service(models.Model):
-    lead_id = models.ForeignKey(all_identifiers, on_delete=models.DO_NOTHING)
+    lead_id = models.ForeignKey(all_identifiers, on_delete=models.CASCADE)
     platform = models.CharField(max_length=50, blank=True, default='')
     service_country = models.CharField(max_length=50, blank=True, default='')
     service_category = models.CharField(max_length=50, blank=True, default='')
-    service_name = models.CharField(max_length=50, blank=True, default='')
+    marketplace = models.CharField(max_length=50, blank=True, default='')
     team_leader = models.CharField(max_length=50, blank=True, default='')
     team_leader_id = models.CharField(max_length=50, blank=True, default='')
     associate = models.CharField(max_length=50, blank=True, default='')
-    associate_id = models.CharField(max_length=50, blank=True, default='')
+    associate_id = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
     lead_status = models.CharField(max_length=50, blank=True, default='yet to contact')
     lead_status_reason = models.CharField(max_length=50, blank=True, default='')
     fees_slab = models.CharField(max_length=50, blank=True, default='')
@@ -152,7 +153,7 @@ class service(models.Model):
 
 
 class website_store(models.Model):
-    lead_id = models.ForeignKey(all_identifiers, on_delete=models.DO_NOTHING)
+    lead_id = models.ForeignKey(all_identifiers, on_delete=models.CASCADE)
     seller_website = models.CharField(max_length=50, blank=True, default='')
     amazon_store_link = models.CharField(max_length=50, blank=True, default='')
     facebook_store_link = models.CharField(max_length=50, blank=True, default='')

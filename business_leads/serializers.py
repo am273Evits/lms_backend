@@ -7,6 +7,8 @@ from rest_framework import status
 from rest_framework.response import Response
 # from rest_framework.exceptions import ValidationError
 
+from records.models import lead_status_record
+
 from account.views import getLeadId
 
 
@@ -71,11 +73,12 @@ class allIdentifiersSerializer(serializers.ModelSerializer):
 
 def dynamic_serializer(model_class):
     class dynamicSeralizer(serializers.ModelSerializer):
+        # associate_id=serializers.CharField(max_length=200, read_only = True)
+        associate_id_id = serializers.CharField(max_length=200)
         class Meta:
             model = model_class
             exclude = ['lead_id']
     return dynamicSeralizer
-
 
 
 def dynamic_serializer_submit(model_class):
@@ -121,7 +124,7 @@ class ev_servicesSerializer(serializers.ModelSerializer):
 class uploadFileSerializer(serializers.Serializer):
     file = serializers.FileField()
     class Meta:
-        models=all_identifiers
+        # models=all_identifiers
         fields=["file"]
 
 
@@ -152,7 +155,7 @@ class createLeadManualSerializer(serializers.Serializer):
     email_id = serializers.EmailField() 
     service_category = serializers.CharField()
     marketplace = serializers.CharField()
-    country = serializers.CharField()
+    service_country = serializers.CharField()
 
     def validate(self, attrs):
         requester_name = attrs.get('requester_name')
@@ -160,7 +163,7 @@ class createLeadManualSerializer(serializers.Serializer):
         email_id = attrs.get('email_id')
         service_category = attrs.get('service_category')
         marketplace = attrs.get('marketplace')
-        country = attrs.get('country')
+        service_country = attrs.get('service_country')
 
         print(attrs)
 
@@ -168,8 +171,8 @@ class createLeadManualSerializer(serializers.Serializer):
 
         if AI_data.exists():
             raise serializers.ValidationError('lead already registered with given phone number or email id')
-        if country is None:
-            raise serializers.ValidationError('country is required')
+        if service_country is None:
+            raise serializers.ValidationError('service_country is required')
         if marketplace is None:
             raise serializers.ValidationError('maketplace is required')
         if service_category is None:
@@ -185,6 +188,13 @@ class createLeadManualSerializer(serializers.Serializer):
     def create(self, validated_data):
         lead_id = getLeadId()
         validated_data['lead_id'] = lead_id
+
+        # global service_country_data
+        # service_country_data = validated_data['service_country']
+
+        # del validated_data['service_country']
+
+        # print('validated_data', validated_data)
 
         for key in validated_data:
             if isinstance(validated_data[key] ,str):
@@ -204,7 +214,11 @@ class createLeadManualSerializer(serializers.Serializer):
             followup.objects.create(**d)
             website_store.objects.create(**d)
             d['service_category'] = validated_data['service_category']
+            d['service_country'] = validated_data['service_country']
             service.objects.create(**d)
+
+            lead_status_instance = lead_status.objects.get(title = 'yet to contact')
+            lead_status_record.objects.create(**{'lead_id': data, 'status': lead_status_instance})
 
         return data
     

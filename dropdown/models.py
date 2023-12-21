@@ -6,55 +6,69 @@ from django.db import models
 #xsup
 
 # class banking_account_type(models.Model):
-#     title = models.CharField(max_length=200, null=True)
+#     title = models.CharField(max_length=200, blank=True, default='')
 
 class business_type(models.Model):
-    title = models.CharField(max_length=200, null=True)
+    title = models.CharField(max_length=200, blank=True, default='')
     def __str__ (self): return self.title
 
 class firm_type(models.Model):
-    title = models.CharField(max_length=200, null=True)
+    title = models.CharField(max_length=200, blank=True, default='')
     def __str__ (self): return self.title
 
-# class prop_dir(models.Model):
-#     title = models.CharField(max_length=200, null=True)
+# class prop_dir(models.Model): 
+#     title = models.CharField(max_length=200, blank=True, default='')
 
-# class prop_dir_designation(models.Model):
-#     title = models.CharField(max_length=200, null=True)
+class prop_dir_designation(models.Model):
+    title = models.CharField(max_length=200, blank=True, default='')
+    def __str__ (self): return self.title
 
 # class cities(models.Model):
-#     city = models.CharField(max_length=300, null=True)
-#     state = models.CharField(max_length=300, null=True)
-#     coutry = models.CharField(max_length=300, null=True)
+#     city = models.CharField(max_length=300, blank=True, default='')
+#     state = models.CharField(max_length=300, blank=True, default='')
+#     coutry = models.CharField(max_length=300, blank=True, default='')
 
 class decision(models.Model):
-    title = models.CharField(max_length=200, null=True)
+    title = models.CharField(max_length=200, blank=True, default='')
     def __str__ (self): return self.title
 
 # class ev_departments(models.Model):
-#     title = models.CharField(max_length=200, null=True)
-#     sub_department = models.CharField(max_length=200, null=True)
-#     created_by = models.CharField(max_length=500, null=True)
+#     title = models.CharField(max_length=200, blank=True, default='')
+#     sub_department = models.CharField(max_length=200, blank=True, default='')
+#     created_by = models.CharField(max_length=500, blank=True, default='')
 
 class dropdown_fields(models.Model):
-    dropdown_fields = models.CharField(max_length=500, null=True)
-    ref_tb = models.CharField(max_length=500, null=True)
+    title = models.CharField(max_length=500, blank=True, default='')
+    ref_tb = models.CharField(max_length=500, blank=True, default='')
+    def __str__(self): return str(self.title)
+
+
+class country_state_city(models.Model):
+    country = models.CharField(max_length=500, blank=True, default='')
+    state = models.CharField(max_length=500, blank=True, default='')
+    city = models.CharField(max_length=500, blank=True, default='')
+    def __str__(self): return str(self.city)
 
 
 
 
 
 class contact_preference_list(models.Model):
-    title = models.CharField(max_length=200, null=True)
+    title = models.CharField(max_length=200, blank=True, default='')
+    def __str__ (self): return self.title
+
+
+class business_category_list(models.Model):
+    title = models.CharField(max_length=200, blank=True, default='')
     def __str__ (self): return self.title
 
 
     
-    # CharField(max_length=500, null=True)
+    # CharField(max_length=500, blank=True, default='')
 
 # class ev_admin(models.Model):
-#     title = models.CharField(max_length=200, null=True)
-#     created_by = models.CharField(max_length=500, null=True)
+#     title = models.CharField(max_length=200, blank=True, default='')
+#     created_by = models.CharField(max_length=500, blank=True, default='')
     
 
 
@@ -62,36 +76,36 @@ class contact_preference_list(models.Model):
 
 
 class ev_commercials(models.Model):
-    platform = models.CharField(max_length=500, null=True)
-    service_country = models.CharField(max_length=200, null=True)
-    service_category = models.CharField(max_length=500, null=True)
+    platform = models.CharField(max_length=500, blank=True, default='')
+    service_country = models.CharField(max_length=200, blank=True, default='')
+    service_category = models.CharField(max_length=500, blank=True, default='')
 
 # class ev_department_designation(models.Model):
-#     title = models.CharField(max_length=500, null=True)
-#     designation = models.CharField(max_length=200, null=True)
+#     title = models.CharField(max_length=500, blank=True, default='')
+#     designation = models.CharField(max_length=200, blank=True, default='')
 #     def __str__ (self): return self.title
 
 
 # class ev_employee_status(models.Model):
-#     title = models.CharField(max_length=500, null=True)
-#     created_by = models.CharField(max_length=500, null=True)
+#     title = models.CharField(max_length=500, blank=True, default='')
+#     created_by = models.CharField(max_length=500, blank=True, default='')
 #     def __str__ (self): return self.title
 
 
 # class ev_super_admin(models.Model):
-#     title = models.CharField(max_length=500, null=True)
-#     created_by = models.CharField(max_length=500, null=True)
+#     title = models.CharField(max_length=500, blank=True, default='')
+#     created_by = models.CharField(max_length=500, blank=True, default='')
 
 
 # class ev_team_leader(models.Model):
-#     title = models.CharField(max_length=500, null=True)
-#     marketplace = models.CharField(max_length=500, null=True)
-#     segment = models.CharField(max_length=500, null=True)
-#     created_by = models.CharField(max_length=500, null=True)
+#     title = models.CharField(max_length=500, blank=True, default='')
+#     marketplace = models.CharField(max_length=500, blank=True, default='')
+#     segment = models.CharField(max_length=500, blank=True, default='')
+#     created_by = models.CharField(max_length=500, blank=True, default='')
 
 # class ev_team_manager(models.Model):
-#     title = models.CharField(max_length=500, null=True)
-#     created_by = models.CharField(max_length=500, null=True)
+#     title = models.CharField(max_length=500, blank=True, default='')
+#     created_by = models.CharField(max_length=500, blank=True, default='')
 
 class user_links(models.Model):
     title = models.CharField(max_length=500, default='', blank=True)
@@ -107,40 +121,40 @@ class user_links(models.Model):
 
 
 class service_category(models.Model):
-    title = models.CharField(max_length=500, null=True)
+    title = models.CharField(max_length=500, blank=True, default='')
     def __str__ (self): return self.title
 
 
 class service_country(models.Model):
-    title = models.CharField(max_length=500, null=True)
+    title = models.CharField(max_length=500, blank=True, default='')
     def __str__ (self): return self.title
 
 
-class user_role(models.Model):
-    title = models.CharField(max_length=500, null=True)
+class user_role_list(models.Model):
+    title = models.CharField(max_length=500, blank=True, default='')
     def __str__ (self): return self.title
 
 
 class gender(models.Model):
-    title = models.CharField(max_length=500, null=True)
+    title = models.CharField(max_length=500, blank=True, default='')
     def __str__ (self): return self.title
 
 
 class lead_status(models.Model):
-    title = models.CharField(max_length=500, null=True)
+    title = models.CharField(max_length=500, blank=True, default='')
     def __str__ (self): return self.title
 
 
 # class marital_status(models.Model):
-#     title = models.CharField(max_length=500, null=True)
+#     title = models.CharField(max_length=500, blank=True, default='')
 
 class not_interested_reason(models.Model):
-    title = models.CharField(max_length=500, null=True)
+    title = models.CharField(max_length=500, blank=True, default='')
     def __str__ (self): return self.title
 
 
 class unresponsive_reason(models.Model):
-    title = models.CharField(max_length=500, null=True)
+    title = models.CharField(max_length=500, blank=True, default='')
     def __str__ (self): return self.title
 
 
@@ -151,21 +165,21 @@ class list_business_leads(models.Model):
     def __str__ (self): return self.table_name
 
 # class list_client(models.Model):
-#     table_name = models.CharField(max_length=500, null=True)
-#     table_type = models.CharField(max_length=500, null=True)
-#     table_atr = models.CharField(max_length=500, null=True)
+#     table_name = models.CharField(max_length=500, blank=True, default='')
+#     table_type = models.CharField(max_length=500, blank=True, default='')
+#     table_atr = models.CharField(max_length=500, blank=True, default='')
 
 # class list_employee(models.Model):
-#     table_name = models.CharField(max_length=500, null=True)
-#     table_type = models.CharField(max_length=500, null=True)
-#     table_atr = models.CharField(max_length=500, null=True)
+#     table_name = models.CharField(max_length=500, blank=True, default='')
+#     table_type = models.CharField(max_length=500, blank=True, default='')
+#     table_atr = models.CharField(max_length=500, blank=True, default='')
 
 
 class image_src(models.Model):
-    title = models.CharField(max_length=100, null=True)
-    src = models.TextField(null=True)
+    title = models.CharField(max_length=100, blank=True, default='')
+    src = models.TextField(blank=True, default='')
     status = models.BooleanField(default=True)
 
 
 # class ref_service_country(models.Model):
-#     title = models.CharField(max_length=150, null=True)
+#     title = models.CharField(max_length=150, blank=True, default='')

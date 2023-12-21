@@ -6,7 +6,8 @@ urlpatterns = [
     # path('/api', home_VF)
 
         # lead_manager:
-            path('upload', uploadBusLdAmzSPNC.as_view()), #file upload
+            path('upload', uploadBusinessLeads.as_view()), #file upload
+            path('update', updateBusinessLeads.as_view()), #file upload
             path('create_lead_manual', createLeadManual.as_view()), #file upload
             path('view_all_leads/<int:page>', viewAllLeads.as_view()), #view_all_leads
             path('view_lead/<str:table>/<str:lead_id>', viewLeadsAllIdentifiers.as_view()), #view_all_leads
@@ -21,9 +22,9 @@ urlpatterns = [
             path('generate_mou/<str:lead_id>', mouFun.as_view()),
             path('email_mou/<str:lead_id>', emailMouFun.as_view()), 
 
+            path('add_lead_delete_approval/<str:lead_id>', deleteLeadApprovalWrite.as_view()),
+
             # path('status_update/<str:lead_id>', statusUpdate.as_view()), #all tables submit
-
-
 
             # path('view_lead_business_identifiers/<str:lead_id>', viewLeadBusinessIdentifiers.as_view()), #view_all_leads
             # path('view_lead_comment/<str:lead_id>', viewLeadComment.as_view()), #view_all_leads
@@ -33,12 +34,10 @@ urlpatterns = [
             # path('view_lead_service/<str:lead_id>', viewLeadService.as_view()), #view_all_leads
             # path('view_lead_website_store/<str:lead_id>', viewLeadWebsiteStore.as_view()), #view_all_leads
 
-
             # path('dashboard', dbTableAddData), #view_all_leads
 
             # path('field_email_proposal/<str:country>/<str:marketplace>', apiFieldEmailProposalMarkeplace.as_view()),
             # path('field_email_proposal/<str:country>/<str:marketplace>/<str:services>', apiFieldEmailProposalService.as_view()),
-
 
             #email proposal fields
             path('field_email_proposal', apiFieldEmailProposal.as_view()),
