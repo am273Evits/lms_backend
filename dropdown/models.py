@@ -44,7 +44,7 @@ class dropdown_fields(models.Model):
 
 
 class country_state_city(models.Model):
-    country = models.CharField(max_length=500, blank=True, default='')
+    title = models.CharField(max_length=500, blank=True, default='')
     state = models.CharField(max_length=500, blank=True, default='')
     city = models.CharField(max_length=500, blank=True, default='')
     def __str__(self): return str(self.city)

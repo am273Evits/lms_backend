@@ -606,13 +606,23 @@ class viewLeadsAllIdentifiers(GenericAPIView):
         serializer_class = models
 
         if table != 'all_identifiers':
-            lead_ref = all_identifiers.objects.filter(lead_id = lead_id)[0]
-            lead_id = lead_ref.id
-            for i in range(len(model_fields)):
-                if model_fields[i]:
-                    if model_fields[i]['field'] == 'lead_id':
-                        model_fields.pop(i)
-                        break
+            lead_ref = all_identifiers.objects.filter(lead_id = lead_id)
+            if lead_ref: 
+                # print('lead_ref', lead_ref)
+                lead_id = lead_ref[0].id
+                for i in range(len(model_fields)):
+                    if model_fields[i]:
+                        if model_fields[i]['field'] == 'lead_id':
+                            model_fields.pop(i)
+                            break
+            else:
+                res.status_code = status.HTTP_403_FORBIDDEN
+                res.data = {
+                    'status': status.HTTP_403_FORBIDDEN,
+                    'message': 'invalid lead id',
+                    'data' : []
+                }
+                return res
 
         # if table =='service':
         #     employee_id = models.objects.filter(lead_id = lead_id)
@@ -622,15 +632,20 @@ class viewLeadsAllIdentifiers(GenericAPIView):
             if table != 'service':
                 data = models.objects.filter(lead_id = lead_id).values()
                 data = list(data)
-                print('data', data)
+                # print('data', data)
             else :
                 data = models.objects.select_related().filter(lead_id = lead_id)
-                associate_name = data[0].associate_id.name
-                print(associate_name)
-                data = data.values()
-                data[0]['associate_id'] = associate_name
-                print(data[0])
-                data = list(data.values())
+                associate_id = data[0].associate_id.id
+                # print(associate_name)
+                # data[0].associate_id.name = 'working'
+                # print(data[0].associate_id.name)
+                data = data.values().first()
+                nData = data
+                nData['associate_id'] = associate_id
+                data = list([nData])
+                # print(nData)
+
+                # nd = models.
                 
                 # associate_id = data.first().associate_id_id
                 # associate_id = employee_official.objects.filter(emp__id = data.first().associate_id_id).first()
@@ -644,11 +659,20 @@ class viewLeadsAllIdentifiers(GenericAPIView):
 
             dynamic = dynamic_serializer(models)
             serializer = dynamic(data=data, many=True)
+
             
             # serializer = allIdentifiersSerializer(data=data, many=True)
             serializer.is_valid(raise_exception=True)
 
+            # print(serializer.data)
             s_data = dict(serializer.data[0])
+
+            if table =='service':
+                EO_INST = employee_official.objects.filter(emp__id = s_data['associate_id']).first()
+                s_data['associate_id'] = {'name': EO_INST.emp.name, 'pk': s_data['associate_id']}
+
+                model_fields.append({'type': 'CharField', 'value': '', 'field': 'associate_id'})
+                # print(s_data)
 
             # print(s_data)
             for md in model_fields:
@@ -656,10 +680,11 @@ class viewLeadsAllIdentifiers(GenericAPIView):
                     del md
                     
                 elif not md['type'] == 'ForeignKey':
+
                     # print(md)
                     for key in md:
-                        # print('data',)
-                        # print(key)
+                        # print('data', md['field'])
+                        # print(s_data)
                         # print(md['field'])
                         md['value'] =  s_data[md['field']]
                         break
@@ -669,21 +694,23 @@ class viewLeadsAllIdentifiers(GenericAPIView):
                 mod['key'] = mod['field']
                 del mod['field']
 
+            # print('model_fields',model_fields)
+
             dropdown_fields_data = dropdown_fields.objects.all()
             for m in model_fields:
                 # print(m['key'])
                 for d in dropdown_fields_data:
                     if d.title == m['key']:
-                        print(d.title)
+                        # print(d.title)
                         m['type'] = 'dropdown'
-                        # selectBoxData = []
+                        selectBoxData = []
                         if d.ref_tb:
                             m['table'] = d.ref_tb
-                            # refModel = apps.get_model('dropdown', d.ref_tb)
-                            # refModelData = refModel.objects.all()
-                            # for rmd in refModelData:
-                            #     selectBoxData.append(rmd.title)
-                            # m['dropdown'] = selectBoxData
+                            refModel = apps.get_model('dropdown', d.ref_tb)
+                            refModelData = refModel.objects.all()
+                            for rmd in refModelData:
+                                selectBoxData.append(rmd.title)
+                            m['dropdown'] = selectBoxData
                         else:
                             pass
 
@@ -701,7 +728,7 @@ class viewLeadsAllIdentifiers(GenericAPIView):
             serviceData = service.objects.filter(lead_id = lead_id, service_category = product)
             if serviceData:
                 data = models.objects.filter(lead_id = lead_id)
-                print(data)
+                # print(data)
                 data = list(data.values())
                 serializer = models(data=data, many=True)
                 serializer.is_valid(raise_exception=True)

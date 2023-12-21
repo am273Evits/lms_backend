@@ -73,12 +73,11 @@ class allIdentifiersSerializer(serializers.ModelSerializer):
 
 def dynamic_serializer(model_class):
     class dynamicSeralizer(serializers.ModelSerializer):
-        # associate_id=serializers.CharField(max_length=200, read_only = True)
-        associate_id_id = serializers.CharField(max_length=200)
         class Meta:
             model = model_class
             exclude = ['lead_id']
     return dynamicSeralizer
+
 
 
 def dynamic_serializer_submit(model_class):
