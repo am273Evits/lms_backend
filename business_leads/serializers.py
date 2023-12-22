@@ -217,6 +217,7 @@ class createLeadManualSerializer(serializers.Serializer):
             service.objects.create(**d)
 
             lead_status_instance = lead_status.objects.get(title = 'yet to contact')
+            print('lead_status_instance', lead_status_instance)
             lead_status_record.objects.create(**{'lead_id': data, 'status': lead_status_instance})
 
         return data

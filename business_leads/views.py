@@ -40,7 +40,7 @@ from records.models import *
 
 # from lms_backend.models import File
 
-from account.views import getLeadId, getProduct, getUserRole, getTeamLeader, getClientId, get_tokens_for_user, getModelFields
+from account.views import getLeadId, getProduct, getUserRole, getTeamLeader, getClientId, get_tokens_for_user, getModelFields, getTeamLeaderInst, getLeadStatusInst
 # Create your views here.
 
 
@@ -1372,7 +1372,7 @@ class formsSubmit(GenericAPIView):
 
                     
                     if table == 'followup':
-                        serviceObjData = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = 'follow up')
+                        serviceObjData = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = getLeadStatusInst('follow up'))
                         lead_status_instance = lead_status.objects.get(title = 'yet to contact')
                         lead_status_record.objects.create(**{'lead_id': serviceObjData.lead_id, 'status': lead_status_instance})
                     res.status_code = status.HTTP_200_OK
@@ -1416,7 +1416,7 @@ class formsSubmit(GenericAPIView):
                             serializer.save()
 
                             if table == 'followup':
-                                service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = 'follow up')
+                                service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = getLeadStatusInst('follow up'))
                                 lead_status_instance = lead_status.objects.get(title = 'yet to contact')
                                 lead_status_record.objects.create(**{'lead_id': serviceObjData.lead_id, 'status': lead_status_instance})
 
@@ -1479,11 +1479,11 @@ class assignAssociate(GenericAPIView):
             lead_id = request.data.get('lead_id')
             assoc_employee_id = request.data.get('employee_id')
             empData = employee_official.objects.filter(emp__employee_id = assoc_employee_id).first()
-            print('empData', empData.id)
+            # print('empData',empData.emp.id)
+            team_leader_id = getTeamLeaderInst(empData.emp.employee_id)
 
-            team_leader_id = getTeamLeader(assoc_employee_id)
-
-            req_data = {"team_leader_id": team_leader_id, "associate_id": empData.id}
+            req_data = {"team_leader": team_leader_id.emp.id, "associate_id": empData.emp.id}
+            print(req_data)
 
             # with connection.cursor() as cursor:
             if isinstance(lead_id, list):
@@ -1572,7 +1572,20 @@ class apiSubmitEmailAskForDetails(GenericAPIView):
             email.attach_alternative(message, 'text/html')
             email = email.send()
             if email:
-                status_update = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = 'asked for details')
+
+                statusData = getLeadStatusInst(title = 'asked for details')
+                print('status', statusData.id)
+                
+                status_update = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = statusData.id)
+                print(status_update)
+                AI_INST = all_identifiers.objects.filter(lead_id = lead_id).first()
+                # print("AI_INST",AI_INST)
+
+
+                lead_status_instance = lead_status.objects.get(title = 'asked for details')
+                # print('lead_status_instance', lead_status_instance)
+                lead_status_record.objects.create(**{'lead_id': AI_INST, 'status': lead_status_instance})
+
                 res.status_code = status.HTTP_200_OK
                 res.data = {
                     'status': status.HTTP_200_OK,
@@ -1793,10 +1806,10 @@ class mouFun(GenericAPIView):
 class emailMouFun(GenericAPIView):
     permission_classes = [IsAuthenticated]
     def post(self, request, lead_id, format=None, *args, **kwargs):
-        print(lead_id)
+        # print(lead_id)
         if request.method == 'POST':
             file = request.FILES.get('file')
-            print(file)
+            # print(file)
     
         email = all_identifiers.objects.get(lead_id=lead_id)
         email = email.email_id
@@ -1814,7 +1827,8 @@ class emailMouFun(GenericAPIView):
     
         res = Response()
         if email.send():
-            status_update = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = 'pending for payment') 
+            print('getLeadStatusInst', getLeadStatusInst('pending payment proof'))
+            service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = getLeadStatusInst('pending payment proof'))
     
             res.status_code = status.HTTP_200_OK
             res.data = {

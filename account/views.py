@@ -15,7 +15,7 @@ from datetime import datetime
 import random
 
 from employees.models import *
-from dropdown.models import user_links
+from dropdown.models import user_links, lead_status
 
 
 # def cookieAuth(request):
@@ -51,6 +51,16 @@ def getUserRole(id):
 def getTeamLeader(emp):
     data = employee_official.objects.filter(emp__employee_id = emp).first()
     return data.team_leader
+
+def getTeamLeaderInst(emp):
+    data = employee_official.objects.filter(emp__employee_id = emp).first()
+    tl = employee_official.objects.filter(emp__employee_id = data.team_leader).first()
+    return tl
+
+def getLeadStatusInst(status):
+    data = lead_status.objects.filter(title = status).first().id
+    print(data)
+    return data
 
 def getLeadId():
     date = datetime.now()
