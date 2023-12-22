@@ -488,7 +488,7 @@ class viewAllLeads(GenericAPIView):
         with connection.cursor() as cursor:
             if user_role == 'lead_manager' or 'admin':
 
-                cursor.execute(f"SELECT a.lead_id, a.requester_name, b.service_category, b.lead_status, a.upload_date FROM business_leads_all_identifiers as a JOIN business_leads_service as b WHERE a.id = b.lead_id_id ORDER BY b.lead_id_id LIMIT {offset}, {limit}")
+                cursor.execute(f"SELECT a.lead_id, a.requester_name, dls.title as lead_status, b.service_category, a.upload_date FROM business_leads_all_identifiers as a JOIN business_leads_service as b JOIN dropdown_lead_status as dls WHERE a.id = b.lead_id_id AND b.lead_status_id = dls.id ORDER BY b.lead_id_id LIMIT {offset}, {limit}")
 
                 column = [col[0] for col in cursor.description]
                 for row in cursor.fetchall():
@@ -519,7 +519,7 @@ class viewAllLeads(GenericAPIView):
             elif user_role == 'bd_tl':
                 product = getProduct(user.id)
 
-                cursor.execute(f"SELECT b.lead_id, b.service_category, b.associate, b.lead_status, a.requester_name, a.phone_number, a.email_id  FROM business_leads_all_identifiers as a JOIN business_leads_service as b WHERE a.lead_id = b.lead_id AND b.service_category = '{product}' ORDER BY b.lead_id LIMIT {offset}, {limit}")
+                cursor.execute(f"SELECT b.lead_id, b.service_category, dls.title as lead_status, b.associate, a.requester_name, a.phone_number, a.email_id  FROM business_leads_all_identifiers as a JOIN business_leads_service as b dropdown_lead_status as dls WHERE a.lead_id = b.lead_id AND b.service_category = '{product}' AND b.lead_status_id = dls.id ORDER BY b.lead_id LIMIT {offset}, {limit}")
 
                 column = [col[0] for col in cursor.description]
                 for row in cursor.fetchall():
@@ -1292,7 +1292,7 @@ class apiSubmitEmailProposal(GenericAPIView):
         email.send()
 
         if email:
-            status_update = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = 'proposal email sent')
+            status_update = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = getLeadStatusInst('proposal email sent'))
             print(status_update)
             if status_update:
                 res = Response()
@@ -1798,7 +1798,7 @@ class mouFun(GenericAPIView):
                         'data': []
                         })
 
-                status_update = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = 'mou generated')
+                status_update = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = getLeadStatusInst('mou generated'))
                 res.seek(0)
                 return FileResponse(res, content_type='application/pdf', as_attachment=True, filename=f'{business_name}.pdf')
 

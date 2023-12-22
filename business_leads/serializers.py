@@ -23,7 +23,7 @@ class BusinessDevelopmentLeadSerializer(serializers.Serializer):
     lead_id = serializers.CharField() 
     service_category = serializers.CharField() 
     associate = serializers.CharField() 
-    lead_status = serializers.CharField() 
+    lead_status = serializers.CharField()
     requester_name = serializers.CharField() 
     phone_number = serializers.CharField() 
     email_id = serializers.CharField()
