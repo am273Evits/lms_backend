@@ -132,7 +132,7 @@ class service(models.Model):
     team_leader_id = models.CharField(max_length=50, blank=True, default='')
     associate = models.CharField(max_length=50, blank=True, default='')
     associate_id = models.ForeignKey(UserAccount, null=True, on_delete=models.CASCADE)
-    lead_status = models.ForeignKey(lead_status , null=True, on_delete=models.CASCADE)
+    lead_status = models.ForeignKey(lead_status , default=8, on_delete=models.CASCADE)
     lead_status_reason = models.CharField(max_length=50, blank=True, default='')
     fees_slab = models.CharField(max_length=50, blank=True, default='')
     def __str__(self): return str(self.lead_id)

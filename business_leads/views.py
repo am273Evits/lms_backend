@@ -488,15 +488,27 @@ class viewAllLeads(GenericAPIView):
         with connection.cursor() as cursor:
             if user_role == 'lead_manager' or 'admin':
 
-                cursor.execute(f"SELECT a.lead_id, a.requester_name, dls.title as lead_status, b.service_category, a.upload_date FROM business_leads_all_identifiers as a JOIN business_leads_service as b JOIN dropdown_lead_status as dls WHERE a.id = b.lead_id_id AND b.lead_status_id = dls.id ORDER BY b.lead_id_id LIMIT {offset}, {limit}")
+                # cursor.execute(f"SELECT a.lead_id, a.requester_name,  b.service_category, a.upload_date FROM business_leads_all_identifiers as a JOIN business_leads_service as b  WHERE a.id = b.lead_id_id  ORDER BY b.lead_id_id LIMIT {offset}, {limit}")
+                
+                data = []
+                serviceData = service.objects.select_related().all()[offset : limit]
+                for sd in serviceData:
+                    data.append({'lead_id' : sd.lead_id.lead_id , 'requester_name': sd.lead_id.requester_name, 'service_category': sd.service_category, 'upload_date': sd.lead_id.upload_date, 'lead_status': getLeadStatusInst(sd.lead_status) })                 
+                    print('data', data)
+    
 
-                column = [col[0] for col in cursor.description]
-                for row in cursor.fetchall():
-                    data.append(dict(zip(column, row)))
+                # column = [col[0] for col in cursor.description]
+                # for row in cursor.fetchall():
+                #     data.append(dict(zip(column, row)))
 
-                cursor.execute(f"select count(lead_id) from business_leads_all_identifiers")
-                for row in cursor.fetchall():
-                    pagecount = math.ceil(row[0]/limit)
+                # cursor.execute(f"select count(lead_id) from business_leads_all_identifiers")
+                # for row in cursor.fetchall():
+                #     pagecount = math.ceil(row[0]/limit)
+
+                pagecount = math.ceil(service.objects.count()/limit)
+                print('leadcount', pagecount)
+
+                
 
                 serializer = lead_managerBlSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
