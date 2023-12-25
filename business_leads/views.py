@@ -572,6 +572,90 @@ class viewAllLeads(GenericAPIView):
     
 
 
+# class viewAllLeadsSearch(GenericAPIView):
+    # pass
+    # permission_classes = [IsAuthenticated]
+    # serializer_class = lead_managerBlSerializer
+    # def get(self, request, lead_id, format=None, *args, **kwargs):
+    #     user = request.user
+    #     user_role = getUserRole(user.id)
+    #     limit = 10
+    #     offset = int((page - 1) * limit)
+    #     data = []
+    #     pagecount = []
+    #     res =  Response(
+    #         {
+    #             'status': status.HTTP_400_BAD_REQUEST,
+    #             'message': 'unauthorized access', 
+    #             'data': [],
+    #         }
+    #     )
+
+    #     with connection.cursor() as cursor:
+    #         if user_role == 'lead_manager' or 'admin':
+                
+    #             data = []
+    #             serviceData = service.objects.select_related().all()[offset : offset + limit]
+    #             for sd in serviceData:
+    #                 data.append({'lead_id' : sd.lead_id.lead_id , 'requester_name': sd.lead_id.requester_name, 'service_category': sd.service_category, 'upload_date': sd.lead_id.upload_date, 'lead_status': getLeadStatusInst(sd.lead_status) })                 
+    #                 print('data', data)
+    
+
+    #             pagecount = math.ceil(service.objects.count()/limit)
+    #             print('leadcount', pagecount)
+
+
+    #             serializer = lead_managerBlSerializer(data=data, many=True)
+    #             serializer.is_valid(raise_exception=True)
+                
+    #             if int(page) <= pagecount:
+    #                 res.status_code = status.HTTP_200_OK
+    #                 res.data = {
+    #                     "status": status.HTTP_200_OK,
+    #                     "message": 'successful',
+    #                     "data": {'data': serializer.data, 'total_pages': pagecount, "current_page": page}
+    #                     }
+    #             else :
+    #                 res.status_code = status.HTTP_400_BAD_REQUEST
+    #                 res.data = {
+    #                     "status": status.HTTP_400_BAD_REQUEST,
+    #                     "message": 'the page is unavailable',
+    #                     "data": {'data': [], 'total_pages': pagecount, "current_page": page}
+    #                     }
+
+    #         elif user_role == 'bd_tl':
+    #             product = getProduct(user.id)
+
+    #             cursor.execute(f"SELECT b.lead_id, b.service_category, dls.title as lead_status, b.associate, a.requester_name, a.phone_number, a.email_id  FROM business_leads_all_identifiers as a JOIN business_leads_service as b dropdown_lead_status as dls WHERE a.lead_id = b.lead_id AND b.service_category = '{product}' AND b.lead_status_id = dls.id ORDER BY b.lead_id LIMIT {offset}, {limit}")
+
+
+    #             column = [col[0] for col in cursor.description]
+    #             for row in cursor.fetchall():
+    #                 data.append(dict(zip(column, row)))
+
+    #             cursor.execute(f"select count(lead_id) from business_leads_all_identifiers where service_category = '{product}'")
+    #             for row in cursor.fetchall():
+    #                 pagecount = math.ceil(row[0]/limit)
+
+    #             serializer = BusinessDevelopmentLeadSerializer(data=data, many=True)
+    #             serializer.is_valid(raise_exception=True)
+
+    #             if int(page) <= pagecount:
+    #                 res.status_code = status.HTTP_200_OK
+    #                 res.data = {
+    #                     'status': status.HTTP_200_OK,
+    #                     'message': 'successful',
+    #                     'data': {'data': serializer.data, 'total_pages': pagecount, "current_page": page}
+    #                     }
+                
+    #             else :
+    #                 res.status_code = status.HTTP_400_BAD_REQUEST
+    #                 res.data = {
+    #                     "status": status.HTTP_400_BAD_REQUEST,
+    #                     "message": 'the page is unavailable',
+    #                     "data": {'data': [], 'total_pages': pagecount, "current_page": page}
+    #                     }
+    #         return res
 
 
 # #Team Leader
@@ -627,7 +711,7 @@ class viewLeadsAllIdentifiers(GenericAPIView):
 
         if table != 'all_identifiers':
             lead_ref = all_identifiers.objects.filter(lead_id = lead_id)
-            if lead_ref: 
+            if lead_ref:
                 # print('lead_ref', lead_ref)
                 lead_id = lead_ref[0].id
                 for i in range(len(model_fields)):
@@ -643,6 +727,21 @@ class viewLeadsAllIdentifiers(GenericAPIView):
                     'data' : []
                 }
                 return res
+            
+        else:
+            lead_ref = all_identifiers.objects.filter(lead_id = lead_id)
+            if not lead_ref:
+                res.status_code = status.HTTP_403_FORBIDDEN
+                res.data = {
+                    'status': status.HTTP_403_FORBIDDEN,
+                    'message': 'invalid lead id',
+                    'data' : []
+                }
+                return res
+                
+
+
+            
 
         # if table =='service':
         #     employee_id = models.objects.filter(lead_id = lead_id)
@@ -715,24 +814,24 @@ class viewLeadsAllIdentifiers(GenericAPIView):
                 del mod['field']
 
             # print('model_fields',model_fields)
-
-            dropdown_fields_data = dropdown_fields.objects.all()
-            for m in model_fields:
-                # print(m['key'])
-                for d in dropdown_fields_data:
-                    if d.title == m['key']:
-                        # print(d.title)
-                        m['type'] = 'dropdown'
-                        selectBoxData = []
-                        if d.ref_tb:
-                            m['table'] = d.ref_tb
-                            refModel = apps.get_model('dropdown', d.ref_tb)
-                            refModelData = refModel.objects.all()
-                            for rmd in refModelData:
-                                selectBoxData.append(rmd.title)
-                            m['dropdown'] = selectBoxData
-                        else:
-                            pass
+            if table != 'all_identifiers':
+                dropdown_fields_data = dropdown_fields.objects.all()
+                for m in model_fields:
+                    # print(m['key'])
+                    for d in dropdown_fields_data:
+                        if d.title == m['key']:
+                            # print(d.title)
+                            m['type'] = 'dropdown'
+                            selectBoxData = []
+                            if d.ref_tb:
+                                m['table'] = d.ref_tb
+                                refModel = apps.get_model('dropdown', d.ref_tb)
+                                refModelData = refModel.objects.all()
+                                for rmd in refModelData:
+                                    selectBoxData.append(rmd.title)
+                                m['dropdown'] = selectBoxData
+                            else:
+                                pass
 
 
             res.status_code = status.HTTP_200_OK
@@ -1372,44 +1471,54 @@ class formsSubmit(GenericAPIView):
             dynamic = dynamic_serializer_submit(model)
 
             if user_role == 'lead_manager' or 'admin':
-
-                if table == 'followup':
-                    main_data['created_by'] = request.user.employee_id
-
                 if table != 'all_identifiers':
+
+                    if table == 'followup':
+                        main_data['created_by'] = request.user.employee_id
+
                     data = model.objects.filter(lead_id__lead_id=lead_id).first()
                     p_id = data.lead_id.id
                     main_data['lead_id'] = p_id
 
-                else:
-                    main_data['lead_id'] = lead_id
-                    data = model.objects.filter(lead_id = lead_id).first()
+                    # else:
+                    #     main_data['lead_id'] = lead_id
+                    #     data = model.objects.filter(lead_id = lead_id).first()
 
-                serializer = dynamic(data, data=main_data, partial=True)
+                    serializer = dynamic(data, data=main_data, partial=True)
 
-                if serializer.is_valid(raise_exception=True):
-                    serializer.save()
+                    if serializer.is_valid(raise_exception=True):
+                        serializer.save()
 
-                    
-                    if table == 'followup':
-                        serviceObjData = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = getLeadStatusInst('follow up'))
-                        lead_status_instance = lead_status.objects.get(title = 'yet to contact')
-                        lead_status_record.objects.create(**{'lead_id': serviceObjData.lead_id, 'status': lead_status_instance})
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        "status":status.HTTP_200_OK,
-                        "message": 'updations successful',
-                        "data": {'message' : "changes saved successfully"}
+
+                        if table == 'followup':
+                            serviceObjData = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = getLeadStatusInst('follow up'))
+                            lead_status_instance = lead_status.objects.get(title = 'yet to contact')
+                            lead_status_record.objects.create(**{'lead_id': serviceObjData.lead_id, 'status': lead_status_instance})
+                        res.status_code = status.HTTP_200_OK
+                        res.data = {
+                            "status":status.HTTP_200_OK,
+                            "message": 'updations successful',
+                            "data": {'message' : "changes saved successfully"}
+                            }
+                    else :
+                        res.status_code = status.HTTP_400_BAD_REQUEST
+                        res.data = {
+                        'status': status.HTTP_400_BAD_REQUEST,
+                        'message': 'request failed',
+                        'data': []
                         }
-                else :
+
+                    return res
+                
+                else:
                     res.status_code = status.HTTP_400_BAD_REQUEST
                     res.data = {
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'request failed',
-                    'data': []
-                    }
+                        'status': status.HTTP_400_BAD_REQUEST,
+                        'message': 'you are not authorized to make any changes to all identifiers',
+                        'data': []
+                        }
+                    return res
 
-                return res
 
             elif user_role == 'bd_tl':
                 if table != 'all_identifiers':
