@@ -9,7 +9,7 @@ urlpatterns = [
             path('upload', uploadBusinessLeads.as_view()), #file upload
             path('update', updateBusinessLeads.as_view()), #file upload
             path('create_lead_manual', createLeadManual.as_view()), #file upload
-            # path('view_lead_search/<int:lead_id>', viewAllLeadsSearch.as_view()), #view_all_leads
+            path('view_lead_search/<int:lead_id>', viewAllLeadsSearch.as_view()), #view_all_leads
             path('view_all_leads/<int:page>', viewAllLeads.as_view()), #view_all_leads
             path('view_lead/<str:table>/<str:lead_id>', viewLeadsAllIdentifiers.as_view()), #view_all_leads
             path('get_table_fields/<str:table>', getTableFields.as_view()), #file upload

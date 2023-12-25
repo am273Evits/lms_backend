@@ -572,90 +572,87 @@ class viewAllLeads(GenericAPIView):
     
 
 
-# class viewAllLeadsSearch(GenericAPIView):
-    # pass
-    # permission_classes = [IsAuthenticated]
-    # serializer_class = lead_managerBlSerializer
-    # def get(self, request, lead_id, format=None, *args, **kwargs):
-    #     user = request.user
-    #     user_role = getUserRole(user.id)
-    #     limit = 10
-    #     offset = int((page - 1) * limit)
-    #     data = []
-    #     pagecount = []
-    #     res =  Response(
-    #         {
-    #             'status': status.HTTP_400_BAD_REQUEST,
-    #             'message': 'unauthorized access', 
-    #             'data': [],
-    #         }
-    #     )
+class viewAllLeadsSearch(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = lead_managerBlSerializer
+    def get(self, request, lead_id, format=None, *args, **kwargs):
+        user = request.user
+        user_role = getUserRole(user.id)
+        data = []
+        pagecount = []
+        res =  Response(
+            {
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'unauthorized access', 
+                'data': [],
+            }
+        )
 
-    #     with connection.cursor() as cursor:
-    #         if user_role == 'lead_manager' or 'admin':
+        with connection.cursor() as cursor:
+            if user_role == 'lead_manager' or 'admin':
                 
-    #             data = []
-    #             serviceData = service.objects.select_related().all()[offset : offset + limit]
-    #             for sd in serviceData:
-    #                 data.append({'lead_id' : sd.lead_id.lead_id , 'requester_name': sd.lead_id.requester_name, 'service_category': sd.service_category, 'upload_date': sd.lead_id.upload_date, 'lead_status': getLeadStatusInst(sd.lead_status) })                 
-    #                 print('data', data)
+                data = []
+                serviceData = service.objects.select_related().filter(lead_id__lead_id = lead_id)
+                for sd in serviceData:
+                    data.append({'lead_id' : sd.lead_id.lead_id , 'requester_name': sd.lead_id.requester_name, 'service_category': sd.service_category, 'upload_date': sd.lead_id.upload_date, 'lead_status': getLeadStatusInst(sd.lead_status) })                 
+                    print('data', data)
     
 
-    #             pagecount = math.ceil(service.objects.count()/limit)
-    #             print('leadcount', pagecount)
+                pagecount = math.ceil(service.objects.count()/limit)
+                print('leadcount', pagecount)
 
 
-    #             serializer = lead_managerBlSerializer(data=data, many=True)
-    #             serializer.is_valid(raise_exception=True)
+                serializer = lead_managerBlSerializer(data=data, many=True)
+                serializer.is_valid(raise_exception=True)
                 
-    #             if int(page) <= pagecount:
-    #                 res.status_code = status.HTTP_200_OK
-    #                 res.data = {
-    #                     "status": status.HTTP_200_OK,
-    #                     "message": 'successful',
-    #                     "data": {'data': serializer.data, 'total_pages': pagecount, "current_page": page}
-    #                     }
-    #             else :
-    #                 res.status_code = status.HTTP_400_BAD_REQUEST
-    #                 res.data = {
-    #                     "status": status.HTTP_400_BAD_REQUEST,
-    #                     "message": 'the page is unavailable',
-    #                     "data": {'data': [], 'total_pages': pagecount, "current_page": page}
-    #                     }
+                if int(page) <= pagecount:
+                    res.status_code = status.HTTP_200_OK
+                    res.data = {
+                        "status": status.HTTP_200_OK,
+                        "message": 'successful',
+                        "data": {'data': serializer.data, 'total_pages': pagecount, "current_page": page}
+                        }
+                else :
+                    res.status_code = status.HTTP_400_BAD_REQUEST
+                    res.data = {
+                        "status": status.HTTP_400_BAD_REQUEST,
+                        "message": 'the page is unavailable',
+                        "data": {'data': [], 'total_pages': pagecount, "current_page": page}
+                        }
 
-    #         elif user_role == 'bd_tl':
-    #             product = getProduct(user.id)
+            elif user_role == 'bd_tl':
+                product = getProduct(user.id)
 
-    #             cursor.execute(f"SELECT b.lead_id, b.service_category, dls.title as lead_status, b.associate, a.requester_name, a.phone_number, a.email_id  FROM business_leads_all_identifiers as a JOIN business_leads_service as b dropdown_lead_status as dls WHERE a.lead_id = b.lead_id AND b.service_category = '{product}' AND b.lead_status_id = dls.id ORDER BY b.lead_id LIMIT {offset}, {limit}")
+                cursor.execute(f"SELECT b.lead_id, b.service_category, dls.title as lead_status, b.associate, a.requester_name, a.phone_number, a.email_id  FROM business_leads_all_identifiers as a JOIN business_leads_service as b dropdown_lead_status as dls WHERE a.lead_id = b.lead_id AND b.service_category = '{product}' AND b.lead_status_id = dls.id ORDER BY b.lead_id LIMIT {offset}, {limit}")
 
 
-    #             column = [col[0] for col in cursor.description]
-    #             for row in cursor.fetchall():
-    #                 data.append(dict(zip(column, row)))
+                column = [col[0] for col in cursor.description]
+                for row in cursor.fetchall():
+                    data.append(dict(zip(column, row)))
 
-    #             cursor.execute(f"select count(lead_id) from business_leads_all_identifiers where service_category = '{product}'")
-    #             for row in cursor.fetchall():
-    #                 pagecount = math.ceil(row[0]/limit)
+                cursor.execute(f"select count(lead_id) from business_leads_all_identifiers where service_category = '{product}'")
+                for row in cursor.fetchall():
+                    pagecount = math.ceil(row[0]/limit)
 
-    #             serializer = BusinessDevelopmentLeadSerializer(data=data, many=True)
-    #             serializer.is_valid(raise_exception=True)
+                serializer = BusinessDevelopmentLeadSerializer(data=data, many=True)
+                serializer.is_valid(raise_exception=True)
 
-    #             if int(page) <= pagecount:
-    #                 res.status_code = status.HTTP_200_OK
-    #                 res.data = {
-    #                     'status': status.HTTP_200_OK,
-    #                     'message': 'successful',
-    #                     'data': {'data': serializer.data, 'total_pages': pagecount, "current_page": page}
-    #                     }
+                if int(page) <= pagecount:
+                    res.status_code = status.HTTP_200_OK
+                    res.data = {
+                        'status': status.HTTP_200_OK,
+                        'message': 'successful',
+                        'data': {'data': serializer.data, 'total_pages': pagecount, "current_page": page}
+                        }
                 
-    #             else :
-    #                 res.status_code = status.HTTP_400_BAD_REQUEST
-    #                 res.data = {
-    #                     "status": status.HTTP_400_BAD_REQUEST,
-    #                     "message": 'the page is unavailable',
-    #                     "data": {'data': [], 'total_pages': pagecount, "current_page": page}
-    #                     }
-    #         return res
+                else :
+                    res.status_code = status.HTTP_400_BAD_REQUEST
+                    res.data = {
+                        "status": status.HTTP_400_BAD_REQUEST,
+                        "message": 'the page is unavailable',
+                        "data": {'data': [], 'total_pages': pagecount, "current_page": page}
+                        }
+            return res
 
 
 # #Team Leader
@@ -794,9 +791,10 @@ class viewLeadsAllIdentifiers(GenericAPIView):
                 # print(s_data)
 
             # print(s_data)
-            for md in model_fields:
+            for i, md in enumerate(model_fields):
                 if table == 'all_identifiers' and (md['field'] == 'upload_date'):
-                    del md
+                    model_fields.pop(i)
+                    # del md
                     
                 elif not md['type'] == 'ForeignKey':
 
