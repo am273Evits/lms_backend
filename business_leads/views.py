@@ -497,7 +497,6 @@ class viewAllLeads(GenericAPIView):
                     data.append({'lead_id' : sd.lead_id.lead_id , 'requester_name': sd.lead_id.requester_name, 'service_category': sd.service_category, 'upload_date': sd.lead_id.upload_date, 'lead_status': getLeadStatusInst(sd.lead_status) })                 
                     print('data', data)
     
-
                 # column = [col[0] for col in cursor.description]
                 # for row in cursor.fetchall():
                 #     data.append(dict(zip(column, row)))
@@ -748,7 +747,7 @@ class viewLeadsAllIdentifiers(GenericAPIView):
                 # print('data', data)
             else :
                 data = models.objects.select_related().filter(lead_id = lead_id)
-                associate_id = data[0].associate_id.id
+                associate_id = data[0].associate_id.id if data[0].associate_id != None else '' 
                 # print(associate_name)
                 # data[0].associate_id.name = 'working'
                 # print(data[0].associate_id.name)
@@ -782,7 +781,7 @@ class viewLeadsAllIdentifiers(GenericAPIView):
 
             if table =='service':
                 EO_INST = employee_official.objects.filter(emp__id = s_data['associate_id']).first()
-                s_data['associate_id'] = {'name': EO_INST.emp.name, 'pk': s_data['associate_id']}
+                s_data['associate_id'] = {'name': EO_INST.emp.name if EO_INST!= None else '' , 'pk': s_data['associate_id'] if s_data['associate_id'] !=None else '' }
 
                 model_fields.append({'type': 'CharField', 'value': '', 'field': 'associate_id'})
                 # print(s_data)
