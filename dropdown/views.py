@@ -40,6 +40,40 @@ class dropdownOption(GenericAPIView):
         return res
     
 
+class dropdownOptionData1(GenericAPIView):
+    serializer_class = dropdownOptionSerializers
+    permissions_classes = [IsAuthenticated]
+    def get(self, request, table, data1,  format=None, *args, **kwargs):
+
+        model = apps.get_model('dropdown', table)
+        if table == 'ev_designation':
+            data = list(model.objects.filter(department__title = data1).values_list('title', flat=True).order_by('title'))
+            print(data)
+            serializer = dropdownOptionSerializers(data=[{'title': data}], many=True)
+            res = Response()
+            if serializer.is_valid(raise_exception=True):
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    'status': status.HTTP_200_OK,
+                    "message": 'successful',
+                    "data": serializer.data
+                    }
+            else :
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    "message": 'request failed',
+                    "data": []
+                    }
+        return res
+
+
+
+
+
+
+    
+
 
 class dropdownAjaxOption(GenericAPIView):
     serializer_class = dropdownOptionSerializers

@@ -9,6 +9,7 @@ urlpatterns = [
             path('upload', uploadBusinessLeads.as_view()), #file upload
             path('update', updateBusinessLeads.as_view()), #file upload
             path('create_lead_manual', createLeadManual.as_view()), #file upload
+            
             path('view_lead_search/<str:lead_id>', viewAllLeadsSearch.as_view()), #view_all_leads
             path('view_all_leads/<int:page>', viewAllLeads.as_view()), #view_all_leads
             path('view_lead/<str:table>/<str:lead_id>', viewLeadsAllIdentifiers.as_view()), #view_all_leads
@@ -16,7 +17,6 @@ urlpatterns = [
             path('forms_submit/<str:table>/<str:lead_id>', formsSubmit.as_view()), #all tables submit
 
             path('business_leads_all_tables', businessLeadsAllTables.as_view()), #all tables submit
-
 
             path('assign_associate', assignAssociate.as_view()), #all tables submit
             path('email_ask_for_details/<str:lead_id>', apiSubmitEmailAskForDetails.as_view()),

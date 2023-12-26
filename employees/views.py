@@ -22,9 +22,7 @@ class getAssociates(GenericAPIView):
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
 
-        # employee_id = user.employee_id
         associates = getAssociate(user.employee_id)
-        # print('associates', associates)
         serializer = getAssociatesSerializers(data=associates, many=True)
         res = Response()
         if serializer.is_valid(raise_exception=True):

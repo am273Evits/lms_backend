@@ -485,33 +485,18 @@ class viewAllLeads(GenericAPIView):
             }
         )
 
-        with connection.cursor() as cursor:
-            if user_role == 'lead_manager' or 'admin':
-
-                # cursor.execute(f"SELECT a.lead_id, a.requester_name,  b.service_category, a.upload_date FROM business_leads_all_identifiers as a JOIN business_leads_service as b  WHERE a.id = b.lead_id_id  ORDER BY b.lead_id_id LIMIT {offset}, {limit}")
-
-                
-                data = []
-                serviceData = service.objects.select_related().all()[offset : offset + limit]
-                for sd in serviceData:
-                    data.append({'lead_id' : sd.lead_id.lead_id , 'requester_name': sd.lead_id.requester_name, 'service_category': sd.service_category, 'upload_date': sd.lead_id.upload_date, 'lead_status': getLeadStatusInst(sd.lead_status) })                 
-                    print('data', data)
-    
-                # column = [col[0] for col in cursor.description]
-                # for row in cursor.fetchall():
-                #     data.append(dict(zip(column, row)))
-
-                # cursor.execute(f"select count(lead_id) from business_leads_all_identifiers")
-                # for row in cursor.fetchall():
-                #     pagecount = math.ceil(row[0]/limit)
-
+        if user_role == 'lead_manager' or user_role == 'admin':
+            
+            data = []
+            serviceData = service.objects.select_related().all()[offset : offset + limit]
+            for sd in serviceData:
+                data.append({'lead_id' : sd.lead_id.lead_id , 'requester_name': sd.lead_id.requester_name, 'service_category': sd.service_category, 'upload_date': sd.lead_id.upload_date, 'lead_status': getLeadStatusInst(sd.lead_status) })                 
+            
+            if len(data):
                 pagecount = math.ceil(service.objects.count()/limit)
-                print('leadcount', pagecount)
-
-
                 serializer = lead_managerBlSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
-                
+
                 if int(page) <= pagecount:
                     res.status_code = status.HTTP_200_OK
                     res.data = {
@@ -526,31 +511,27 @@ class viewAllLeads(GenericAPIView):
                         "message": 'the page is unavailable',
                         "data": {'data': [], 'total_pages': pagecount, "current_page": page}
                         }
+            else:   
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    "status": status.HTTP_400_BAD_REQUEST,
+                    "message": 'no data found',
+                    "data": {'data': [], 'total_pages': [], "current_page": page}
+                    }
+            return res
 
-            elif user_role == 'bd_tl':
-                product = getProduct(user.id)
+        elif user_role == 'bd_tl':
+            product = getProduct(user.id)
+            data = []
+            serviceData = service.objects.select_related().filter(service_category = product)[offset : limit]
+            for sd in serviceData:
+                associate = sd.associate_id.name if sd.associate_id != None else 'not assigned'
+                data.append({'lead_id': sd.lead_id.lead_id, 'requester_name': sd.lead_id.requester_name, 'phone_number':  sd.lead_id.phone_number, 'email_id': sd.lead_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
 
-                cursor.execute(f"SELECT b.lead_id, b.service_category, dls.title as lead_status, b.associate, a.requester_name, a.phone_number, a.email_id  FROM business_leads_all_identifiers as a JOIN business_leads_service as b dropdown_lead_status as dls WHERE a.lead_id = b.lead_id AND b.service_category = '{product}' AND b.lead_status_id = dls.id ORDER BY b.lead_id LIMIT {offset}, {limit}")
-
-
-                # data = []
-                # serviceData = service.objects.select_related().all()[offset : limit]
-                # for sd in serviceData:
-                #     data.append({'lead_id' : sd.lead_id.lead_id , 'requester_name': sd.lead_id.requester_name, 'service_category': sd.service_category, 'upload_date': sd.lead_id.upload_date, 'lead_status': getLeadStatusInst(sd.lead_status) })                 
-                #     print('data', data)
-
-
-                column = [col[0] for col in cursor.description]
-                for row in cursor.fetchall():
-                    data.append(dict(zip(column, row)))
-
-                cursor.execute(f"select count(lead_id) from business_leads_all_identifiers where service_category = '{product}'")
-                for row in cursor.fetchall():
-                    pagecount = math.ceil(row[0]/limit)
-
-                serializer = BusinessDevelopmentLeadSerializer(data=data, many=True)
+            if len(data):
+                pagecount = math.ceil(service.objects.count()/limit)
+                serializer = bd_teamLeaderSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
-
                 if int(page) <= pagecount:
                     res.status_code = status.HTTP_200_OK
                     res.data = {
@@ -558,7 +539,7 @@ class viewAllLeads(GenericAPIView):
                         'message': 'successful',
                         'data': {'data': serializer.data, 'total_pages': pagecount, "current_page": page}
                         }
-                
+
                 else :
                     res.status_code = status.HTTP_400_BAD_REQUEST
                     res.data = {
@@ -566,7 +547,13 @@ class viewAllLeads(GenericAPIView):
                         "message": 'the page is unavailable',
                         "data": {'data': [], 'total_pages': pagecount, "current_page": page}
                         }
-                # print({'data': serializer.data, 'pagecount': pagecount})
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    "status": status.HTTP_400_BAD_REQUEST,
+                    "message": 'no data found',
+                    "data": {'data': [], 'total_pages': [], "current_page": page}
+                    }
             return res
     
 
@@ -578,7 +565,6 @@ class viewAllLeadsSearch(GenericAPIView):
         user = request.user
         user_role = getUserRole(user.id)
         data = []
-        pagecount = []
         res =  Response(
             {
                 'status': status.HTTP_400_BAD_REQUEST,
@@ -587,29 +573,22 @@ class viewAllLeadsSearch(GenericAPIView):
             }
         )
 
-        # with connection.cursor() as cursor:
-        if user_role == 'lead_manager' or 'admin':
-            
+        if user_role == 'lead_manager' or user_role == 'admin':
             data = []
             serviceData = service.objects.select_related().filter(lead_id__lead_id = lead_id)
             if serviceData:
-            # print(serviceData)
                 for sd in serviceData:
                     data.append({'lead_id' : sd.lead_id.lead_id , 'requester_name': sd.lead_id.requester_name, 'service_category': sd.service_category, 'upload_date': sd.lead_id.upload_date, 'lead_status': getLeadStatusInst(sd.lead_status) })                 
                     print('data', data)
 
-                # pagecount = math.ceil(service.objects.count()/limit)
-                # print('leadcount', pagecount)
                 serializer = lead_managerBlSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
-
-                # print(serializer.data)
 
                 res.status_code = status.HTTP_200_OK
                 res.data = {
                     "status": status.HTTP_200_OK,
                     "message": 'successful',
-                    "data": {'data': serializer.data, }
+                    "data": serializer.data
                     }
             else:
                 res.status_code = status.HTTP_403_FORBIDDEN
@@ -620,35 +599,35 @@ class viewAllLeadsSearch(GenericAPIView):
                 }
                 return res
 
-
         elif user_role == 'bd_tl':
-            pass
-            # product = getProduct(user.id)
-            # cursor.execute(f"SELECT b.lead_id, b.service_category, dls.title as lead_status, b.associate, a.requester_name, a.phone_number, a.email_id  FROM business_leads_all_identifiers as a JOIN business_leads_service as b dropdown_lead_status as dls WHERE a.lead_id = b.lead_id AND b.service_category = '{product}' AND b.lead_status_id = dls.id ORDER BY b.lead_id LIMIT {offset}, {limit}")
-            # column = [col[0] for col in cursor.description]
-            # for row in cursor.fetchall():
-            #     data.append(dict(zip(column, row)))
-            # cursor.execute(f"select count(lead_id) from business_leads_all_identifiers where service_category = '{product}'")
-            # for row in cursor.fetchall():
-            #     pagecount = math.ceil(row[0]/limit)
-            # serializer = BusinessDevelopmentLeadSerializer(data=data, many=True)
-            # serializer.is_valid(raise_exception=True)
-            # if int(page) <= pagecount:
-            #     res.status_code = status.HTTP_200_OK
-            #     res.data = {
-            #         'status': status.HTTP_200_OK,
-            #         'message': 'successful',
-            #         'data': {'data': serializer.data, 'total_pages': pagecount, "current_page": page}
-            #         }
-            
-            # else :
-            #     res.status_code = status.HTTP_400_BAD_REQUEST
-            #     res.data = {
-            #         "status": status.HTTP_400_BAD_REQUEST,
-            #         "message": 'the page is unavailable',
-            #         "data": {'data': [], 'total_pages': pagecount, "current_page": page}
-            #         }
+            product = getProduct(user.id)
+            data = []
+            serviceData = service.objects.select_related().filter(lead_id__lead_id = lead_id, service_category = product)
+            if serviceData:
+                for sd in serviceData:
+                    associate = sd.associate_id.name if sd.associate_id != None else ''
+                    data.append({'lead_id': sd.lead_id.lead_id, 'requester_name': sd.lead_id.requester_name, 'phone_number':  sd.lead_id.phone_number, 'email_id': sd.lead_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
+
+                serializer = BusinessDevelopmentLeadSerializer(data=data, many=True)
+                serializer.is_valid(raise_exception=True)
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    'status': status.HTTP_200_OK,
+                    'message': 'successful',
+                    'data': serializer.data
+                    }
+            else: 
+                res.status_code = status.HTTP_403_FORBIDDEN
+                res.data = {
+                    'status': status.HTTP_403_FORBIDDEN,
+                    'message': 'invalid lead id',
+                    'data' : []
+                }
         return res
+    
+
+
+
 
 
 # #Team Leader

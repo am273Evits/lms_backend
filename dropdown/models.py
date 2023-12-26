@@ -32,10 +32,36 @@ class decision(models.Model):
     title = models.CharField(max_length=200, blank=True, default='')
     def __str__ (self): return self.title
 
+
+
 # class ev_departments(models.Model):
 #     title = models.CharField(max_length=200, blank=True, default='')
 #     sub_department = models.CharField(max_length=200, blank=True, default='')
 #     created_by = models.CharField(max_length=500, blank=True, default='')
+
+
+class ev_department(models.Model):
+    title = models.CharField(max_length=50, blank=True, default='')
+    def __str__ (self): return self.title
+
+class sup_designations(models.Model):
+    title = models.CharField(max_length=50, blank=True, default='')
+    def __str__ (self): return self.title
+
+
+class ev_designation(models.Model):
+    title  = models.ForeignKey(sup_designations, on_delete=models.CASCADE)
+    department  = models.ForeignKey(ev_department, on_delete=models.CASCADE)
+    def __str__ (self): return str(self.title)
+
+
+
+
+
+
+
+
+
 
 class dropdown_fields(models.Model):
     title = models.CharField(max_length=500, blank=True, default='')
@@ -132,6 +158,7 @@ class service_country(models.Model):
 
 class user_role_list(models.Model):
     title = models.CharField(max_length=500, blank=True, default='')
+    designation = models.ForeignKey(ev_designation, on_delete=models.CASCADE)
     def __str__ (self): return self.title
 
 

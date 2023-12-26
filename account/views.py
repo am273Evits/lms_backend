@@ -59,7 +59,7 @@ def getTeamLeaderInst(emp):
 
 def getLeadStatusInst(status):
     data = lead_status.objects.filter(title = status).first().id
-    print(data)
+    # print(data)
     return data
 
 def getLeadId():
@@ -158,6 +158,7 @@ class LoginView(GenericAPIView):
                return Response({'status': status.HTTP_404_NOT_FOUND,'message':'Please Registerd user first','data':{"xyz":"123"}}, status=status.HTTP_404_NOT_FOUND)          
             user=authenticate(email=email,password=password)
 
+
             res = Response()
             if user is not None:
                 token=get_tokens_for_user(user)
@@ -199,6 +200,13 @@ class registration_VF(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
+        # print('user', user)
+
+        date = datetime.now()
+        date = date.strftime("%Y-%m-%d")
+
+        employee_official.objects.create(emp = user, joining_date = date)
+
         if user is not None:
             res.status_code = status.HTTP_201_CREATED
             res.data = {"status": status.HTTP_201_CREATED, "message": "user registered", 'data': [] }
@@ -214,6 +222,7 @@ class registration_VF(GenericAPIView):
 def userSpecificLinkHeader(user_id):
     # user = request.user
     # print(user_id)
+    # print('usr_role', usr_role)
     usr_role = employee_official.objects.filter(emp = user_id).first()
     usr_role = usr_role.user_role
     # print(usr_role)
@@ -266,16 +275,20 @@ def userSpecificLinkHeader(user_id):
 
 
 def user_VF(id):
-    
-    print('id', id)
+    # print('id', id)
     user = employee_official.objects.get(emp=id)
+    # if employee_official.objects.get(emp=id):
+    #     print('yes')
+    # else:
+    #     print('no')
     data = {
-        'user_role' : user.user_role,
-        'product' : user.product,
+        'user_role' : user.user_role if user.user_role != '' else '-' ,
+        'product' : user.product if user.product != '' else '-',
         'name' : user.emp.name,
         'employee_id' : user.emp.employee_id,
         'email' : user.emp.email,
     }
+    # print('data', data)
     serializer = userSerializer(data=data)
     serializer.is_valid(raise_exception=True)
     return  {'user': serializer.data}

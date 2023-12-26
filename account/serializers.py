@@ -35,6 +35,7 @@ class registrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('password and return password do not match')
         user.set_password(password)
         user.save()
+
         return user
     
 

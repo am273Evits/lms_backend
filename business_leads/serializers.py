@@ -29,6 +29,17 @@ class BusinessDevelopmentLeadSerializer(serializers.Serializer):
     email_id = serializers.CharField()
 
 
+class bd_teamLeaderSerializer(serializers.Serializer):
+    lead_id = serializers.CharField()
+    requester_name = serializers.CharField()
+    phone_number = serializers.CharField()
+    email_id = serializers.CharField()
+    service_category = serializers.CharField()
+    associate = serializers.CharField()
+    lead_status = serializers.CharField()
+
+
+
 class allIdentifiersSerializer(serializers.ModelSerializer):
     class Meta:
         model = all_identifiers
