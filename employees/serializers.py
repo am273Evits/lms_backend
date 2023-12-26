@@ -37,5 +37,5 @@ class viewAllUserSerializer(serializers.Serializer):
     name = serializers.CharField()
     user_role = serializers.CharField()
     designation = serializers.CharField()
-    deparment = serializers.CharField()
-    product = serializers.CharField()
+    department = serializers.CharField()
+    product = serializers.CharField(required=False)

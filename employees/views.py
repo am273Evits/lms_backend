@@ -42,10 +42,46 @@ class getAssociates(GenericAPIView):
         return res
     
 
-# class viewAllUser(GenericAPIView):
-#     permission_classes = [IsAuthenticated]
-#     serializer_class = viewAllUserSerializer
-#     def get(self, request, )
+class viewAllUser(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = viewAllUserSerializer
+    def get(self, request, page ,format=None, *args, **kwargs):
+        user_role = getUserRole(request.user.id)
+        limit = 10
+        offset = int((page - 1) * limit)
+        res = Response()
+        if user_role == 'admin' or user_role == 'lead_manager':
+            EMOF_arr = []
+            EMOF_data = employee_official.objects.all()[offset: offset + limit]
+            for d in EMOF_data:
+                EMOF_arr.append({"employee_id": d.emp.employee_id, 'name': d.emp.name, 'user_role': d.user_role if d.user_role != '' else '-', 'designation': d.designation if d.designation != '' else '-', 'department': d.department if d.department != '' else '-', 'product': d.product if d.product != '' else '-'})
+            
+            serializer = viewAllUserSerializer(data=EMOF_arr, many=True)
+            if serializer.is_valid(raise_exception=True):
+                print('serializer.data',serializer.errors)
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    'message': 'successful',
+                    "data": serializer.data,
+                    'status': status.HTTP_200_OK
+                }
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'message': serializer.errors,
+                    "data": [],
+                    'status': status.HTTP_400_BAD_REQUEST
+                }
+        else:
+            res.status_code = status.HTTP_203_NON_AUTHORITATIVE_INFORMATION
+            res.data = {
+                'message': 'you are not authorized',
+                "data": [],
+                'status': status.HTTP_203_NON_AUTHORITATIVE_INFORMATION
+            } 
+        return res
+                
+
     
 
 # class officialDetailsSubmit(CreateAPIView):

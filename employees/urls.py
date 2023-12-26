@@ -8,7 +8,7 @@ urlpatterns = [
 
 
             path('get_associates', getAssociates.as_view()), #file upload
-            # path('view_all_user', viewAllUser.as_view()), #file upload
+            path('view_all_user/<int:page>', viewAllUser.as_view()), #file upload
             # path('official_details_submit', officialDetailsSubmit.as_view()), #file upload
 
 
