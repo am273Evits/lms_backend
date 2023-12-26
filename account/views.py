@@ -15,7 +15,7 @@ from datetime import datetime
 import random
 
 from employees.models import *
-from dropdown.models import user_links, lead_status
+from dropdown.models import user_links, lead_status, ev_department, ev_designation, user_role_list
 
 
 # def cookieAuth(request):
@@ -185,6 +185,14 @@ class registration_VF(GenericAPIView):
     def post(self, request, format=None, *args, **kwargs):
         employee_id = request.data.get('employee_id')
         name = request.data.get('name')
+        designation = request.data.get('designation')
+        department = request.data.get('department')
+        user_role = request.data.get('user_role')
+
+        data = request.data
+
+
+        print(designation, department, user_role)
 
         res = Response()
         if employee_id == None:
@@ -195,17 +203,41 @@ class registration_VF(GenericAPIView):
             res.status_code = status.HTTP_400_BAD_REQUEST
             res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "name field is required", 'data': [] }
             return res
+        if department == None:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "department is required", 'data': [] }
+            return res
+        elif not ev_department.objects.filter(title = department):
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "invalid field department", 'data': [] }
+            return res
+        if designation == None:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "designation is required", 'data': [] }
+            return res
+        elif not ev_designation.objects.filter(department__title = department, title__title = designation) :
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "invalid field designation", 'data': [] }
+            return res
+        if user_role == None:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "user role is required", 'data': [] }
+            return res
+        elif not user_role_list.objects.filter(title = user_role):
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "invalid field user role", 'data': [] }
+            return res
+        
+
 
         serializer = registrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        # print('user', user)
-
         date = datetime.now()
         date = date.strftime("%Y-%m-%d")
 
-        employee_official.objects.create(emp = user, joining_date = date)
+        employee_official.objects.create(emp = user, joining_date = date, department = department, designation = designation, user_role = user_role)
 
         if user is not None:
             res.status_code = status.HTTP_201_CREATED

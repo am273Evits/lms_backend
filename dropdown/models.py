@@ -159,6 +159,7 @@ class service_country(models.Model):
 class user_role_list(models.Model):
     title = models.CharField(max_length=500, blank=True, default='')
     designation = models.ForeignKey(ev_designation, on_delete=models.CASCADE)
+    department = models.ForeignKey(ev_department, on_delete=models.CASCADE)
     def __str__ (self): return self.title
 
 

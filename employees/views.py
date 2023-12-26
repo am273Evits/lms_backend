@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.apps import apps
 from django.db.models import fields
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -40,6 +40,148 @@ class getAssociates(GenericAPIView):
                 'data': []
             }
         return res
+    
+
+# class officialDetailsSubmit(CreateAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = employee_officialSerializer
+#     def put(self, request, format=None, *args, **kwargs):
+#         # print('wrking here')
+#         user_role = getUserRole(request.user.id)
+
+#         res = Response()
+#         if user_role == 'admin' or 'lead_manager':
+#             try:
+#                 data = request.data
+#                 # print(data)
+
+#                 if not data.get('employee_id'):
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         'message': 'employee_id field is required',
+#                         'data': []
+#                     }
+#                     return res
+#                 if not data.get('department'):
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         'message': 'department field is required',
+#                         'data': []
+#                     }
+#                     return res
+#                 if not data.get('designation'):
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         'message': 'designation field is required',
+#                         'data': []
+#                     }
+#                     return res
+#                 if not data.get('product'):
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         'message': 'product field is required',
+#                         'data': []
+#                     }
+#                     return res
+#                 if not data.get('team_leader'):
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         'message': 'team_leader field is required',
+#                         'data' : []
+#                     }
+#                     return res
+#                 if not data.get('user_role'):
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         'message': 'team_leader field is required',
+#                         'data' : []
+#                     }
+#                     return res
+                
+#                 UA_data = UserAccount.objects.filter(employee_id = data.get('employee_id')).first()
+#                 UA_data_ID = UA_data.id
+#                 print(UA_data)
+                
+#                 data['emp'] = UA_data_ID
+#                 del data['employee_id']
+#                 print('data', data)
+
+
+#                 serializer = employee_officialSerializer(UA_data, data=data, partial=True)
+#                 if serializer.is_valid(raise_exception=True):
+#                     res.status_code = status.HTTP_200_OK
+#                     res.data = {
+#                         "message": 'data saved',
+#                         'data': serializer.data,
+#                         'status': status.HTTP_200_OK
+#                     }
+#                     print('working tillhere')
+
+
+
+
+                # AI_data = employee_official.objects.filter(lead_id_emp = lead_id).first()
+                # data['lead_id'] = int(AI_data.id)
+
+                # S_data = emp.objects.filter(lead_id__lead_id = lead_id)
+                # for d in S_data:
+                #     if d.service_category == data.get('service_category'):
+                #         res.status_code = status.HTTP_208_ALREADY_REPORTED
+                #         res.data = {
+                #             'status': status.HTTP_208_ALREADY_REPORTED,
+                #             'message': 'service category already registered for this lead_id',
+                #             'data':[]
+                #         }
+                #         return res
+                # print(S_data[0].service_category)
+                
+
+                # lead_id = getLeadId()
+                # data = request.data
+                # data['lead_id'] = lead_id
+                # serializer = serviceFieldSubSerializer(data=data)
+                # if serializer.is_valid(raise_exception=True):
+                #     if serializer.save():
+                #         res.status_code = status.HTTP_200_OK
+                #         res.data = {
+                #             'status': status.HTTP_200_OK,
+                #             'message': 'new lead created',
+                #             'data': []
+                #         }
+                #         return res
+        #         else: 
+        #                 res.status_code = status.HTTP_200_OK
+        #                 res.data = {
+        #                     'status': status.HTTP_200_OK,
+        #                     'message': 'request failed',
+        #                     'data': serializer.errors
+        #                 }
+        #                 return res
+
+        #     except ValueError as e:
+        #         res.status_code = status.HTTP_400_BAD_REQUEST
+        #         res.data = {
+        #             'status': status.HTTP_400_BAD_REQUEST,
+        #             "message": str(e),
+        #             'data': []
+        #             }
+
+        # # else :
+        # #     res.status_code = status.HTTP_400_BAD_REQUEST
+        # #     res.data = {
+        # #         'status': status.HTTP_400_BAD_REQUEST,
+        # #         'message': 'you are not authorized for this action',
+        # #         'data': []
+        # #     }
+
+        # return res
+
     
 
 
