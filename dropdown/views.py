@@ -38,7 +38,7 @@ class dropdownOption(GenericAPIView):
             res.data = {
                 'status': status.HTTP_200_OK,
                 "message": 'successful',
-                "data": {'title': DR_LIST}
+                "data": {'title': DR_LIST, 'dropdown_name': table}
                 }
         else :
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -75,7 +75,7 @@ class dropdownOptionData1(GenericAPIView):
                     res.data = {
                         'status': status.HTTP_200_OK,
                         "message": 'successful',
-                        "data": {"title": DS_LIST}
+                        "data": {"title": DS_LIST, 'dropdown_name': table}
                         }
                 else:
                     res.status_code = status.HTTP_400_BAD_REQUEST
@@ -93,16 +93,26 @@ class dropdownOptionData1(GenericAPIView):
                     "data": []
                     }
         elif table == 'country_state_city':
+            # print('working')
             data = list(model.objects.filter(title = data1).values_list('state', flat=True).distinct().order_by('state'))
+            print('data', data)
             if data:
                 serializer = dropdownOptionSerializers(data=[{'title': data}], many=True)
                 res = Response()
                 if serializer.is_valid(raise_exception=True):
+                    # print(serializer.data)
+
+                    DS_LIST = []
+                    for s in serializer.data:
+                        for d in s['title']:
+                            DS_LIST.append(d)
+                    print(DS_LIST)
+                
                     res.status_code = status.HTTP_200_OK
                     res.data = {
                         'status': status.HTTP_200_OK,
                         "message": 'successful',
-                        "data": serializer.data
+                        "data": {'title': DS_LIST, 'dropdown_name': table}
                         }
                 else :
                     res.status_code = status.HTTP_400_BAD_REQUEST
@@ -128,12 +138,20 @@ class dropdownOptionData2(GenericAPIView):
             serializer = dropdownOptionSerializers(data=[{'title': data}], many=True)
             res = Response()
             if serializer.is_valid(raise_exception=True):
+
+                DS_LIST = []
+                for s in serializer.data:
+                    DS_LIST.append(*s['title'])
+                    # for key in s["title"]:
+                    #     print(key)
+                        # d = ev_designation.objects.filter(title = key).first()
+                        # DS_LIST.append(d.title.title)
                         
                 res.status_code = status.HTTP_200_OK
                 res.data = {
                     'status': status.HTTP_200_OK,
                     "message": 'successful',
-                    "data": serializer.data
+                    "data": {'title': DS_LIST, 'dropdown_name': table}
                     }
             else :
                 res.status_code = status.HTTP_400_BAD_REQUEST
@@ -148,11 +166,18 @@ class dropdownOptionData2(GenericAPIView):
                 serializer = dropdownOptionSerializers(data=[{'title': data}], many=True)
                 res = Response()
                 if serializer.is_valid(raise_exception=True):
+                    
+                    DS_LIST = []
+                    for s in serializer.data:
+                        for d in s['title']:
+                            DS_LIST.append(d)
+                    # print(DS_LIST)
+
                     res.status_code = status.HTTP_200_OK
                     res.data = {
                         'status': status.HTTP_200_OK,
                         "message": 'successful',
-                        "data": serializer.data
+                        "data": {'title': DS_LIST, 'dropdown_name': table}
                         }
                 else :
                     res.status_code = status.HTTP_400_BAD_REQUEST

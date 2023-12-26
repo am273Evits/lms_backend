@@ -42,6 +42,12 @@ class getAssociates(GenericAPIView):
         return res
     
 
+# class viewAllUser(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = viewAllUserSerializer
+#     def get(self, request, )
+    
+
 # class officialDetailsSubmit(CreateAPIView):
 #     permission_classes = [IsAuthenticated]
 #     serializer_class = employee_officialSerializer

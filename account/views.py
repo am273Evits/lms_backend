@@ -181,71 +181,84 @@ class LoginView(GenericAPIView):
 #        return Response({'status': status.HTTP_404_NOT_FOUND,'message':'','data':[request.user.username,request.user.id,request.user.employee_id]}, status=status.HTTP_404_NOT_FOUND)
 
 class registration_VF(GenericAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = registrationSerializer
     def post(self, request, format=None, *args, **kwargs):
-        employee_id = request.data.get('employee_id')
-        name = request.data.get('name')
-        designation = request.data.get('designation')
-        department = request.data.get('department')
-        user_role = request.data.get('user_role')
+        # EMOF_data = employee_official.objects.get(emp__id = request.user.id)
+        Muser_role = getUserRole(request.user.id)
 
-        data = request.data
+        if Muser_role == 'admin' or Muser_role == 'lead_manager':
 
+            employee_id = request.data.get('employee_id')
+            name = request.data.get('name')
+            designation = request.data.get('designation')
+            department = request.data.get('department')
+            user_role = request.data.get('user_role')
 
-        print(designation, department, user_role)
-
-        res = Response()
-        if employee_id == None:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {"status": status.HTTP_400_BAD_REQUEST, "message": "employee_id field id is required", 'data': [] }
-            # return Response(, status = status.HTTP_400_BAD_REQUEST)
-        if name == None:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "name field is required", 'data': [] }
-            return res
-        if department == None:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "department is required", 'data': [] }
-            return res
-        elif not ev_department.objects.filter(title = department):
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "invalid field department", 'data': [] }
-            return res
-        if designation == None:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "designation is required", 'data': [] }
-            return res
-        elif not ev_designation.objects.filter(department__title = department, title__title = designation) :
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "invalid field designation", 'data': [] }
-            return res
-        if user_role == None:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "user role is required", 'data': [] }
-            return res
-        elif not user_role_list.objects.filter(title = user_role):
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "invalid field user role", 'data': [] }
-            return res
-        
-
-
-        serializer = registrationSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-
-        date = datetime.now()
-        date = date.strftime("%Y-%m-%d")
-
-        employee_official.objects.create(emp = user, joining_date = date, department = department, designation = designation, user_role = user_role)
-
-        if user is not None:
-            res.status_code = status.HTTP_201_CREATED
-            res.data = {"status": status.HTTP_201_CREATED, "message": "user registered", 'data': [] }
+            res = Response()
+            if Muser_role == 'lead_manager':
+                if user_role == 'admin':
+                    res.status_code = status.HTTP_203_NON_AUTHORITATIVE_INFORMATION
+                    res.data = {"status": status.HTTP_203_NON_AUTHORITATIVE_INFORMATION, "message": "you are not authorized to create admin user, please select a different user role", 'data': [] }
+                    return res
+    
+            data = request.data
+    
+            if employee_id == None:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {"status": status.HTTP_400_BAD_REQUEST, "message": "employee_id field id is required", 'data': [] }
+                # return Response(, status = status.HTTP_400_BAD_REQUEST)
+            if name == None:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "name field is required", 'data': [] }
+                return res
+            if department == None:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "department is required", 'data': [] }
+                return res
+            elif not ev_department.objects.filter(title = department):
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "invalid field department", 'data': [] }
+                return res
+            if designation == None:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "designation is required", 'data': [] }
+                return res
+            elif not ev_designation.objects.filter(department__title = department, title__title = designation) :
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "invalid field designation", 'data': [] }
+                return res
+            if user_role == None:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "user role is required", 'data': [] }
+                return res
+            elif not user_role_list.objects.filter(title = user_role):
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data={"status": status.HTTP_400_BAD_REQUEST, "message": "invalid field user role", 'data': [] }
+                return res
+            
+    
+    
+            serializer = registrationSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.save()
+    
+            date = datetime.now()
+            date = date.strftime("%Y-%m-%d")
+    
+            employee_official.objects.create(emp = user, joining_date = date, department = department, designation = designation, user_role = user_role)
+    
+            if user is not None:
+                res.status_code = status.HTTP_201_CREATED
+                res.data = {"status": status.HTTP_201_CREATED, "message": "user registered", 'data': [] }
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {'status': status.HTTP_400_BAD_REQUEST, "message": "user not registered", 'data':[]}
+                # return Response(, status=status.HTTP_404_NOT_FOUND)
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {'status': status.HTTP_400_BAD_REQUEST, "message": "user not registered", 'data':[]}
-            # return Response(, status=status.HTTP_404_NOT_FOUND)
+            res.data = {'status': status.HTTP_400_BAD_REQUEST, "message": "you are not authorized to create a user", 'data':[]}
+
         return res
         
 

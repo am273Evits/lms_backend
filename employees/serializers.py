@@ -30,3 +30,12 @@ class employee_officialSerializer(serializers.ModelSerializer):
     class Meta:
         model = employee_official
         fields = '__all__'
+
+
+class viewAllUserSerializer(serializers.Serializer):
+    employee_id = serializers.CharField()
+    name = serializers.CharField()
+    user_role = serializers.CharField()
+    designation = serializers.CharField()
+    deparment = serializers.CharField()
+    product = serializers.CharField()
