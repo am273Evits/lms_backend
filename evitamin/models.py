@@ -16,14 +16,16 @@ class ev_products(models.Model):
 
 
 class ev_services(models.Model):
+    service_id = models.CharField(max_length=300, blank=True, default='')
     country = models.CharField(max_length=300, blank=True, default='')
     marketplace = models.CharField(max_length=300, blank=True, default='')
     services = models.CharField(max_length=300, blank=True, default='')
-    slab = models.CharField(max_length=300, blank=True, default='')
+    price_for_mou = models.CharField(max_length=300, blank=True, default='')
     static_service_fees = models.CharField(max_length=300, blank=True, default='')
-    percentage_service_fees = models.CharField(max_length=300, blank=True, default='')
+    commission_fees = models.BooleanField(default=False)
+    commission_service_fees = models.CharField(max_length=300, blank=True, default='')
     service_currency = models.CharField(max_length=300, blank=True, default='')
-    def __str__ (self): return self.slab
+    def __str__ (self): return self.price_for_mou
     # def __str__ (self): return self.country
 
 

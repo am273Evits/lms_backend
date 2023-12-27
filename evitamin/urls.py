@@ -6,7 +6,9 @@ urlpatterns = [
     # path('/api', home_VF)
 
         # lead_manager:
-            # path('options/<str:table>', dropdownOption.as_view()),
+            path('create_services', createServices.as_view()),
+            path('view_all_services/<int:page>', viewAllServices.as_view()),
+            path('view_services/<str:service_id>', viewServicesIndv.as_view()),
+            path('view_services_search/<str:service_id>', viewServicesSearch.as_view()),
 
-            
 ]

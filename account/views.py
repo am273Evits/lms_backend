@@ -69,6 +69,14 @@ def getLeadId():
     lead_id = f'L{str(date) + str(random_int)}'
     return lead_id
 
+def getServiceId():
+    date = datetime.now()
+    date = date.strftime('%Y%m%d%H%M%S%f')
+    random_int = random.randint(100,499) + random.randint(100,499)
+    lead_id = f'S{str(date) + str(random_int)}'
+    return lead_id
+
+
 def getClientId():
     date = datetime.now()
     date = date.strftime('%Y%m%d%H%M%S%f')

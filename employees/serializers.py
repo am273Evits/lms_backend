@@ -39,3 +39,31 @@ class viewAllUserSerializer(serializers.Serializer):
     designation = serializers.CharField()
     department = serializers.CharField()
     product = serializers.CharField(required=False)
+
+
+
+class viewUserIndvSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    employee_id = serializers.CharField()
+    email = serializers.CharField()
+    age = serializers.CharField()
+    gender = serializers.CharField()
+    mobile_number = serializers.CharField()
+    alternate_mobile_number = serializers.CharField()
+    blood_group = serializers.CharField()
+    date_of_birth = serializers.CharField()
+    disability = serializers.CharField()
+    employee_status = serializers.CharField()
+    marital_status = serializers.CharField()
+    nationality = serializers.CharField()
+    emp = serializers.CharField(required=False)
+
+
+
+
+
+    
+
+    class Meta:
+        model = employee_official
+        fields = '__all__'

@@ -432,7 +432,7 @@ class businessLeadsAllTables(GenericAPIView):
     def get(self, request, format=None, *args, **kwargs):
         user_role = getUserRole(request.user.id)
         res = Response()
-        if user_role == 'admin' or 'lead_manager' or 'bd_tl' or 'bd_t_member':
+        if user_role == 'admin' or user_role == 'lead_manager' or user_role == 'bd_tl' or user_role == 'bd_t_member':
 
             tables = list_business_leads.objects.all()
             # print(tables)
@@ -719,7 +719,7 @@ class viewLeadsAllIdentifiers(GenericAPIView):
         #     employee_id = models.objects.filter(lead_id = lead_id)
 
         # print(models)
-        if user_role == 'lead_manager' or 'admin':
+        if user_role == 'lead_manager' or user_role == 'admin':
             if table != 'service':
                 data = models.objects.filter(lead_id = lead_id).values()
                 data = list(data)
@@ -1443,7 +1443,7 @@ class formsSubmit(GenericAPIView):
         if model is not None:
             dynamic = dynamic_serializer_submit(model)
 
-            if user_role == 'lead_manager' or 'admin':
+            if user_role == 'lead_manager' or user_role == 'admin':
                 if table != 'all_identifiers':
 
                     if table == 'followup':
@@ -1452,10 +1452,6 @@ class formsSubmit(GenericAPIView):
                     data = model.objects.filter(lead_id__lead_id=lead_id).first()
                     p_id = data.lead_id.id
                     main_data['lead_id'] = p_id
-
-                    # else:
-                    #     main_data['lead_id'] = lead_id
-                    #     data = model.objects.filter(lead_id = lead_id).first()
 
                     serializer = dynamic(data, data=main_data, partial=True)
 
@@ -1577,7 +1573,7 @@ class assignAssociate(GenericAPIView):
         print('user_role', user_role)
 
         res = Response()
-        if user_role == 'admin' or 'lead_manager' or 'bd_tl':
+        if user_role == 'admin' or user_role == 'lead_manager' or user_role == 'bd_tl':
             lead_id = request.data.get('lead_id')
             assoc_employee_id = request.data.get('employee_id')
             empData = employee_official.objects.filter(emp__employee_id = assoc_employee_id).first()
@@ -1956,7 +1952,7 @@ class addNewService(GenericAPIView):
         user_role = getUserRole(request.user.id)
 
         res = Response()
-        if user_role == 'admin' or 'lead_manager' or 'bd_tl' or 'bd_t_member':
+        if user_role == 'admin' or user_role == 'lead_manager' or user_role == 'bd_tl' or user_role == 'bd_t_member':
             try:
                 # user = cookieAuth(request)
                 data = request.data
@@ -2199,7 +2195,7 @@ class fieldsAddNewServiceTeamLeader(GenericAPIView):
 
 class deleteLeadApprovalWrite(CreateAPIView):
     permission_classes = [IsAuthenticated]
-    def post(self, request, lead_id, format=None, *args, **kwargs):
+    def delete(self, request, lead_id, format=None, *args, **kwargs):
         res = Response()
         if not lead_delete_approval.objects.filter(lead_id__lead_id = lead_id).exists():
             data = all_identifiers.objects.filter(lead_id=lead_id).first()
