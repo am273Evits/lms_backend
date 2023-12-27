@@ -62,11 +62,11 @@ class viewAllUser(GenericAPIView):
 
                 serializer = viewAllUserSerializer(data=EMOF_arr, many=True)
                 if serializer.is_valid(raise_exception=True):
-                    print('serializer.data',serializer.errors)
+                    # print('serializer.data',serializer.errors)
                     res.status_code = status.HTTP_200_OK
                     res.data = {
                         'message': 'successful',
-                        "data": {'data': [serializer.data], 'total_pages': pagecount, "current_page": page},
+                        "data": {'data': serializer.data, 'total_pages': pagecount, "current_page": page},
                         'status': status.HTTP_200_OK
                     }
                 else:
