@@ -1321,77 +1321,86 @@ class apiSubmitEmailProposal(GenericAPIView):
         services_res = ''
         slab_res = ''
 
+        if all_identifiers.objects.filter(lead_id = lead_id, visibility=True).exists():
+            d = request.data
+            if d['services'] == product:
+                services_res = True
+            else:
+                raise AuthenticationFailed('service do not exist')
 
-        d = request.data
-        if d['services'] == product:
-            services_res = True
+            data = ev_services.objects.filter(country = d['country'], marketplace = d['marketplace'], services = d['services'], slab = d['slab']).exists()
+
+            if data is False:
+                country_res = ev_services.objects.filter(country = d['country']).exists()
+                marketplace_res = ev_services.objects.filter(marketplace = d['marketplace']).exists()
+                services_res = ev_services.objects.filter(services = d['services']).exists()
+                slab_res = ev_services.objects.filter(slab = d['slab']).exists()
+
+                if country_res is False:
+                    raise AuthenticationFailed('country do not exist') 
+                if marketplace_res is False:
+                    raise AuthenticationFailed('marketplace do not exist') 
+                if slab_res is False:
+                    raise AuthenticationFailed('slab do not exist')
+
+
+            message = email_service_proposal.objects.filter(service = d['services']).values('proposal_email').first()
+            message = message['proposal_email']
+
+            bank_details = ev_bank_details.objects.all().first()
+            account_name = bank_details.account_name
+            bank_name = bank_details.bank_name
+            account_number = bank_details.account_number
+            ifsc = bank_details.ifsc
+
+            message = message.replace('{***account_name***}', account_name)
+            message = message.replace('{***bank_name***}', bank_name)
+            message = message.replace('{***account_number***}', account_number)
+            message = message.replace('{***ifsc_code***}', ifsc)
+
+            message = message.replace('{***service***}', d['services'])
+            message = message.replace('{***slab***}', d['slab'])
+            message = message.replace('{***sender***}', request.user.name)
+
+            # message = html.escape(message)
+            # print(message)
+
+            data_basic = all_identifiers.objects.get(lead_id=lead_id, visibility=True)
+            email = data_basic.email_id
+
+            subject = 'service proposal from evitamin'
+            # message = '<h1>This email was sent from django</h1>'
+            from_email = 'akshatnigamcfl@gmail.com'
+            recipient_list = [email]
+            text = 'email sent from MyDjango'
+
+            # if send_mail(subject, message, from_email, recipient_list):
+            print(recipient_list)
+
+            email = EmailMultiAlternatives(subject, text, from_email, recipient_list)
+            email.attach_alternative(message, 'text/html')
+            # email.attach_file('files/uploadFile_0dTGU7A.csv', 'text/csv')
+            email.send()
+
+            if email:
+                status_update = service.objects.filter(lead_id__lead_id=lead_id, lead_id__visibility=True).update(lead_status = getLeadStatusInst('proposal email sent'))
+                print(status_update)
+                if status_update:
+                    res = Response()
+                    res.status_code = status.HTTP_200_OK
+                    res.data = {'message': 'email sent' }
+                    return res
+            else:
+                raise AuthenticationFailed('email not sent')
         else:
-            raise AuthenticationFailed('service do not exist')
-
-        data = ev_services.objects.filter(country = d['country'], marketplace = d['marketplace'], services = d['services'], slab = d['slab']).exists()
-
-        if data is False:
-            country_res = ev_services.objects.filter(country = d['country']).exists()
-            marketplace_res = ev_services.objects.filter(marketplace = d['marketplace']).exists()
-            services_res = ev_services.objects.filter(services = d['services']).exists()
-            slab_res = ev_services.objects.filter(slab = d['slab']).exists()
-
-            if country_res is False:
-                raise AuthenticationFailed('country do not exist') 
-            if marketplace_res is False:
-                raise AuthenticationFailed('marketplace do not exist') 
-            if slab_res is False:
-                raise AuthenticationFailed('slab do not exist')
-            
-
-        message = email_service_proposal.objects.filter(service = d['services']).values('proposal_email').first()
-        message = message['proposal_email']
-
-        bank_details = ev_bank_details.objects.all().first()
-        account_name = bank_details.account_name
-        bank_name = bank_details.bank_name
-        account_number = bank_details.account_number
-        ifsc = bank_details.ifsc
-
-        message = message.replace('{***account_name***}', account_name)
-        message = message.replace('{***bank_name***}', bank_name)
-        message = message.replace('{***account_number***}', account_number)
-        message = message.replace('{***ifsc_code***}', ifsc)
-
-        message = message.replace('{***service***}', d['services'])
-        message = message.replace('{***slab***}', d['slab'])
-        message = message.replace('{***sender***}', request.user.name)
-
-        # message = html.escape(message)
-        # print(message)
-
-        data_basic = all_identifiers.objects.get(lead_id=lead_id)
-        email = data_basic.email_id
-
-        subject = 'service proposal from evitamin'
-        # message = '<h1>This email was sent from django</h1>'
-        from_email = 'akshatnigamcfl@gmail.com'
-        recipient_list = [email]
-        text = 'email sent from MyDjango'
-
-        # if send_mail(subject, message, from_email, recipient_list):
-        print(recipient_list)
-
-        email = EmailMultiAlternatives(subject, text, from_email, recipient_list)
-        email.attach_alternative(message, 'text/html')
-        # email.attach_file('files/uploadFile_0dTGU7A.csv', 'text/csv')
-        email.send()
-
-        if email:
-            status_update = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = getLeadStatusInst('proposal email sent'))
-            print(status_update)
-            if status_update:
-                res = Response()
-                res.status_code = status.HTTP_200_OK
-                res.data = {'message': 'email sent' }
-                return res
-        else:
-            raise AuthenticationFailed('email not sent')
+            res = Response()
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'invalid lead id',
+                'data': []
+            }
+            return res
         
 
 
@@ -1943,36 +1952,44 @@ class emailMouFun(GenericAPIView):
             file = request.FILES.get('file')
             # print(file)
     
-        email = all_identifiers.objects.get(lead_id=lead_id)
-        email = email.email_id
-    
-        subject = 'Test email with attachment'
-        text = 'PFA'
-        from_email = 'akshatnigamcfl@gmail.com'
-        recipient = [email]
-    
-        email = EmailMultiAlternatives(subject, text, from_email, recipient)
-        email.attach_alternative('<h1>Test email with attachment</h1>', 'text/html')
-        email.attach(filename = file.name, content = file.read(), mimetype='application/pdf')
-    
-        email.send()
-    
+        email = all_identifiers.objects.get(lead_id=lead_id, visibility=True)
         res = Response()
-        if email.send():
-            print('getLeadStatusInst', getLeadStatusInst('pending payment proof'))
-            service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = getLeadStatusInst('pending payment proof'))
-    
-            res.status_code = status.HTTP_200_OK
-            res.data = {
-                'status': status.HTTP_200_OK,
-                'email': 'email sent',
-                'data': []
-                }
+        if email:
+            email = email.email_id
+
+            subject = 'Test email with attachment'
+            text = 'PFA'
+            from_email = 'akshatnigamcfl@gmail.com'
+            recipient = [email]
+
+            email = EmailMultiAlternatives(subject, text, from_email, recipient)
+            email.attach_alternative('<h1>Test email with attachment</h1>', 'text/html')
+            email.attach(filename = file.name, content = file.read(), mimetype='application/pdf')
+
+            email.send()
+
+            if email.send():
+                print('getLeadStatusInst', getLeadStatusInst('pending payment proof'))
+                service.objects.filter(lead_id__lead_id=lead_id, lead_id__visibility=True).update(lead_status = getLeadStatusInst('pending payment proof'))
+
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    'status': status.HTTP_200_OK,
+                    'email': 'email sent',
+                    'data': []
+                    }
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'email': 'email not sent',
+                    'data': []
+                    }
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST
             res.data = {
                 'status': status.HTTP_400_BAD_REQUEST,
-                'email': 'email not sent',
+                'email': 'invalid lead id',
                 'data': []
                 }
         return res
@@ -1988,11 +2005,7 @@ class addNewService(GenericAPIView):
         res = Response()
         if user_role == 'admin' or user_role == 'lead_manager' or user_role == 'bd_tl' or user_role == 'bd_t_member':
             try:
-                # user = cookieAuth(request)
                 data = request.data
-
-                # print('dataplatform',data.platform)
-                # associate_id = data.get('associate_id')
 
                 if not data.get('platform'):
                     res.status_code = status.HTTP_400_BAD_REQUEST
@@ -2027,11 +2040,10 @@ class addNewService(GenericAPIView):
                     }
                     return res
 
-
-                AI_data = all_identifiers.objects.filter(lead_id = lead_id).first()
+                AI_data = all_identifiers.objects.filter(lead_id = lead_id, visibility=True).first()
                 data['lead_id'] = int(AI_data.id)
 
-                S_data = service.objects.filter(lead_id__lead_id = lead_id)
+                S_data = service.objects.filter(lead_id__lead_id = lead_id, lead_id__visibility=True)
                 for d in S_data:
                     if d.service_category == data.get('service_category'):
                         res.status_code = status.HTTP_208_ALREADY_REPORTED
@@ -2043,10 +2055,6 @@ class addNewService(GenericAPIView):
                         return res
                 print(S_data[0].service_category)
                 
-
-                # lead_id = getLeadId()
-                # data = request.data
-                # data['lead_id'] = lead_id
                 serializer = serviceFieldSubSerializer(data=data)
                 if serializer.is_valid(raise_exception=True):
                     if serializer.save():
@@ -2073,7 +2081,6 @@ class addNewService(GenericAPIView):
                     "message": str(e),
                     'data': []
                     }
-
         else :
             res.status_code = status.HTTP_400_BAD_REQUEST
             res.data = {
@@ -2081,7 +2088,6 @@ class addNewService(GenericAPIView):
                 'message': 'you are not authorized for this action',
                 'data': []
             }
-
         return res
                         
 
@@ -2233,7 +2239,7 @@ class deleteLeadApprovalWrite(CreateAPIView):
     def delete(self, request, lead_id, format=None, *args, **kwargs):
         res = Response()
         if not lead_delete_approval.objects.filter(lead_id__lead_id = lead_id).exists():
-            data = all_identifiers.objects.filter(lead_id=lead_id).first()
+            data = all_identifiers.objects.filter(lead_id=lead_id, visibility=True).first()
             if data:
                 lda = lead_delete_approval.objects.create(**{'lead_id': data})
                 if lda:
