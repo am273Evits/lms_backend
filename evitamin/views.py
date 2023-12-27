@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializer import *
 from account.views import getUserRole
+from records.models import service_delete_approval
 import math
 # Create your views here.
 
@@ -174,4 +175,102 @@ class viewServicesSearch(GenericAPIView):
                 'data': [],
             }
         
+        return res
+
+
+
+class deleteServiceApprovalWrite(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    # serializer_class = 
+    def delete(self, request, service_id, format=None, *args, **kwargs):
+        user_role = getUserRole(request.user.id)
+        res = Response()
+        if user_role == 'admin':
+            if not service_delete_approval.objects.filter(service_id__service_id = service_id).exists():
+                data = ev_services.objects.filter(service_id = service_id).first()
+                # print({'service_id': data.id})
+                # print(employee_id)
+                if data:
+                    # print('data', data)
+                    lda = service_delete_approval.objects.create(**{'service_id': data})
+                    if lda:
+                        res.status_code = status.HTTP_201_CREATED
+                        res.data = {
+                            'status': status.HTTP_201_CREATED,
+                            'message': 'sent for approval, this user will be removed after the approval of admin',
+                            'data': []
+                        }
+                else :
+                    res.status_code = status.HTTP_400_BAD_REQUEST,
+                    res.data = {
+                        'status': status.HTTP_400_BAD_REQUEST,
+                        'message': 'employee id do not exists',
+                        'data': []
+                    }
+            else :
+                res.status_code = status.HTTP_208_ALREADY_REPORTED
+                res.data = {
+                    'status': status.HTTP_208_ALREADY_REPORTED,
+                    'message': 'already submitted',
+                    'data': [] 
+                }
+        else:
+            res.status_code = status.HTTP_203_NON_AUTHORITATIVE_INFORMATION
+            res.data = {
+                'status': status.HTTP_203_NON_AUTHORITATIVE_INFORMATION,
+                'message': 'you are not authorized to delete user',
+                'data': []
+            }
+        return res
+    
+
+
+class updateServices(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = viewAllServicesSerializer
+    def put(self, request, service_id ,format=None, *args, **kwargs):
+        user_role = getUserRole(request.user.id)
+        res = Response()
+        if user_role == 'admin':
+            SER_INST = ev_services.objects.filter(service_id = service_id).first()
+            if SER_INST:
+
+                if request.data.get('static_service_fees') or request.data.get('commission_service_fees') or request.data.get('commission_fees'):
+                    pass
+
+
+                serializer = viewAllServicesSerializer(SER_INST, data=request.data, partial=True)
+                # print(serializer)
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    res.status_code = status.HTTP_200_OK
+                    res.data = {
+                        'status' : status.HTTP_200_OK,
+                        'message': 'successful',
+                        'data': serializer.data
+                    }
+                else:
+                    res.status_code = status.HTTP_400_BAD_REQUEST
+                    res.data = {
+                        'status' : status.HTTP_400_BAD_REQUEST,
+                        'message': 'request failed',
+                        'data': []
+                    }
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'status' : status.HTTP_400_BAD_REQUEST,
+                    'message': 'invalid service id',
+                    'data': []
+                }
+            
+            return res
+
+        else:
+            res.status_code = status.HTTP_401_UNAUTHORIZED
+            res.data = {
+                'status' : status.HTTP_401_UNAUTHORIZED,
+                'message': 'you are not authorized to view this page',
+                'data': []
+            }
         return res

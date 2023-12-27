@@ -11,7 +11,7 @@ urlpatterns = [
             path('view_all_user/<int:page>', viewAllUser.as_view()), #file upload
             path('view_user/<str:employee_id>', viewUserIndv.as_view()), #file upload
 
-            path('add_lead_delete_approval/<str:employee_id>', deleteLeadApprovalWrite.as_view()),
+            path('add_user_delete_approval/<str:employee_id>', deleteUserApprovalWrite.as_view()),
             path('view_user_search/<str:employee_id>', viewAllLeadsSearch.as_view()), #view_all_leads
 
 

@@ -190,7 +190,7 @@ class viewUserIndv(GenericAPIView):
 
     
 
-class deleteLeadApprovalWrite(CreateAPIView):
+class deleteUserApprovalWrite(CreateAPIView):
     permission_classes = [IsAuthenticated]
     def delete(self, request, employee_id, format=None, *args, **kwargs):
         user_role = getUserRole(request.user.id)

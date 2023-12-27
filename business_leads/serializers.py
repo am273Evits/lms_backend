@@ -241,6 +241,10 @@ class tableFieldSerializer(serializers.Serializer):
     dropdown = serializers.CharField()
     dropdown_data = serializers.ListField()
 
+
+class leadIdSerializer(serializers.Serializer):
+    lead_id = serializers.CharField()
+
     # class Meta:
     #     extra_kwargs = {'value': {'write_only': True}}
         

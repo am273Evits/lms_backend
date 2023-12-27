@@ -13,6 +13,9 @@ class loginSerializer(serializers.ModelSerializer):
 
 
 class registrationSerializer(serializers.ModelSerializer):
+    # designation = serializers.CharField(read_only=True)
+    # department = serializers.CharField(read_only=True)
+    # user_role = serializers.CharField(read_only=True)
     password2 = serializers.CharField(style={'input_type': 'password'}, write_only = True)
     class Meta:
         model = UserAccount

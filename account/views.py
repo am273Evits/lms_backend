@@ -194,7 +194,7 @@ class registration_VF(GenericAPIView):
     def post(self, request, format=None, *args, **kwargs):
         # EMOF_data = employee_official.objects.get(emp__id = request.user.id)
         Muser_role = getUserRole(request.user.id)
-
+        res = Response()
         if Muser_role == 'admin' or Muser_role == 'lead_manager':
 
             employee_id = request.data.get('employee_id')
@@ -203,7 +203,6 @@ class registration_VF(GenericAPIView):
             department = request.data.get('department')
             user_role = request.data.get('user_role')
 
-            res = Response()
             if Muser_role == 'lead_manager':
                 if user_role == 'admin':
                     res.status_code = status.HTTP_203_NON_AUTHORITATIVE_INFORMATION
