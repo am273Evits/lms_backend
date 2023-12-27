@@ -65,6 +65,7 @@ class all_identifiers(models.Model):
     processing_fee = models.CharField(max_length=200, blank=True, default='')
     pre_closure_charges = models.CharField(max_length=200, blank=True, default='')
     upload_date = models.DateTimeField(auto_now=True)
+    visibility = models.BooleanField(default=True)
     def __str__(self):return str(self.lead_id)
     
 

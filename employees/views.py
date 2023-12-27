@@ -10,6 +10,7 @@ from .serializers import *
 from employees.models import *
 from dropdown.models import *
 from records.models import user_delete_approval
+import math
 # from business_leads.models import *
 
 from account.views import getLeadId, getProduct, getUserRole, getTeamLeader, getClientId, get_tokens_for_user , getAssociates as getAssociate, getModelFields
@@ -52,27 +53,37 @@ class viewAllUser(GenericAPIView):
         offset = int((page - 1) * limit)
         res = Response()
         if user_role == 'admin' or user_role == 'lead_manager':
-            EMOF_arr = []
-            EMOF_data = employee_official.objects.all()[offset: offset + limit]
-            for d in EMOF_data:
-                EMOF_arr.append({"employee_id": d.emp.employee_id, 'name': d.emp.name, 'user_role': d.user_role if d.user_role != '' else '-', 'designation': d.designation if d.designation != '' else '-', 'department': d.department if d.department != '' else '-', 'product': d.product if d.product != '' else '-'})
-            
-            serializer = viewAllUserSerializer(data=EMOF_arr, many=True)
-            if serializer.is_valid(raise_exception=True):
-                print('serializer.data',serializer.errors)
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'message': 'successful',
-                    "data": serializer.data,
-                    'status': status.HTTP_200_OK
-                }
+            pagecount = math.ceil(employee_official.objects.count()/limit)
+            if int(page) <= pagecount: 
+                EMOF_arr = []
+                EMOF_data = employee_official.objects.all()[offset: offset + limit]
+                for d in EMOF_data:
+                    EMOF_arr.append({"employee_id": d.emp.employee_id, 'name': d.emp.name, 'user_role': d.user_role if d.user_role != '' else '-', 'designation': d.designation if d.designation != '' else '-', 'department': d.department if d.department != '' else '-', 'product': d.product if d.product != '' else '-'})
+
+                serializer = viewAllUserSerializer(data=EMOF_arr, many=True)
+                if serializer.is_valid(raise_exception=True):
+                    print('serializer.data',serializer.errors)
+                    res.status_code = status.HTTP_200_OK
+                    res.data = {
+                        'message': 'successful',
+                        "data": {'data': [serializer.data], 'total_pages': pagecount, "current_page": page},
+                        'status': status.HTTP_200_OK
+                    }
+                else:
+                    res.status_code = status.HTTP_400_BAD_REQUEST
+                    res.data = {
+                        'message': serializer.errors,
+                        "data": [],
+                        'status': status.HTTP_400_BAD_REQUEST
+                    }
             else:
                 res.status_code = status.HTTP_400_BAD_REQUEST
                 res.data = {
-                    'message': serializer.errors,
-                    "data": [],
-                    'status': status.HTTP_400_BAD_REQUEST
-                }
+                    "status": status.HTTP_400_BAD_REQUEST,
+                    "message": 'the page is unavailable',
+                    "data": {'data': [], 'total_pages': pagecount, "current_page": page}
+                    }
+
         else:
             res.status_code = status.HTTP_203_NON_AUTHORITATIVE_INFORMATION
             res.data = {

@@ -477,23 +477,21 @@ class viewAllLeads(GenericAPIView):
         offset = int((page - 1) * limit)
         data = []
         pagecount = []
-        res =  Response(
-            {
+        res =  Response({
                 'status': status.HTTP_400_BAD_REQUEST,
                 'message': 'unauthorized access', 
                 'data': [],
-            }
-        )
+            })
 
         if user_role == 'lead_manager' or user_role == 'admin':
-            
             data = []
-            serviceData = service.objects.select_related().all()[offset : offset + limit]
+            serviceData = service.objects.select_related().filter(lead_id__visibility = True).all()[offset : offset + limit]
             for sd in serviceData:
                 data.append({'lead_id' : sd.lead_id.lead_id , 'requester_name': sd.lead_id.requester_name, 'service_category': sd.service_category, 'upload_date': sd.lead_id.upload_date, 'lead_status': getLeadStatusInst(sd.lead_status) })                 
             
             if len(data):
-                pagecount = math.ceil(service.objects.count()/limit)
+                pagecount = math.ceil(service.objects.filter(lead_id__visibility = True).count()/limit)
+                # print(service.objects.count())
                 serializer = lead_managerBlSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
 
@@ -523,13 +521,13 @@ class viewAllLeads(GenericAPIView):
         elif user_role == 'bd_tl':
             product = getProduct(user.id)
             data = []
-            serviceData = service.objects.select_related().filter(service_category = product)[offset : limit]
+            serviceData = service.objects.select_related().filter(service_category = product, lead_id__visibility = True)[offset : limit]
             for sd in serviceData:
                 associate = sd.associate_id.name if sd.associate_id != None else 'not assigned'
                 data.append({'lead_id': sd.lead_id.lead_id, 'requester_name': sd.lead_id.requester_name, 'phone_number':  sd.lead_id.phone_number, 'email_id': sd.lead_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
 
             if len(data):
-                pagecount = math.ceil(service.objects.count()/limit)
+                pagecount = math.ceil(service.objects.filter(lead_id__visibility = True).count()/limit)
                 serializer = bd_teamLeaderSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
                 if int(page) <= pagecount:
@@ -575,10 +573,10 @@ class viewAllLeadsSearch(GenericAPIView):
 
         if user_role == 'lead_manager' or user_role == 'admin':
             data = []
-            serviceData = service.objects.select_related().filter(lead_id__lead_id = lead_id)
+            serviceData = service.objects.select_related().filter(lead_id__lead_id = lead_id, lead_id__visibility = True)
             if serviceData:
                 for sd in serviceData:
-                    data.append({'lead_id' : sd.lead_id.lead_id , 'requester_name': sd.lead_id.requester_name, 'service_category': sd.service_category, 'upload_date': sd.lead_id.upload_date, 'lead_status': getLeadStatusInst(sd.lead_status) })                 
+                    data.append({'lead_id' : sd.lead_id.lead_id , 'requester_name': sd.lead_id.requester_name, 'service_category': sd.service_category, 'upload_date': sd.lead_id.upload_date, 'lead_status': getLeadStatusInst(sd.lead_status) }) 
                     print('data', data)
 
                 serializer = lead_managerBlSerializer(data=data, many=True)
@@ -602,10 +600,10 @@ class viewAllLeadsSearch(GenericAPIView):
         elif user_role == 'bd_tl':
             product = getProduct(user.id)
             data = []
-            serviceData = service.objects.select_related().filter(lead_id__lead_id = lead_id, service_category = product)
+            serviceData = service.objects.select_related().filter(lead_id__lead_id = lead_id, service_category = product, lead_id__visibility=True)
             if serviceData:
                 for sd in serviceData:
-                    associate = sd.associate_id.name if sd.associate_id != None else ''
+                    associate = sd.associate_id.name if sd.associate_id != None else '-'
                     data.append({'lead_id': sd.lead_id.lead_id, 'requester_name': sd.lead_id.requester_name, 'phone_number':  sd.lead_id.phone_number, 'email_id': sd.lead_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
 
                 serializer = BusinessDevelopmentLeadSerializer(data=data, many=True)
@@ -674,6 +672,8 @@ class viewLeadsAllIdentifiers(GenericAPIView):
         user_role = getUserRole(request.user.id)
         res = Response()
 
+        # print(all_identifiers.objects.filter(lead_id = lead_id, visibility=True).exists())
+
         models = apps.get_model('business_leads', table)
         modelFields = list(getModelFields(models))
         # print(model_fields)
@@ -682,7 +682,7 @@ class viewLeadsAllIdentifiers(GenericAPIView):
         serializer_class = models
 
         if table != 'all_identifiers':
-            lead_ref = all_identifiers.objects.filter(lead_id = lead_id)
+            lead_ref = all_identifiers.objects.filter(lead_id = lead_id, visibility=True)
             if lead_ref:
                 # print('lead_ref', lead_ref)
                 lead_id = lead_ref[0].id
@@ -701,7 +701,7 @@ class viewLeadsAllIdentifiers(GenericAPIView):
                 return res
             
         else:
-            lead_ref = all_identifiers.objects.filter(lead_id = lead_id)
+            lead_ref = all_identifiers.objects.filter(lead_id = lead_id, visibility=True)
             if not lead_ref:
                 res.status_code = status.HTTP_403_FORBIDDEN
                 res.data = {
@@ -712,16 +712,15 @@ class viewLeadsAllIdentifiers(GenericAPIView):
                 return res
                 
 
-
-            
-
         # if table =='service':
         #     employee_id = models.objects.filter(lead_id = lead_id)
 
         # print(models)
         if user_role == 'lead_manager' or user_role == 'admin':
             if table != 'service':
+                # print(lead_id)
                 data = models.objects.filter(lead_id = lead_id).values()
+                # print(data)
                 data = list(data)
                 # print('data', data)
             else :

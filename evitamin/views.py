@@ -188,10 +188,7 @@ class deleteServiceApprovalWrite(GenericAPIView):
         if user_role == 'admin':
             if not service_delete_approval.objects.filter(service_id__service_id = service_id).exists():
                 data = ev_services.objects.filter(service_id = service_id).first()
-                # print({'service_id': data.id})
-                # print(employee_id)
                 if data:
-                    # print('data', data)
                     lda = service_delete_approval.objects.create(**{'service_id': data})
                     if lda:
                         res.status_code = status.HTTP_201_CREATED
@@ -234,13 +231,7 @@ class updateServices(GenericAPIView):
         if user_role == 'admin':
             SER_INST = ev_services.objects.filter(service_id = service_id).first()
             if SER_INST:
-
-                if request.data.get('static_service_fees') or request.data.get('commission_service_fees') or request.data.get('commission_fees'):
-                    pass
-
-
                 serializer = viewAllServicesSerializer(SER_INST, data=request.data, partial=True)
-                # print(serializer)
                 if serializer.is_valid(raise_exception=True):
                     serializer.save()
                     res.status_code = status.HTTP_200_OK
@@ -263,9 +254,7 @@ class updateServices(GenericAPIView):
                     'message': 'invalid service id',
                     'data': []
                 }
-            
             return res
-
         else:
             res.status_code = status.HTTP_401_UNAUTHORIZED
             res.data = {
