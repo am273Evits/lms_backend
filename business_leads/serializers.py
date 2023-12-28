@@ -249,8 +249,8 @@ class leadIdSerializer(serializers.Serializer):
 
 
 class dashboardSerializer(serializers.Serializer):
-    title = serializers.CharField()
-    data = serializers.CharField()
+    name = serializers.CharField()
+    performance = serializers.ListField()
 
     # total_leads = serializers.CharField()
     # yet_to_contact = serializers.CharField()

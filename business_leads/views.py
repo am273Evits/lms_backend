@@ -867,32 +867,54 @@ class dashboard(GenericAPIView):
     serializer_class = dashboardSerializer
     def get(self, request, format=None, *args, **kwargs):
         user_role = getUserRole(request.user.id)
-        # print(user_role)
 
         res = Response()
-        if user_role == 'admin':
-            data = []
+        if user_role == 'admin' or user_role == 'lead_manager':
             ld_status =  lead_status.objects.all()
-            
             EO_TL = employee_official.objects.filter(team_leader = 'self', emp__visibility=True)
+            data = []
             for tl in EO_TL:
                 tl.emp.name
-                condition = []
                 associates = getAssociates(tl.emp.employee_id)
+                mainData = []
                 for assoc in associates:
-                    # condition.append({  :assoc['name']})
-                    print(assoc['emp'])
+                    assocData = []
+                    for l in ld_status:
+                        SER = service.objects.filter(associate_id = assoc['emp'], lead_status = l,lead_id__visibility=True).count()
+                        assocData.append({'title': l.title,'data': SER})
+                    mainData.append({'name': assoc['name'],'emp' : assoc['emp'], 'data' : assocData })
+                data.append({'name': tl.emp.name, 'performance' : mainData})
+        elif user_role == 'bd_tl':
+            data = []
+            ld_status =  lead_status.objects.all()
+            associates = getAssociates(request.user.employee_id)
+            if associates :
+                mainData = []
+                for assoc in associates:
+                    assocData = []
+                    for l in ld_status:
+                        SER = service.objects.filter(associate_id = assoc['emp'], lead_status = l,lead_id__visibility=True).count()
+                        assocData.append({'title': l.title,'data': SER})
+                    mainData.append({'name': assoc['name'],'emp' : assoc['emp'], 'data' : assocData })
+                data.append({'name': request.user.name, 'performance' : mainData})
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': "request failed",
+                    'data': []
+                }            
+                return res
 
-                    
+        elif user_role == 'bd_t_member':
+            ld_status =  lead_status.objects.all()
+            data = []
+            assocData = []
+            for l in ld_status:
+                SER = service.objects.filter(associate_id = request.user.id, lead_status = l,lead_id__visibility=True).count()
+                assocData.append({'title': l.title,'data': SER})
+            data.append({'name': request.user.name, 'emp' : request.user.id ,'performance' : assocData})
 
-
-                for l in ld_status:
-                    SER = service.objects.filter(associate_id = '',lead_status = l,lead_id__visibility=True).count()
-                    data.append({'title': l.title,'data': SER})
-
-
-
-            # print(data)
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST
             res.data = {
