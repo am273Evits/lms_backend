@@ -333,7 +333,7 @@ class viewEmployee(GenericAPIView):
             #     model_fields.append({'type': 'CharField', 'value': '', 'field': 'associate_id'})
             # print(s_data)
             for i, md in enumerate(model_fields):
-                hidden_fields = ['employee_id', 'password' ,'email', 'last_login', 'is_active', 'is_admin', 'is_staff', 'is_superuser', 'visibility']
+                hidden_fields = ['employee_id', 'password' ,'email', 'last_login', 'is_active', 'is_admin', 'is_staff', 'is_superuser', 'visibility', 'updated_at']
                 if table == 'useraccount' and (md['field'] in hidden_fields):
                     if md['field'] in hidden_fields:
                         model_fields.pop(i)

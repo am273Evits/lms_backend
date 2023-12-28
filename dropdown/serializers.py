@@ -23,4 +23,4 @@ class UserAccountSerializer(serializers.ModelSerializer):
     password = serializers.CharField(read_only=True)
     class Meta:
         model = UserAccount
-        exclude = ['employee_id', 'email', 'last_login', 'is_active', 'is_admin', 'is_staff', 'is_superuser', 'visibility']
+        exclude = ['employee_id', 'email', 'last_login', 'is_active', 'is_admin', 'is_staff', 'is_superuser', 'visibility', 'updated_at']
