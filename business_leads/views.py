@@ -672,11 +672,9 @@ class viewLeadsAllIdentifiers(GenericAPIView):
         user_role = getUserRole(request.user.id)
         res = Response()
 
-        # print(all_identifiers.objects.filter(lead_id = lead_id, visibility=True).exists())
 
         models = apps.get_model('business_leads', table)
         modelFields = list(getModelFields(models))
-        # print(model_fields)
 
         model_fields = [mod for mod in modelFields if mod['type'] != 'ForeignKey' if mod['field'] != 'lead_id']
         serializer_class = models
@@ -742,6 +740,8 @@ class viewLeadsAllIdentifiers(GenericAPIView):
                 # # data = [data]
                 # # data = list(data)
                 # # print('data', data)
+
+            print(data)
 
             dynamic = dynamic_serializer(models)
             serializer = dynamic(data=data, many=True)
@@ -2151,29 +2151,37 @@ class fieldsAddNewServiceMarketplace(GenericAPIView):
     
 
 class fieldsAddNewServiceServices(GenericAPIView):
+    permission_classes = [IsAuthenticated]
     def get(self,request, country, marketplace, format=None, *args, **kwargs):
+        # print(country)
         # user = cookieAuth(request)
         # employee_id = user['user'].employee_id
+        user_role = getUserRole(request.user.id)
         product = getProduct(request.user.id)
         dt_list = []
-        data = ev_services.objects.filter(country = country, marketplace = marketplace).values('services').distinct()
+        data = ev_services.objects.filter(country = country, marketplace = marketplace, visibility=True).values('services').distinct()
+        print(data)
         for d in data:
-            print(d['services'])
-            print(product)
-            if d['services'] == product:
-                dt_list.append(d)
+            # print(d['services'])
+            # print(product)
+            if user_role == 'lead_manager' or user_role == 'lead_manager':
+                    dt_list.append(d)
+            else:
+                if d['services'] == product:
+                    dt_list.append(d)
 
-        print(dt_list)
+        # print(dt_list)    
         serializer = fieldEmailProposalService(data=dt_list, many=True)
         res = Response()
         if serializer.is_valid(raise_exception=True):
             s_data = serializer.data
+            # print(s_data)
             
             datalist = []
             for i in s_data:
-                print(i)
+                # print(i)
                 for key in i:
-                    print('key',key)
+                    # print('key',key)
                     datalist.append(i[key])
 
             res.status_code = status.HTTP_200_OK

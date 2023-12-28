@@ -57,10 +57,10 @@ class viewAllServices(GenericAPIView):
         # print(user_role)
         res = Response()
         if user_role == 'admin':
-            pagecount = math.ceil(ev_services.objects.count()/limit)
+            pagecount = math.ceil(ev_services.objects.filter(visibility=True).count()/limit)
 
             if int(page) <= pagecount:
-                data = ev_services.objects.all()[offset: offset+limit]
+                data = ev_services.objects.filter(visibility=True).all()[offset: offset+limit]
                 data = list(data.values())
                 serializer = viewAllServicesSerializer(data=data, many=True)
                 if serializer.is_valid(raise_exception=True):
@@ -104,7 +104,7 @@ class viewServicesIndv(GenericAPIView):
         user_role = getUserRole(request.user.id)
         res = Response()
         if user_role == 'admin':
-            data = ev_services.objects.filter(service_id = service_id).values().first()
+            data = ev_services.objects.filter(service_id = service_id, visibility=True).values().first()
             serializer = viewAllServicesSerializer(data=data)
             if serializer.is_valid(raise_exception=True):
                 res.status_code = status.HTTP_200_OK
@@ -139,7 +139,7 @@ class viewServicesSearch(GenericAPIView):
         data = []
         res =  Response()
         if user_role == 'admin':
-            serviceData = ev_services.objects.filter(service_id = service_id).values().first()
+            serviceData = ev_services.objects.filter(service_id = service_id, visibility=True).values().first()
             print(serviceData)
             if serviceData:
 
@@ -187,7 +187,7 @@ class deleteServiceApprovalWrite(GenericAPIView):
         res = Response()
         if user_role == 'admin':
             if not service_delete_approval.objects.filter(service_id__service_id = service_id).exists():
-                data = ev_services.objects.filter(service_id = service_id).first()
+                data = ev_services.objects.filter(service_id = service_id, visibility=True).first()
                 if data:
                     lda = service_delete_approval.objects.create(**{'service_id': data})
                     if lda:
@@ -229,7 +229,7 @@ class updateServices(GenericAPIView):
         user_role = getUserRole(request.user.id)
         res = Response()
         if user_role == 'admin':
-            SER_INST = ev_services.objects.filter(service_id = service_id).first()
+            SER_INST = ev_services.objects.filter(service_id = service_id, visibility=True).first()
             if SER_INST:
                 serializer = viewAllServicesSerializer(SER_INST, data=request.data, partial=True)
                 if serializer.is_valid(raise_exception=True):

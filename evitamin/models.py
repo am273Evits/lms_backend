@@ -25,6 +25,7 @@ class ev_services(models.Model):
     commission_fees = models.BooleanField(default=False)
     commission_service_fees = models.CharField(max_length=300, blank=True, default='')
     service_currency = models.CharField(max_length=300, blank=True, default='')
+    visibility = models.BooleanField(default=True)
     def __str__ (self): return self.price_for_mou
     # def __str__ (self): return self.country
 

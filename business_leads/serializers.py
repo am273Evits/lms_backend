@@ -84,6 +84,7 @@ class allIdentifiersSerializer(serializers.ModelSerializer):
 
 def dynamic_serializer(model_class):
     class dynamicSeralizer(serializers.ModelSerializer):
+        # password = serializers.CharField(read_only=True)
         class Meta:
             model = model_class
             exclude = ['lead_id']
