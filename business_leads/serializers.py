@@ -246,6 +246,23 @@ class tableFieldSerializer(serializers.Serializer):
 class leadIdSerializer(serializers.Serializer):
     lead_id = serializers.CharField()
 
+
+
+class dashboardSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    data = serializers.CharField()
+
+    # total_leads = serializers.CharField()
+    # yet_to_contact = serializers.CharField()
+    # converted_leads = serializers.CharField()
+    # follow_up = serializers.CharField()
+    # unresponsive = serializers.CharField()
+    # pending_for_pending = serializers.CharField()
+    # asked_for_details = serializers.CharField()
+    # payment_validation_pending = serializers.CharField()
+    # associate_not_assigned = serializers.CharField()
+    # not_interested = serializers.CharField()
+
     # class Meta:
     #     extra_kwargs = {'value': {'write_only': True}}
         

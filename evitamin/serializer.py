@@ -65,11 +65,19 @@ class servicesSerializer(serializers.ModelSerializer):
         return data
 
 
-
-class viewAllServicesSerializer(serializers.ModelSerializer):
+class viewServicesSerializer(serializers.ModelSerializer):
     class Meta:
         model = ev_services
-        fields = '__all__'
+        exclude = ['visibility']
+
+
+class viewAllServicesSerializer(serializers.ModelSerializer):
+
+    # visibility = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = ev_services
+        exclude = ['visibility']
 
     def validate(self, attrs):
 

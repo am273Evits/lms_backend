@@ -49,7 +49,7 @@ class createServices(CreateAPIView):
 
 class viewAllServices(GenericAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = viewAllServicesSerializer
+    serializer_class = viewServicesSerializer
     def get(self, request, page, format=None, *args, **kwargs):
         user_role = getUserRole(request.user.id)
         limit = 10
@@ -58,12 +58,14 @@ class viewAllServices(GenericAPIView):
         res = Response()
         if user_role == 'admin':
             pagecount = math.ceil(ev_services.objects.filter(visibility=True).count()/limit)
+            # print(pagecount)
 
             if int(page) <= pagecount:
                 data = ev_services.objects.filter(visibility=True).all()[offset: offset+limit]
                 data = list(data.values())
-                serializer = viewAllServicesSerializer(data=data, many=True)
+                serializer = viewServicesSerializer(data=data, many=True)
                 if serializer.is_valid(raise_exception=True):
+                    # print(serializer.data)
                     res.status_code = status.HTTP_200_OK
                     res.data = {
                         "status": status.HTTP_200_OK,

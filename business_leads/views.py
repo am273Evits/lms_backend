@@ -40,7 +40,7 @@ from records.models import *
 
 # from lms_backend.models import File
 
-from account.views import getLeadId, getProduct, getUserRole, getTeamLeader, getClientId, get_tokens_for_user, getModelFields, getTeamLeaderInst, getLeadStatusInst
+from account.views import getLeadId, getProduct, getUserRole, getTeamLeader, getClientId, get_tokens_for_user, getModelFields, getTeamLeaderInst, getLeadStatusInst, getAssociates
 # Create your views here.
 
 
@@ -858,6 +858,65 @@ class createLeadManual(CreateAPIView):
                     "message" : 'request failed',
                     "data": []
                 }
+        return res
+
+
+
+class dashboard(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = dashboardSerializer
+    def get(self, request, format=None, *args, **kwargs):
+        user_role = getUserRole(request.user.id)
+        # print(user_role)
+
+        res = Response()
+        if user_role == 'admin':
+            data = []
+            ld_status =  lead_status.objects.all()
+            
+            EO_TL = employee_official.objects.filter(team_leader = 'self', emp__visibility=True)
+            for tl in EO_TL:
+                tl.emp.name
+                condition = []
+                associates = getAssociates(tl.emp.employee_id)
+                for assoc in associates:
+                    # condition.append({  :assoc['name']})
+                    print(assoc['emp'])
+
+                    
+
+
+                for l in ld_status:
+                    SER = service.objects.filter(associate_id = '',lead_status = l,lead_id__visibility=True).count()
+                    data.append({'title': l.title,'data': SER})
+
+
+
+            # print(data)
+        else:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': "you are not authorized to view this page",
+                'data': []
+            }            
+            return res
+        
+        serializer = dashboardSerializer(data=data, many=True)
+        if serializer.is_valid(raise_exception=True):
+            res.status_code = status.HTTP_200_OK
+            res.data = {
+                'status': status.HTTP_200_OK,
+                'message': "successful",
+                'data': serializer.data
+            }
+        else:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': "request failed",
+                'data': []
+            }            
         return res
 
 

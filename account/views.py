@@ -81,7 +81,7 @@ def getAssociates(emp):
     datalist = []
     data = employee_official.objects.filter(team_leader=emp)
     for d in data:
-        datalist.append({'employee_id': d.emp.employee_id, 'name': d.emp.name, 'user_role': d.user_role })
+        datalist.append({'employee_id': d.emp.employee_id, 'name': d.emp.name, 'user_role': d.user_role, 'emp': d.emp.id})
     return datalist
 
 
