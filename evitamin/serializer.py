@@ -68,7 +68,7 @@ class servicesSerializer(serializers.ModelSerializer):
 class viewServicesSerializer(serializers.ModelSerializer):
     class Meta:
         model = ev_services
-        exclude = ['visibility']
+        exclude = ['visibility', 'service_currency', 'commission_service_fees', 'commission_fees', 'static_service_fees']
 
 
 class viewAllServicesSerializer(serializers.ModelSerializer):
