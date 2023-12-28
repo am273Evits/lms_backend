@@ -60,10 +60,12 @@ def _handle_authentication_tokrn_perm(exc,context,response):
 def _handle_ValidationError(exc,context,response):
     keys=list(response.data.keys())
     values=list(response.data.values())
+    print('keys',keys)
+    print('values',values)
     print(response.data)
     response.data={
         'status':response.status_code,
-        'message':keys[0]+" "+values[0][0],
+        'message':values[0][0],
         'data':{}
     }
     return response

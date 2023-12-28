@@ -43,7 +43,8 @@ class getAssociates(GenericAPIView):
                 'data': []
             }
         return res
-    
+
+
 
 class viewAllUser(GenericAPIView):
     permission_classes = [IsAuthenticated]

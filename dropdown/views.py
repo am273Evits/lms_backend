@@ -10,7 +10,7 @@ from .serializers import *
 from dropdown.models import ev_department, ev_designation, user_role_list
 from dropdown.models import list_employee
 from business_leads.serializers import allIdentifiersSerializer 
-from dropdown.serializers import dynamic_serializer
+# from dropdown.serializers import dynamic_serializer
 from account.models import *
 from dropdown.models import dropdown_fields
 
