@@ -62,6 +62,8 @@ class UserAccount(AbstractBaseUser):
     emergency_contact_number = models.CharField(max_length=300, blank=True, default='')
     religion = models.CharField(max_length=300, blank=True, default='')
 
+    visibility = models.BooleanField(default=True)
+
     objects = UserAccountManager()
 
     USERNAME_FIELD = 'email'

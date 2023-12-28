@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from .serializers import *
 from dropdown.models import ev_department, ev_designation, user_role_list
+from dropdown.models import list_employee
 
 from account.views import getLeadId, getProduct, getUserRole, getTeamLeader, getClientId, get_tokens_for_user , getAssociates as getAssociate, getModelFields
 
@@ -190,8 +191,44 @@ class dropdownOptionData2(GenericAPIView):
         return res
 
 
+class employeesAllTables(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = employeesAllTablesSerializer
+    def get(self, request, format=None, *args, **kwargs):
+        user_role = getUserRole(request.user.id)
+        res = Response()
+        if user_role == 'admin' or user_role == 'lead_manager' or user_role == 'bd_tl' or user_role == 'bd_t_member':
 
-
+            tables = list_employee.objects.all()
+            # print(tables)
+            tablesList = [tb.table_name for tb in tables]
+            # print('tablesList',tablesList)
+            tables = {'tables': tablesList}
+            print(tables)
+                    
+            serializer = employeesAllTablesSerializer(data=tables)
+            if serializer.is_valid(raise_exception=True):
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    'status': status.HTTP_200_OK,
+                    'message': 'successful',
+                    'data': serializer.data
+                }
+            else :
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': 'unsuccessful',
+                    'data': serializer.data
+                }
+        else :
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'you are not authorized',
+                'data': []
+            }
+        return res
     
 
 

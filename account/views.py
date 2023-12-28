@@ -40,13 +40,6 @@ def getProduct(id):
 def getUserRole(id):
     user = employee_official.objects.get(emp = id)
     return user.user_role
-    # # print('working till here')
-    # print(emp.id)
-    # # user = UserAccount.objects.filter(employee_id = emp).first()
-    # # user_id = user.id
-    # product = employee_official.objects.select_related.filter(emp = emp).first()
-    # # print(product)
-    # return "sdfsdf"
 
 def getTeamLeader(emp):
     data = employee_official.objects.filter(emp__employee_id = emp).first()
@@ -89,16 +82,7 @@ def getAssociates(emp):
     data = employee_official.objects.filter(team_leader=emp)
     for d in data:
         datalist.append({'employee_id': d.emp.employee_id, 'name': d.emp.name, 'user_role': d.user_role })
-    # data = list(data.values())
-    # print(data[0])
     return datalist
-    # print('data, emp',data)
-    # pass 
-    # emp_list = []
-    # for d in data:
-    #     associate_data = employee_basic.objects.filter(employee_id = d['employee_id']).first()
-    #     emp_list.append({'employee_id' : associate_data.employee_id, 'name' : associate_data.name})
-    # return emp_list
 
 
 def getModelFields(model):
@@ -110,37 +94,13 @@ def getModelFields(model):
     return allfields
 
 
-    # print(emp_list)
-    # return 
-
-# def get_tokens_for_user(user):
-#     refresh = RefreshToken.for_user(user)
-#     return {
-#         "access" : str(refresh),
-#         "refresh": str(refresh.access_token)
-#     }
-
-
-
-
-
-
-
-
-
-
 class IgnoreBearerTokenAuthentication(TokenAuthentication):
     def authenticate(self, request):
-        # Check if the "Authorization" header is present in the request
         if 'Authorization' in request.headers:
-            # Get the value of the "Authorization" header
             auth_header = request.headers['Authorization']
 
-            # If the header starts with "Bearer", ignore it and return None for authentication
             if auth_header.startswith('Bearer'):
                 return None
-
-        # Return the result of the super method, even if it's None
         return super().authenticate(request)
     
 def get_tokens_for_user(user):
@@ -161,32 +121,33 @@ class LoginView(GenericAPIView):
             email=serializer.data.get('email')
             password=serializer.data.get('password')
             try:
-               user_obj=UserAccount.objects.get(email=email)
+               UserAccount.objects.get(email=email, visibility=True)
             except:
-               return Response({'status': status.HTTP_404_NOT_FOUND,'message':'Please Registerd user first','data':{"xyz":"123"}}, status=status.HTTP_404_NOT_FOUND)          
+               return Response({'status': status.HTTP_404_NOT_FOUND,'message':'no user account with this email id','data':[]}, status=status.HTTP_404_NOT_FOUND)          
+            
             user=authenticate(email=email,password=password)
-
-
             res = Response()
-            if user is not None:
-                token=get_tokens_for_user(user)
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'status': 200,
-                    'message': "registrations successful",
-                    'data': {'user_details': user_VF(user.id),"token": token, "user_links": userSpecificLinkHeader(user.id)},
-                } 
+            if user.visibility:
+                if user is not None:
+                    token=get_tokens_for_user(user)
+                    res.status_code = status.HTTP_200_OK
+                    res.data = {
+                        'status': status.HTTP_200_OK,
+                        'message': "registrations successful",
+                        'data': {'user_details': user_VF(user.id),"token": token, "user_links": userSpecificLinkHeader(user.id)},
+                    } 
+                else:
+                    res.status_code =status.HTTP_404_NOT_FOUND
+                    res.data = {'status': status.HTTP_404_NOT_FOUND,'message':'Email or password is not Valid','data':{}}
             else:
-                res.status_code =status.HTTP_404_NOT_FOUND
-                res.data = {'status': status.HTTP_404_NOT_FOUND,'message':'Email or password is not Valid','data':{}}
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'status': status.HTTP_200_OK,
+                    'message': 'user is inactive, please contact administrator',
+                    'data': []
+                }
             return res
          
-         
-# class TestView(GenericAPIView):
-#    permission_classes=[IsAuthenticated]
-#    def get(self,request,format=None):
-#        print(request.user.username,"work")  
-#        return Response({'status': status.HTTP_404_NOT_FOUND,'message':'','data':[request.user.username,request.user.id,request.user.employee_id]}, status=status.HTTP_404_NOT_FOUND)
 
 class registration_VF(GenericAPIView):
     permission_classes = [IsAuthenticated]
@@ -270,69 +231,21 @@ class registration_VF(GenericAPIView):
         
 
 
-
 def userSpecificLinkHeader(user_id):
-    # user = request.user
-    # print(user_id)
-    # print('usr_role', usr_role)
     usr_role = employee_official.objects.filter(emp = user_id).first()
     usr_role = usr_role.user_role
-    # print(usr_role)
     links = user_links.objects.filter(access_department = usr_role, link_status = True)
     usr_link = []
     for link in links:
         usr_link.append({"title": link.title, 'navigation': link.user_link })
     serializer = userSpecificLinkSerializer(data=usr_link, many=True)
-    # print(serializer.data)
-    # res = Response()
     if serializer.is_valid(raise_exception=True):
-        # res.status_code = status.HTTP_200_OK
         return serializer.data
     else:        
-        # res.status_code = status.HTTP_400_BAD_REQUEST
         return "unsuccessful"
-    # return res
-    
-
-
-
-
-
-
-# class userSpecificLinkHeader(GenericAPIView):
-#     permission_classes = [IsAuthenticated]
-#     serializer_class = userSpecificLinkSerializer
-#     def get(self, request, format=None, *args, **kwargs):
-#         user = request.user
-
-#         usr_role = employee_official.objects.filter(emp = user.id).first()
-
-#         usr_role = usr_role.user_role
-#         links = user_links.objects.filter(access_department = usr_role, link_status = True)
-#         usr_link = []
-#         for link in links:
-#             usr_link.append({"title": link.title, 'link_type': link.link_type, 'link': link.user_link })
-
-#         serializer = userSpecificLinkSerializer(data=usr_link, many=True)
-#         res = Response()
-#         if serializer.is_valid(raise_exception=True):
-#             res.status_code = status.HTTP_200_OK
-#             res.data = {"status": status.HTTP_200_OK, "message": "successfully fetched", "data":{ "user_link" : serializer.data}}
-#         else:        
-#             res.status_code = status.HTTP_400_BAD_REQUEST
-#             res.data = {"status": status.HTTP_200_OK, "message": "unsuccessful", "data":{}}
-#         return res
-    
-
-
 
 def user_VF(id):
-    # print('id', id)
     user = employee_official.objects.get(emp=id)
-    # if employee_official.objects.get(emp=id):
-    #     print('yes')
-    # else:
-    #     print('no')
     data = {
         'user_role' : user.user_role if user.user_role != '' else '-' ,
         'product' : user.product if user.product != '' else '-',
@@ -340,7 +253,6 @@ def user_VF(id):
         'employee_id' : user.emp.employee_id,
         'email' : user.emp.email,
     }
-    # print('data', data)
     serializer = userSerializer(data=data)
     serializer.is_valid(raise_exception=True)
     return  {'user': serializer.data}

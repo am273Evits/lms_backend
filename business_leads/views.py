@@ -733,10 +733,7 @@ class viewLeadsAllIdentifiers(GenericAPIView):
                 nData = data
                 nData['associate_id'] = associate_id
                 data = list([nData])
-                # print(nData)
-
                 # nd = models.
-                
                 # associate_id = data.first().associate_id_id
                 # associate_id = employee_official.objects.filter(emp__id = data.first().associate_id_id).first()
                 # # print(associate_id.emp.name)
@@ -745,7 +742,6 @@ class viewLeadsAllIdentifiers(GenericAPIView):
                 # # data = [data]
                 # # data = list(data)
                 # # print('data', data)
-
 
             dynamic = dynamic_serializer(models)
             serializer = dynamic(data=data, many=True)
@@ -758,20 +754,16 @@ class viewLeadsAllIdentifiers(GenericAPIView):
             s_data = dict(serializer.data[0])
 
             if table =='service':
-                EO_INST = employee_official.objects.filter(emp__id = s_data['associate_id']).first()
+                EO_INST = employee_official.objects.filter(emp__id = s_data['associate_id'], emp__visibility=True).first()
                 s_data['associate_id'] = {'name': EO_INST.emp.name if EO_INST!= None else '' , 'pk': s_data['associate_id'] if s_data['associate_id'] !=None else '' }
 
                 model_fields.append({'type': 'CharField', 'value': '', 'field': 'associate_id'})
-                # print(s_data)
-
             # print(s_data)
             for i, md in enumerate(model_fields):
                 if table == 'all_identifiers' and (md['field'] == 'upload_date'):
                     model_fields.pop(i)
                     # del md
-                    
                 elif not md['type'] == 'ForeignKey':
-
                     # print(md)
                     for key in md:
                         # print('data', md['field'])
@@ -1576,7 +1568,7 @@ class assignAssociate(GenericAPIView):
     def put(self, request, format=None, *args, **kwargs):
         print('request.data',request.data)
 
-        obj_user = employee_official.objects.filter(emp__id = request.user.id).first()
+        obj_user = employee_official.objects.filter(emp__id = request.user.id, emp__visibility=True).first()
         user_role = obj_user.user_role
         print('user_role', user_role)
 
@@ -1584,7 +1576,7 @@ class assignAssociate(GenericAPIView):
         if user_role == 'admin' or user_role == 'lead_manager' or user_role == 'bd_tl':
             lead_id = request.data.get('lead_id')
             assoc_employee_id = request.data.get('employee_id')
-            empData = employee_official.objects.filter(emp__employee_id = assoc_employee_id).first()
+            empData = employee_official.objects.filter(emp__employee_id = assoc_employee_id, emp__visibility=True).first()
             # print('empData',empData.emp.id)
             team_leader_id = getTeamLeaderInst(empData.emp.employee_id)
 

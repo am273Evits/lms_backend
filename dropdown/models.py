@@ -200,10 +200,12 @@ class list_business_leads(models.Model):
 #     table_type = models.CharField(max_length=500, blank=True, default='')
 #     table_atr = models.CharField(max_length=500, blank=True, default='')
 
-# class list_employee(models.Model):
-#     table_name = models.CharField(max_length=500, blank=True, default='')
-#     table_type = models.CharField(max_length=500, blank=True, default='')
-#     table_atr = models.CharField(max_length=500, blank=True, default='')
+class list_employee(models.Model):
+    table_name = models.CharField(max_length=500, blank=True, default='')
+    table_type = models.CharField(max_length=500, blank=True, default='')
+    table_atr = models.CharField(max_length=500, blank=True, default='')
+    def __str__ (self): return self.table_name
+
 
 
 class image_src(models.Model):

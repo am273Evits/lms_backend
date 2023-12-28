@@ -59,11 +59,10 @@ class viewUserIndvSerializer(serializers.ModelSerializer):
     emp = serializers.CharField(required=False)
 
 
-
-
-
-    
-
     class Meta:
         model = employee_official
         fields = '__all__'
+
+
+class deleteUserSerializer(serializers.Serializer):
+    employee_id = serializers.CharField()

@@ -10,6 +10,9 @@ urlpatterns = [
 
             path('options/<str:table>/<str:data1>', dropdownOptionData1.as_view()),
             path('options/<str:table>/<str:data1>/<str:data2>', dropdownOptionData2.as_view()),
+
+            path('employees_all_tables', employeesAllTables.as_view()), #all tables submit
+
             # path('options/<str:table>/<str:data1>/<str:data2>', dropdownOptionData2.as_view()),
 
             # path('options_ajax/<str:table>', dropdownAjaxOption.as_view()),

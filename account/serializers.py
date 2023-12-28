@@ -13,13 +13,13 @@ class loginSerializer(serializers.ModelSerializer):
 
 
 class registrationSerializer(serializers.ModelSerializer):
-    # designation = serializers.CharField(read_only=True)
-    # department = serializers.CharField(read_only=True)
-    # user_role = serializers.CharField(read_only=True)
+    designation = serializers.CharField(read_only=True)
+    department = serializers.CharField(read_only=True)
+    user_role = serializers.CharField(read_only=True)
     password2 = serializers.CharField(style={'input_type': 'password'}, write_only = True)
     class Meta:
         model = UserAccount
-        fields = ['username', 'email', 'name', 'employee_id', 'password', 'password2']
+        fields = ['username', 'email', 'name', 'employee_id', 'password', 'password2', 'designation', 'department', 'user_role']
         extra_kwargs = {
             'password': {'write_only': True},
             'password2': {'write_only': True}

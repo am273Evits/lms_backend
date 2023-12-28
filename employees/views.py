@@ -142,7 +142,7 @@ class viewUserIndv(GenericAPIView):
             if employee_id in emp_id_list:
                 # print('employee_id', employee_id)
                 
-                EMOF_data = employee_official.objects.filter(emp__employee_id = employee_id)
+                EMOF_data = employee_official.objects.filter(emp__employee_id = employee_id, emp__visibility=True)
                 if EMOF_data:
                     EMOF_val = EMOF_data.values()
                     EMOF_qrs = EMOF_data.first()
@@ -164,9 +164,9 @@ class viewUserIndv(GenericAPIView):
                 }
                 return res
         elif user_role == 'bd_t_member':
-            emp_id = employee_official.objects.filter(emp__id = request.user.id).first()
+            emp_id = employee_official.objects.filter(emp__id = request.user.id, emp__visibility=True).first()
             if emp_id.emp.employee_id == employee_id:
-                EMOF_data = employee_official.objects.filter(emp__employee_id = employee_id)
+                EMOF_data = employee_official.objects.filter(emp__employee_id = employee_id, emp__visibility=True)
                 if EMOF_data:
                     EMOF_val = EMOF_data.values()
                     EMOF_qrs = EMOF_data.first()
@@ -203,12 +203,13 @@ class viewUserIndv(GenericAPIView):
 
 class deleteUserApprovalWrite(CreateAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = deleteUserSerializer
     def delete(self, request, employee_id, format=None, *args, **kwargs):
         user_role = getUserRole(request.user.id)
         res = Response()
         if user_role == 'admin' or user_role == 'lead_manager' or user_role == 'bd_tl': 
             if not user_delete_approval.objects.filter(employee_id__employee_id = employee_id).exists():
-                data = employee_official.objects.filter(emp__employee_id=employee_id).first()
+                data = employee_official.objects.filter(emp__employee_id=employee_id, emp__visibility=True).first()
                 # print(employee_id)
                 if data:
                     lda = user_delete_approval.objects.create(**{'employee_id': data.emp})
@@ -260,7 +261,7 @@ class viewAllLeadsSearch(GenericAPIView):
         )
         if user_role == 'lead_manager' or user_role == 'admin':
             data = []
-            serviceData = employee_official.objects.select_related().filter(emp__employee_id = employee_id)
+            serviceData = employee_official.objects.select_related().filter(emp__employee_id = employee_id, emp__visibility=True)
             if serviceData:
                 for sd in serviceData:
                     data.append({'employee_id': sd.emp.employee_id, 'name': sd.emp.name, 'user_role': sd.user_role if sd.user_role !='' else '-' , 'designation': sd.designation if sd.designation !='' else '-' , 'department': sd.department if sd.department !='' else '-' , 'product': sd.product if sd.product !='' else '-'}) 
@@ -285,11 +286,11 @@ class viewAllLeadsSearch(GenericAPIView):
         elif user_role == 'bd_tl':
             product = getProduct(user.id)
             data = []
-            emp_id = employee_official.objects.filter(emp__id = request.user.id).first()
+            emp_id = employee_official.objects.filter(emp__id = request.user.id, emp__visibility=True).first()
             emp_id_list = getAssociate(emp_id.emp.employee_id)
             emp_id_list = [a['employee_id'] for a in emp_id_list]
             if employee_id in emp_id_list:
-                serviceData = employee_official.objects.select_related().filter(emp__employee_id = employee_id)
+                serviceData = employee_official.objects.select_related().filter(emp__employee_id = employee_id, emp__visibility=True)
                 if serviceData:
                     for sd in serviceData:
                         data.append({'employee_id': sd.emp.employee_id, 'name': sd.emp.name, 'user_role': sd.user_role if sd.user_role !='' else '-' , 'designation': sd.designation if sd.designation !='' else '-' , 'department': sd.department if sd.department !='' else '-' , 'product': sd.product if sd.product !='' else '-'}) 
@@ -389,7 +390,7 @@ class officialDetailsSubmit(CreateAPIView):
                     }
                     return res
                 
-                UA_data = employee_official.objects.filter(emp__employee_id = data.get('employee_id')).first()
+                UA_data = employee_official.objects.filter(emp__employee_id = data.get('employee_id'), emp__visibility=True).first()
                 print(UA_data.id)
                 
                 del data['employee_id']
