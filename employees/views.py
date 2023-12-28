@@ -5,7 +5,8 @@ from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-
+from business_leads.serializers import allIdentifiersSerializer 
+from .serializers import dynamic_serializer
 from .serializers import *
 from employees.models import *
 from dropdown.models import *
@@ -430,6 +431,170 @@ class officialDetailsSubmit(CreateAPIView):
                 'data': []
             }
 
+        return res
+    
+
+
+class viewEmployee(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = allIdentifiersSerializer
+    def get(self, request, table, employee_id, format=None, *args, **kwargs):
+
+        user_role = getUserRole(request.user.id)
+        res = Response()
+
+        if table == 'useraccount':
+            models = apps.get_model('account', table)
+        else:
+            models = apps.get_model('employees', table)
+        
+        modelFields = list(getModelFields(models))
+        model_fields = [mod for mod in modelFields if mod['type'] != 'ForeignKey' if mod['field'] != 'employee_id']
+        serializer_class = models
+
+        if table != 'useraccount':
+            lead_ref = UserAccount.objects.filter(employee_id = employee_id, visibility=True)
+            if lead_ref:
+                employee_id = lead_ref[0].id
+                for i in range(len(model_fields)):
+                    if model_fields[i]:
+                        if model_fields[i]['field'] == 'employee_id':
+                            model_fields.pop(i)
+                            break
+            else:
+                res.status_code = status.HTTP_403_FORBIDDEN
+                res.data = {
+                    'status': status.HTTP_403_FORBIDDEN,
+                    'message': 'invalid lead id',
+                    'data' : []
+                }
+                return res
+        else:
+            lead_ref = UserAccount.objects.filter(employee_id = employee_id, visibility=True)
+            if not lead_ref:
+                res.status_code = status.HTTP_403_FORBIDDEN
+                res.data = {
+                    'status': status.HTTP_403_FORBIDDEN,
+                    'message': 'invalid lead id',
+                    'data' : []
+                }
+                return res
+                
+
+        if user_role == 'lead_manager' or user_role == 'admin':
+            data = ''
+            if table != 'useraccount':
+                data = models.objects.select_related().filter(emp = employee_id)
+            else:
+                data = models.objects.select_related().filter(employee_id = employee_id)
+
+            # associate_id = data[0].associate_id.id if data[0].associate_id != None else '' 
+            # data = data.values().first()
+            # nData = data
+            # nData['associate_id'] = associate_id
+            # data = list([nData])
+
+            dynamic = dynamic_serializer(models)
+            if table == 'useraccount':
+                serializer = UserAccountSerializer(data=list(data.values()), many=True)
+            else:
+                serializer = dynamic(data=list(data.values()), many=True)
+
+            serializer.is_valid(raise_exception=True)
+            # print('serializer.data',serializer.data)
+
+            # print(serializer.data)
+            s_data = dict(serializer.data[0])
+            # print(s_data)
+
+            # if table =='useraccount':
+            #     # print('model_fields', model_fields)
+
+            #     for i, m in enumerate(model_fields):
+            #             # print(m['field'])
+            #             model_fields.pop(i)
+            #             # print(i)
+                
+                
+            #     print(model_fields)
+
+                
+                # EO_INST = employee_official.objects.filter(emp__id = s_data['associate_id'], emp__visibility=True).first()
+                # s_data['associate_id'] = {'name': EO_INST.emp.name if EO_INST!= None else '' , 'pk': s_data['associate_id'] if s_data['associate_id'] !=None else '' }
+
+            #     model_fields.append({'type': 'CharField', 'value': '', 'field': 'associate_id'})
+            # print(s_data)
+            for i, md in enumerate(model_fields):
+                hidden_fields = ['employee_id', 'password' ,'email', 'last_login', 'is_active', 'is_admin', 'is_staff', 'is_superuser', 'visibility', 'updated_at']
+                if table == 'useraccount' and (md['field'] in hidden_fields):
+                    if md['field'] in hidden_fields:
+                        model_fields.pop(i)
+                    # del md
+                elif not md['type'] == 'ForeignKey':
+                    print(md)
+                    for key in md:
+                        # print('data', md['field'])
+                        # print(key)
+                        # print(md['field'])
+                        md['value'] =  s_data[md['field']]
+                        break
+
+            
+            for mod in model_fields:
+                mod['key'] = mod['field']
+                del mod['field']
+
+            # print('model_fields',model_fields)
+            if table != 'all_identifiers':
+                dropdown_fields_data = dropdown_fields.objects.all()
+                for m in model_fields:
+                    # print(m['key'])
+                    for d in dropdown_fields_data:
+                        if d.title == m['key']:
+                            # print(d.title)
+                            m['type'] = 'dropdown'
+                            selectBoxData = []
+                            if d.ref_tb:
+                                m['table'] = d.ref_tb
+                                refModel = apps.get_model('dropdown', d.ref_tb)
+                                refModelData = refModel.objects.all()
+                                for rmd in refModelData:
+                                    selectBoxData.append(rmd.title)
+                                m['dropdown'] = selectBoxData
+                            else:
+                                pass
+
+            res.status_code = status.HTTP_200_OK
+            res.data = {
+                'status': status.HTTP_200_OK,
+                'message': 'successful',
+                'data': {'data': serializer.data, "current_table": table, 'employee_id': employee_id, 'data_type': model_fields}
+                }
+        elif user_role == 'bd_tl':
+            product = getProduct(request.user.id)
+ 
+            serviceData = service.objects.filter(employee_id = employee_id, service_category = product)
+            if serviceData:
+                data = models.objects.filter(employee_id = employee_id)
+                # print(data)
+                data = list(data.values())
+                serializer = models(data=data, many=True)
+                serializer.is_valid(raise_exception=True)
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    "status": status.HTTP_200_OK,
+                    'message': 'successful',
+                    'data': {'data': serializer.data,"current_table": table, 'employee_id': employee_id, 'field_type': [model_fields]}
+                    }
+                # return res
+        else:
+            res.status_code = status.HTTP_203_NON_AUTHORITATIVE_INFORMATION
+            res.data = {
+                "status": status.HTTP_203_NON_AUTHORITATIVE_INFORMATION,
+                'message': 'you are not authorized to see this lead',
+                'data': []
+                }
+        
         return res
 
     

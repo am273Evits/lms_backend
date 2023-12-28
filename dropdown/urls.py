@@ -13,7 +13,7 @@ urlpatterns = [
 
             path('employee_all_tables', employeesAllTables.as_view()), #all tables submit
 
-            path('view_employee/<str:table>/<str:employee_id>', viewEmployee.as_view()), #view_all_leads
+            # path('view_employee/<str:table>/<str:employee_id>', viewEmployee.as_view()), #view_all_leads
 
             # path('options/<str:table>/<str:data1>/<str:data2>', dropdownOptionData2.as_view()),
 
