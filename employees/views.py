@@ -207,7 +207,7 @@ class viewUserIndv(GenericAPIView):
 class deleteUserApprovalWrite(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = deleteUserSerializer
-    def post(self, request, employee_id, format=None, *args, **kwargs):
+    def delete(self, request, employee_id, format=None, *args, **kwargs):
         user_role = getUserRole(request.user.id)
         res = Response()
         if user_role == 'admin' or user_role == 'lead_manager' or user_role == 'bd_tl': 

@@ -2322,7 +2322,7 @@ class fieldsAddNewServiceTeamLeader(GenericAPIView):
 class deleteLeadApprovalWrite(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = leadIdSerializer
-    def delete(self, request, lead_id, format=None, *args, **kwargs):
+    def post(self, request, lead_id, format=None, *args, **kwargs):
         print(lead_id)
         res = Response()
         if not lead_delete_approval.objects.filter(lead_id__lead_id = lead_id).exists():
