@@ -608,7 +608,7 @@ class viewEmployee(GenericAPIView):
 
 
 class updateEmployee(GenericAPIView):
-    serializer_class = dynamic_employee_update_serializer
+    # serializer_class = dynamic_employee_update_serializer
     permission_classes = [IsAuthenticated]
     def put(self, request, table, employee_id, format=None, *args, **kwargs):
         main_data = request.data
