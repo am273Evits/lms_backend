@@ -629,7 +629,7 @@ class updateEmployee(GenericAPIView):
         # modelFields = list(getModelFields(models))
         # model_fields = [mod for mod in modelFields if mod['type'] != 'ForeignKey' if mod['field'] != 'employee_id']
         # serializer_class = models
-        dynamic = dynamic_employee_update_serializer(models)
+        # dynamic = dynamic_employee_update_serializer(models)
 
         if table != 'useraccount':
             lead_ref = UserAccount.objects.filter(employee_id = employee_id, visibility=True)
