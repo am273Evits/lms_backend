@@ -547,6 +547,7 @@ class viewAllLeads(GenericAPIView):
                         "message": 'the page is unavailable',
                         "data": {'data': [], 'total_pages': pagecount, "current_page": page}
                         }
+                    
             else:
                 res.status_code = status.HTTP_400_BAD_REQUEST
                 res.data = {
