@@ -2314,16 +2314,22 @@ class fieldsAddNewServiceTeamLeader(GenericAPIView):
 
 
 
-class deleteLeadApprovalWrite(CreateAPIView):
+class deleteLeadApprovalWrite(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = leadIdSerializer
     def delete(self, request, lead_id, format=None, *args, **kwargs):
+        print(lead_id)
         res = Response()
         if not lead_delete_approval.objects.filter(lead_id__lead_id = lead_id).exists():
             data = all_identifiers.objects.filter(lead_id=lead_id, visibility=True).first()
             if data:
                 lda = lead_delete_approval.objects.create(**{'lead_id': data})
                 if lda:
+                    dynamic = visibility_dynamic_serializer(all_identifiers)
+                    serializer = dynamic(data, data={'visibility': False}, partial=True)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+                    
                     res.status_code = status.HTTP_201_CREATED
                     res.data = {
                         'status': status.HTTP_201_CREATED,

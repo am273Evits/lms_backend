@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from .serializer import *
+from business_leads.serializers import visibility_dynamic_serializer
 from account.views import getUserRole
 from records.models import service_delete_approval
 import math
@@ -152,7 +153,7 @@ class viewServicesSearch(GenericAPIView):
                     res.data = {
                         "status": status.HTTP_200_OK,
                         "message": 'successful',
-                        "data": serializer.data
+                        "data": [serializer.data]
                         }
                 else:
                     res.status_code = status.HTTP_403_FORBIDDEN
@@ -193,6 +194,10 @@ class deleteServiceApprovalWrite(GenericAPIView):
                 if data:
                     lda = service_delete_approval.objects.create(**{'service_id': data})
                     if lda:
+                        dynamic = visibility_dynamic_serializer(ev_services)
+                        serializer = dynamic(data, data={'visibility': False}, partial=True)
+                        serializer.is_valid(raise_exception=True)
+                        serializer.save()
                         res.status_code = status.HTTP_201_CREATED
                         res.data = {
                             'status': status.HTTP_201_CREATED,

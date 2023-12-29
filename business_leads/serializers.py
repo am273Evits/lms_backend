@@ -247,6 +247,15 @@ class leadIdSerializer(serializers.Serializer):
     lead_id = serializers.CharField()
 
 
+def visibility_dynamic_serializer(model_class):
+    class visibilitySerializer(serializers.ModelSerializer):
+        class Meta:
+            model = model_class
+            fields = ['visibility']
+    return visibilitySerializer
+
+
+
 
 class dashboardSerializer(serializers.Serializer):
     name = serializers.CharField()

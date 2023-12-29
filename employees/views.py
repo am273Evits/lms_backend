@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from business_leads.serializers import allIdentifiersSerializer 
 from .serializers import dynamic_serializer
+from business_leads.serializers import visibility_dynamic_serializer
 from .serializers import *
 from employees.models import *
 from dropdown.models import *
@@ -55,10 +56,10 @@ class viewAllUser(GenericAPIView):
         offset = int((page - 1) * limit)
         res = Response()
         if user_role == 'admin' or user_role == 'lead_manager':
-            pagecount = math.ceil(employee_official.objects.count()/limit)
+            pagecount = math.ceil(employee_official.objects.filter(emp__visibility=True).count()/limit)
             if int(page) <= pagecount: 
                 EMOF_arr = []
-                EMOF_data = employee_official.objects.all()[offset: offset + limit]
+                EMOF_data = employee_official.objects.filter(emp__visibility=True).all()[offset: offset + limit]
                 for d in EMOF_data:
                     EMOF_arr.append({"employee_id": d.emp.employee_id, 'name': d.emp.name, 'user_role': d.user_role if d.user_role != '' else '-', 'designation': d.designation if d.designation != '' else '-', 'department': d.department if d.department != '' else '-', 'product': d.product if d.product != '' else '-'})
 
@@ -215,6 +216,10 @@ class deleteUserApprovalWrite(CreateAPIView):
                 # print(employee_id)
                 if data:
                     lda = user_delete_approval.objects.create(**{'employee_id': data.emp})
+                    dynamic = visibility_dynamic_serializer(UserAccount)
+                    serializer = dynamic(data.emp, data={'visibility': False}, partial=True)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
                     if lda:
                         res.status_code = status.HTTP_201_CREATED
                         res.data = {
