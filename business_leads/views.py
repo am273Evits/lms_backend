@@ -527,9 +527,9 @@ class viewAllLeads(GenericAPIView):
                 associate = sd.associate_id.name if sd.associate_id != None else 'not assigned'
                 data.append({'lead_id': sd.lead_id.lead_id, 'requester_name': sd.lead_id.requester_name, 'phone_number':  sd.lead_id.phone_number, 'email_id': sd.lead_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
 
-            pagecount = math.ceil(service.objects.filter(service_category = product ,lead_id__visibility = True).count()/limit)
             if len(data) > 0:
-                print(pagecount)
+                pagecount = math.ceil(service.objects.filter(service_category = product ,lead_id__visibility = True).count()/limit)
+                print('pagecount',pagecount)
                 serializer = bd_teamLeaderSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
                 if int(page) <= pagecount:
@@ -541,6 +541,8 @@ class viewAllLeads(GenericAPIView):
                         }
 
                 else :
+                    pagecount = math.ceil(service.objects.filter(service_category = product ,lead_id__visibility = True).count()/limit)
+
                     res.status_code = status.HTTP_400_BAD_REQUEST
                     res.data = {
                         "status": status.HTTP_400_BAD_REQUEST,
