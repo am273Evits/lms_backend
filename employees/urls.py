@@ -18,6 +18,8 @@ urlpatterns = [
 
             path('view_employee/<str:table>/<str:employee_id>', viewEmployee.as_view()), #view_all_leads
 
+            path('update_employee/<str:table>/<str:employee_id>', updateEmployee.as_view()), #view_all_leads
+
 
             # path('create_associate_basic', createAssociateBasic.as_view()), #file upload
             # path('create_associate_official', createAssociateOfficial.as_view()), #file upload

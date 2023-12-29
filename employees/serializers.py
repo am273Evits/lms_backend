@@ -83,3 +83,12 @@ class UserAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccount
         exclude = ['employee_id', 'email', 'last_login', 'is_active', 'is_admin', 'is_staff', 'is_superuser', 'visibility', 'updated_at']
+
+
+
+def dynamic_employee_update_serializer(model_class):
+    class updateEmployeeSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = model_class
+            fields = ['employee_id', 'email', 'last_login', 'is_active', 'is_admin', 'is_staff', 'is_superuser', 'visibility', 'updated_at']
+    return updateEmployeeSerializer

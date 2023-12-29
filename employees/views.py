@@ -603,6 +603,248 @@ class viewEmployee(GenericAPIView):
         
         return res
 
+
+
+
+
+class updateEmployee(GenericAPIView):
+    serializer_class = dynamic_employee_update_serializer
+    permission_classes = [IsAuthenticated]
+    def put(self, request, table, employee_id, format=None, *args, **kwargs):
+        main_data = request.data
+
+        OF_data = employee_official.objects.filter(emp = request.user.id).first()
+        product = OF_data.product
+        user_role = OF_data.user_role
+
+        print(user_role)
+        user_role = getUserRole(request.user.id)
+        res = Response()
+
+        if table == 'useraccount':
+            models = apps.get_model('account', table)
+        else:
+            models = apps.get_model('employees', table)
+        
+        # modelFields = list(getModelFields(models))
+        # model_fields = [mod for mod in modelFields if mod['type'] != 'ForeignKey' if mod['field'] != 'employee_id']
+        # serializer_class = models
+        dynamic = dynamic_employee_update_serializer(models)
+
+        if table != 'useraccount':
+            lead_ref = UserAccount.objects.filter(employee_id = employee_id, visibility=True)
+            print(lead_ref)
+            if lead_ref:
+                pass
+            #     employee_id = lead_ref[0].id
+            #     for i in range(len(model_fields)):
+            #         if model_fields[i]:
+            #             if model_fields[i]['field'] == 'employee_id':
+            #                 model_fields.pop(i)
+            #                 break
+            else:
+                res.status_code = status.HTTP_403_FORBIDDEN
+                res.data = {
+                    'status': status.HTTP_403_FORBIDDEN,
+                    'message': 'invalid lead id',
+                    'data' : []
+                }
+                return res
+        else:
+            lead_ref = UserAccount.objects.filter(employee_id = employee_id, visibility=True)
+            if not lead_ref:
+                res.status_code = status.HTTP_403_FORBIDDEN
+                res.data = {
+                    'status': status.HTTP_403_FORBIDDEN,
+                    'message': 'invalid lead id',
+                    'data' : []
+                }
+                return res
+                
+
+        if user_role == 'lead_manager' or user_role == 'admin':
+            data = ''
+            if table != 'useraccount':
+                data = models.objects.select_related().filter(emp = employee_id)
+            else:
+                data = models.objects.select_related().filter(employee_id = employee_id)
+
+            dynamic = dynamic_serializer(models)
+
+            if table == 'useraccount':
+                serializer = UserAccountSerializer(data=list(data.values()), many=True)
+            else:
+                serializer = dynamic(data=list(data.values()), many=True)
+
+            serializer.is_valid(raise_exception=True)
+            s_data = dict(serializer.data[0])
+
+            # for i, md in enumerate(model_fields):
+            #     hidden_fields = ['employee_id', 'password' ,'email', 'last_login', 'is_active', 'is_admin', 'is_staff', 'is_superuser', 'visibility', 'updated_at']
+            #     if table == 'useraccount' and (md['field'] in hidden_fields):
+            #         if md['field'] in hidden_fields:
+            #             model_fields.pop(i)
+            #         # del md
+            #     elif not md['type'] == 'ForeignKey':
+            #         print(md)
+            #         for key in md:
+            #             md['value'] =  s_data[md['field']]
+            #             break
+
+            
+            # for mod in model_fields:
+            #     mod['key'] = mod['field']
+            #     del mod['field']
+
+            # if table != 'all_identifiers':
+            #     dropdown_fields_data = dropdown_fields.objects.all()
+            #     for m in model_fields:
+            #         for d in dropdown_fields_data:
+            #             if d.title == m['key']:
+            #                 m['type'] = 'dropdown'
+            #                 selectBoxData = []
+            #                 if d.ref_tb:
+            #                     m['table'] = d.ref_tb
+            #                     refModel = apps.get_model('dropdown', d.ref_tb)
+            #                     refModelData = refModel.objects.all()
+            #                     for rmd in refModelData:
+            #                         selectBoxData.append(rmd.title)
+            #                     m['dropdown'] = selectBoxData
+            #                 else:
+            #                     pass
+
+            res.status_code = status.HTTP_200_OK
+            res.data = {
+                'status': status.HTTP_200_OK,
+                'message': 'successful',
+                'data': {'data': serializer.data, "current_table": table, 'employee_id': employee_id, 'data_type': model_fields}
+                }
+
+
+
+
+        # res = Response()
+        # # user = cookieAuth(request)
+
+        # model = apps.get_model('business_leads', table)
+        # if model is not None:
+        #     dynamic = dynamic_employee_update_serializer(model)
+
+        #     if user_role == 'lead_manager' or user_role == 'admin':
+        #         if table != 'all_identifiers':
+
+        #             if table == 'followup':
+        #                 main_data['created_by'] = request.user.employee_id
+
+        #             data = model.objects.filter(lead_id__lead_id=lead_id).first()
+        #             p_id = data.lead_id.id
+        #             main_data['lead_id'] = p_id
+
+        #             serializer = dynamic(data, data=main_data, partial=True)
+
+        #             if serializer.is_valid(raise_exception=True):
+        #                 serializer.save()
+
+
+        #                 if table == 'followup':
+        #                     serviceObjData = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = getLeadStatusInst('follow up'))
+        #                     lead_status_instance = lead_status.objects.get(title = 'yet to contact')
+        #                     lead_status_record.objects.create(**{'lead_id': serviceObjData.lead_id, 'status': lead_status_instance})
+        #                 res.status_code = status.HTTP_200_OK
+        #                 res.data = {
+        #                     "status":status.HTTP_200_OK,
+        #                     "message": 'updations successful',
+        #                     "data": {'message' : "changes saved successfully"}
+        #                     }
+        #             else :
+        #                 res.status_code = status.HTTP_400_BAD_REQUEST
+        #                 res.data = {
+        #                 'status': status.HTTP_400_BAD_REQUEST,
+        #                 'message': 'request failed',
+        #                 'data': []
+        #                 }
+
+        #             return res
+                
+        #         else:
+        #             res.status_code = status.HTTP_400_BAD_REQUEST
+        #             res.data = {
+        #                 'status': status.HTTP_400_BAD_REQUEST,
+        #                 'message': 'you are not authorized to make any changes to all identifiers',
+        #                 'data': []
+        #                 }
+        #             return res
+
+
+        #     elif user_role == 'bd_tl':
+        #         if table != 'all_identifiers':
+        #             lead_service_category = all_identifiers.objects.filter(lead_id = lead_id).first()
+        #             lead_service_category = lead_service_category.service_category
+        #             print(lead_service_category)
+
+        #             if product == lead_service_category:
+        #                 # model = apps.get_model('business_leads', table)
+        #                 # dynamic = dynamic_serializer_submit(model)
+
+        #                 if table == 'followup':
+        #                     main_data['created_by'] = request.user.employee_id
+
+        #                 data = model.objects.filter(lead_id__lead_id=lead_id).first()
+        #                 p_id = data.lead_id.id
+        #                 print(data)
+
+        #                 if table != 'all_identifiers':
+        #                     main_data['lead_id'] = p_id
+
+        #                 serializer = dynamic(data, data=main_data, partial=True)
+        #                 if serializer.is_valid(raise_exception=True):
+        #                     serializer.save()
+
+        #                     if table == 'followup':
+        #                         service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = getLeadStatusInst('follow up'))
+        #                         lead_status_instance = lead_status.objects.get(title = 'yet to contact')
+        #                         lead_status_record.objects.create(**{'lead_id': serviceObjData.lead_id, 'status': lead_status_instance})
+
+        #                     res.status_code = status.HTTP_200_OK
+        #                     res.data = {
+        #                         "status":status.HTTP_200_OK,
+        #                         "data": 'successful',
+        #                         "data": serializer.data
+        #                         }
+        #                 else :
+        #                     res.status_code = status.HTTP_400_BAD_REQUEST
+        #                     res.data = {
+        #                     'status': status.HTTP_400_BAD_REQUEST,
+        #                     'message': 'request failed',
+        #                     'data': []
+        #                     }
+
+        #                 return res
+        #             else:
+        #                 res.status_code = status.HTTP_400_BAD_REQUEST
+        #                 res.data = {
+        #                     'status': status.HTTP_400_BAD_REQUEST,
+        #                     'message': 'unauthorized access to this lead',
+        #                     'data': []
+        #                     }
+        #                 return res
+        #         else:
+        #             res.status_code = status.HTTP_400_BAD_REQUEST
+        #             res.data = {
+        #                 'status': status.HTTP_400_BAD_REQUEST,
+        #                 'message': 'you are not authorized to make any changes to all identifiers',
+        #                 'data': []
+        #                 }
+        #             return res
+        #     return res
+        # else:
+        #     res.status_code = status.HTTP_400_BAD_REQUEST
+        #     res.data = {
+        #         'status': status.HTTP_400_BAD_REQUEST,
+        #         'message': 'the table do not exists',
+        #         'data': []
+        #         }
+        #     return res
     
 
 

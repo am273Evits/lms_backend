@@ -520,14 +520,16 @@ class viewAllLeads(GenericAPIView):
 
         elif user_role == 'bd_tl':
             product = getProduct(user.id)
+            # print(product)
             data = []
             serviceData = service.objects.select_related().filter(service_category = product, lead_id__visibility = True)[offset : limit]
             for sd in serviceData:
                 associate = sd.associate_id.name if sd.associate_id != None else 'not assigned'
                 data.append({'lead_id': sd.lead_id.lead_id, 'requester_name': sd.lead_id.requester_name, 'phone_number':  sd.lead_id.phone_number, 'email_id': sd.lead_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
 
-            if len(data):
-                pagecount = math.ceil(service.objects.filter(lead_id__visibility = True).count()/limit)
+            pagecount = math.ceil(service.objects.filter(service_category = product ,lead_id__visibility = True).count()/limit)
+            if len(data) > 0:
+                print(pagecount)
                 serializer = bd_teamLeaderSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
                 if int(page) <= pagecount:
@@ -550,7 +552,7 @@ class viewAllLeads(GenericAPIView):
                 res.data = {
                     "status": status.HTTP_400_BAD_REQUEST,
                     "message": 'no data found',
-                    "data": {'data': [], 'total_pages': [], "current_page": page}
+                    "data": {'data': [], 'total_pages': pagecount, "current_page": page}
                     }
             return res
     
