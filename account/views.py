@@ -286,30 +286,39 @@ class view_users_search(GenericAPIView):
         res = Response()
         if str(request.user.department) == 'admin' and str(request.user.designation) == 'administrator':
             if searchAtr == 'name':
-                user = UserAccount.objects.filter(name__contains = id, visibility=True)
+                name = id.replace('_', ' ')
+                user = UserAccount.objects.filter(name__contains = name, visibility=True)
             elif searchAtr == 'employee_id':
                 user = UserAccount.objects.filter(employee_id__contains = id, visibility=True)
 
-            if user.exists():
-                data = []
-                for u in user:
-                    data.append({'employee_id': u.employee_id, 'name': u.name if u.name else '-', 'designation': u.designation.title if u.designation else '-', 'department': u.department.title if u.department else '-'})
+                if user.exists():
+                    data = []
+                    for u in user:
+                        data.append({'employee_id': u.employee_id, 'name': u.name if u.name else '-', 'designation': u.designation.title if u.designation else '-', 'department': u.department.title if u.department else '-'})
 
-                serializer = viewUserSerializer(data=data, many=True)
-                if serializer.is_valid(raise_exception=True):
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'data': serializer.data,
-                        'message': 'request successful',
-                        'status': status.HTTP_200_OK
-                    }  
+                    serializer = viewUserSerializer(data=data, many=True)
+                    if serializer.is_valid(raise_exception=True):
+                        res.status_code = status.HTTP_200_OK
+                        res.data = {
+                            'data': serializer.data,
+                            'message': 'request successful',
+                            'status': status.HTTP_200_OK
+                        }  
+                    else:
+                        res.status_code = status.HTTP_400_BAD_REQUEST
+                        res.data = {
+                            'data': [],
+                            'message': 'request failed',
+                            'status': status.HTTP_400_BAD_REQUEST
+                        } 
                 else:
                     res.status_code = status.HTTP_400_BAD_REQUEST
                     res.data = {
                         'data': [],
-                        'message': 'request failed',
+                        'message': 'no user found',
                         'status': status.HTTP_400_BAD_REQUEST
-                    }  
+                    } 
+
             else:
                 res.status_code = status.HTTP_400_BAD_REQUEST
                 res.data = {
