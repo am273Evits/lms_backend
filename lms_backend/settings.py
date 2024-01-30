@@ -42,11 +42,11 @@ INSTALLED_APPS = [
     'drf_yasg',
     'corsheaders',
     'account',
-    'employees',
-    'dropdown',
-    'business_leads',
-    'evitamin',
-    'records'
+#     'employees',
+#     'dropdown',
+#     'business_leads',
+#     'evitamin',
+#     'records'
 ]
 
 MIDDLEWARE = [
