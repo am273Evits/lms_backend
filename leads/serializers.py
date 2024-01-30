@@ -507,10 +507,12 @@ class dashboardSerializer(serializers.Serializer):
 
 
 class dropdown_departmentSerializer(serializers.Serializer):
-    department = serializers.DictField()
+    department_id = serializers.CharField()
+    department_name = serializers.CharField()
 
 class dropdown_designationSerializer(serializers.Serializer):
-    designation = serializers.DictField()
+    designation_id = serializers.CharField()
+    designation_name = serializers.CharField()
     
 
 # class tableFieldSerializer(serializers.Serializer):

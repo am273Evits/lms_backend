@@ -951,9 +951,9 @@ class dropdown_department(GenericAPIView):
 
             department = Drp_Product.objects.all()
             if department.exists():
-                data = []
+                data =[]
                 for d in department:
-                    data.append({'department': {'department_id': d.department.id, 'department_name': d.department.title}})
+                    data.append({'department_id': d.department.id, 'department_name': d.department.title})
 
                 serializer = dropdown_departmentSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
@@ -1003,7 +1003,7 @@ class dropdown_designation(GenericAPIView):
 
                 data = []
                 for d in designation:
-                    data.append({'designation': {'designation_id': d.designation.id, 'designation_name': d.designation.title}})
+                    data.append({'designation_id': d.designation.id, 'designation_name': d.designation.title})
 
                 serializer = dropdown_designationSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
