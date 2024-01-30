@@ -26,7 +26,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('account/',include('account.urls')),
-   #  path('business_leads/',include('business_leads.urls')),
+    path('leads/',include('leads.urls')),
    #  path('dropdown/',include('dropdown.urls')),
    #  path('employees/',include('employees.urls')),
    #  path('evitamin/',include('evitamin.urls')),

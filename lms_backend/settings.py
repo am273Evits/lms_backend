@@ -42,11 +42,8 @@ INSTALLED_APPS = [
     'drf_yasg',
     'corsheaders',
     'account',
-#     'employees',
-#     'dropdown',
-#     'business_leads',
-#     'evitamin',
-#     'records'
+    'leads',
+
 ]
 
 MIDDLEWARE = [
@@ -145,7 +142,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 REST_FRAMEWORK = {
-    'EXCEPTION_HANDLER': 'utils.exceptionhandler.custom_exception_handler',
+    # 'EXCEPTION_HANDLER': 'utils.exceptionhandler.custom_exception_handler',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
@@ -153,19 +150,8 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=365),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=730),
-    'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': False,
-    'UPDATE_LAST_LOGIN': False,
-
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
-    'VERIFYING_KEY': None,
-    'AUDIENCE': None,
-    'ISSUER': None,
-    'JWK_URL': None,
-    'LEEWAY': 0,
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=200),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
@@ -179,9 +165,13 @@ SIMPLE_JWT = {
 
     'JTI_CLAIM': 'jti',
 
-    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+    'AUTH_COOKIE': 'access',
+    'AUTH_COOKIE_REFRESH': 'refresh',
+    'AUTH_COOKIE_DOMAIN': None,
+    'AUTH_COOKIE_SECURE': True, 
+    'AUTH_COOKIE_HTTP_ONLY': True,
+    'AUTH_COOKIE_PATH': '/',
+    'AUTH_COOKIE_SAMESITE': "None", 
 }
 
 
