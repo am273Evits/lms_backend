@@ -29,11 +29,14 @@ class dashboard(GenericAPIView):
         user = request.user
         res = Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+
+            status_history = Status_history.objects.filter(status_date = datetime.now()).distinct()
+
             res.status_code = status.HTTP_200_OK
             res.data = {
                 "status": status.HTTP_200_OK,
                 "message": 'request successful',
-                "data": [user.name]
+                "data": list(status_history.values())
                 }
 
         else:

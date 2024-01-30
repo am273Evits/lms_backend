@@ -297,11 +297,11 @@ class view_users_search(GenericAPIView):
 
                 serializer = viewUserSerializer(data=data, many=True)
                 if serializer.is_valid(raise_exception=True):
-                    res.status_code = status.HTTP_400_BAD_REQUEST
+                    res.status_code = status.HTTP_200_OK
                     res.data = {
                         'data': serializer.data,
                         'message': 'request successful',
-                        'status': status.HTTP_400_BAD_REQUEST
+                        'status': status.HTTP_200_OK
                     }  
                 else:
                     res.status_code = status.HTTP_400_BAD_REQUEST
