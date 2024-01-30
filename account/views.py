@@ -238,7 +238,7 @@ class view_users(GenericAPIView):
         offset = int((page - 1) * limit)
         
         res = Response()
-        if str(request.user.department) == 'admin' and str(request.user.designation) == 'administrator':
+        if str(request.user.department) == 'admin' and str(request.user.designation) == 'administrator' or str(request.user.department) == 'lead_management' and str(request.user.designation) == 'lead_manager':
             users = UserAccount.objects.filter(visibility=True)[offset: offset+limit]
             count = math.ceil(UserAccount.objects.all().count() / 10)
             if users.exists():
@@ -267,7 +267,13 @@ class view_users(GenericAPIView):
                     'data': {'data': [], 'current_page': page, 'total_pages': count},
                     'message': 'no data found',
                     'status': status.HTTP_400_BAD_REQUEST
-                }                
+                }
+
+        # elif :
+
+
+
+
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST
             res.data = {
@@ -326,7 +332,7 @@ class view_users_search(GenericAPIView):
                     'data': [],
                     'message': 'no user found',
                     'status': status.HTTP_400_BAD_REQUEST
-                }  
+                }         
   
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -440,8 +446,10 @@ class user_delete(GenericAPIView):
     serializer_class = userDeleteSerializer
     permission_classes = [IsAuthenticated]
     def delete(self, request, employee_id ,format=None, *args, **kwargs):
+        
+
         res = Response()
-        if request.user.department.title == 'admin' or request.data.designation.title == 'administrator':
+        if request.user.department.title == 'admin' or request.user.designation.title == 'administrator':
             user = UserAccount.objects.filter(employee_id = employee_id)
             if user.exists():
                 serializer = userDeleteSerializer(user.first(), data={'visibility': False}, partial=True)
@@ -461,6 +469,34 @@ class user_delete(GenericAPIView):
                         'status': status.HTTP_400_BAD_REQUEST
                     }
 
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'data': [],
+                    'message': 'invalid employee id',
+                    'status': status.HTTP_400_BAD_REQUEST
+                }
+        
+        elif request.user.department.title == 'lead_management' or request.user.designation.title == 'lead_manager':
+            if user.exists():
+                
+                serializer = userDeleteSerializer(user.first(), data={'visibility': False}, partial=True)
+
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    res.status_code = status.HTTP_200_OK
+                    res.data = {
+                        'status': status.HTTP_200_OK,
+                        'data': [],
+                        'message': 'user deleted successfully',
+                    }
+                else:
+                    res.status_code = status.HTTP_400_BAD_REQUEST
+                    res.data = {
+                        'data': [],
+                        'message': 'request failed',
+                        'status': status.HTTP_400_BAD_REQUEST
+                    }
 
             else:
                 res.status_code = status.HTTP_400_BAD_REQUEST
@@ -469,7 +505,6 @@ class user_delete(GenericAPIView):
                     'message': 'invalid employee id',
                     'status': status.HTTP_400_BAD_REQUEST
                 }
-
 
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST

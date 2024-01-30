@@ -504,6 +504,13 @@ class createLeadManualSerializer(serializers.Serializer):
 
 class dashboardSerializer(serializers.Serializer):
     lead_status = serializers.ListField()
+
+
+class dropdown_departmentSerializer(serializers.Serializer):
+    department = serializers.DictField()
+
+class dropdown_designationSerializer(serializers.Serializer):
+    designation = serializers.DictField()
     
 
 # class tableFieldSerializer(serializers.Serializer):

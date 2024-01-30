@@ -11,7 +11,7 @@ from rest_framework import status
 import pandas as pd
 
 from .serializers import *
-from account.models import UserAccount
+from account.models import UserAccount, Drp_Product
 from .models import Leads,  Remark_history
 from account.views import getLeadId
 
@@ -930,6 +930,98 @@ class ViewServices(GenericAPIView):
                     'status': status.HTTP_400_BAD_REQUEST,
                     'message': 'invalid services id',
                 }
+        else:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'data': [],
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'you are not authorized for this action',
+            }
+        return res
+    
+
+
+class dropdown_department(GenericAPIView):
+    serializer_class = dropdown_departmentSerializer
+    permission_classes = [IsAuthenticated]
+    def get(self, request, format=None, *args, **kwargs):
+        user = request.user
+        res = Response()
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+
+            department = Drp_Product.objects.all()
+            if department.exists():
+                data = []
+                for d in department:
+                    data.append({'department': {'department_id': d.department.id, 'department_name': d.department.title}})
+
+                serializer = dropdown_departmentSerializer(data=data, many=True)
+                serializer.is_valid(raise_exception=True)
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    'data': serializer.data,
+                    'status': status.HTTP_200_OK,
+                    'message': 'request successful',
+                }                    
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'data': [],
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': 'no department list found',
+                }
+
+
+        else:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'data': [],
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'you are not authorized for this action',
+            }
+        return res
+
+
+
+
+
+
+
+
+class dropdown_designation(GenericAPIView):
+    serializer_class = dropdown_designationSerializer
+    permission_classes = [IsAuthenticated]
+    def get(self, request, id, format=None, *args, **kwargs):
+        user = request.user
+        res = Response()
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            print(user.designation)
+
+            designation = Drp_Product.objects.filter(department = id)
+            print(designation)
+            if designation.exists():
+
+                data = []
+                for d in designation:
+                    data.append({'designation': {'designation_id': d.designation.id, 'designation_name': d.designation.title}})
+
+                serializer = dropdown_designationSerializer(data=data, many=True)
+                serializer.is_valid(raise_exception=True)
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    'data': serializer.data,
+                    'status': status.HTTP_200_OK,
+                    'message': 'request successful',
+                }                    
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'data': [],
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': 'no designation list found',
+                }
+
+
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST
             res.data = {

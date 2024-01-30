@@ -30,6 +30,12 @@ urlpatterns = [
             path('delete_service', DeleteServices.as_view()),
             path('view_service', ViewServices.as_view()),
 
+
+            #dropdown
+            path('dropdown_department', dropdown_department.as_view()),
+            path('dropdown_designation/<int:id>', dropdown_designation.as_view()),
+
+
             
 
             # path('get_table_fields/<str:table>', getTableFields.as_view()), #file upload

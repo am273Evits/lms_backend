@@ -124,6 +124,15 @@ class UserAccount(AbstractBaseUser):
         return self.is_admin
     def has_module_perms(self, app_label):
         return True
+
+
+
+
+class user_delete(models.Model):
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, blank=True)
+    status = models.BooleanField(default=False)
+
+
     
 
 class File(models.Model):
