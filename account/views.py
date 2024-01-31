@@ -242,7 +242,13 @@ class view_users(GenericAPIView):
                 data = []
                 for u in users:
                     # print()
-                    data.append({'id': u.id ,'employee_id': u.employee_id, 'name': u.name if u.name else '-', 'designation': u.designation.title if u.designation else '-', 'department': u.department.title if u.department else '-'})
+                    data.append({
+                        'id': u.id ,
+                        'employee_id': u.employee_id, 
+                        'name': u.name if u.name else '-', 
+                        'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'-','designation':'-'}, 
+                        'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'designation_id':'-','designation': '-'},
+                        'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'designation_id':'-','designation': '-'}})
 
                 serializer = viewUserSerializer(data=data, many=True)
                 if serializer.is_valid(raise_exception=True):

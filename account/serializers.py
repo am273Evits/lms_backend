@@ -143,8 +143,9 @@ class userSerializer(serializers.Serializer):
 class viewUserSerializer(serializers.Serializer):
     employee_id = serializers.CharField()
     name = serializers.CharField() 
-    designation = serializers.CharField() 
-    department = serializers.CharField() 
+    designation = serializers.DictField() 
+    department = serializers.DictField() 
+    product = serializers.DictField() 
 
 
 class viewUserIndividualSerializer(serializers.Serializer):
