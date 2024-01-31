@@ -246,9 +246,10 @@ class view_users(GenericAPIView):
                         'id': u.id ,
                         'employee_id': u.employee_id, 
                         'name': u.name if u.name else '-', 
-                        'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'-','designation':'-'}, 
-                        'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'designation_id':'-','designation': '-'},
-                        'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'designation_id':'-','designation': '-'}})
+                        'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
+                        'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'designation_id':'','designation': ''},
+                        'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'designation_id':'','designation': ''},
+                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}})
 
                 serializer = viewUserSerializer(data=data, many=True)
                 if serializer.is_valid(raise_exception=True):
