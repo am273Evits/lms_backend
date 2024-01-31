@@ -54,7 +54,7 @@ class AdminRegistrationSerializer(serializers.ModelSerializer):
             employee_id = self.validated_data['employee_id'].lower(),
             designation = self.validated_data['designation'],
             department = self.validated_data['department'],
-            employee_status = Employee_status.objects.get(title = 'active'),
+            # employee_status = Employee_status.objects.get(title = 'active'),
             visibility = True,
         )
         password = 'admin#manager@123'
@@ -98,6 +98,7 @@ class LeadManagerRegistrationSerializer(serializers.ModelSerializer):
         elif not Product.objects.filter(title = self.validated_data.get('product')).exists():
             raise serializers.ValidationError("invalid field product")
 
+        print("self.validated_data['employee_id']",self.validated_data['employee_id'])
 
         user = UserAccount(
             email = self.validated_data['email'].lower(),
@@ -106,7 +107,7 @@ class LeadManagerRegistrationSerializer(serializers.ModelSerializer):
             designation = self.validated_data['designation'],
             department = self.validated_data['department'],
             product = self.validated_data['product'],
-            employee_status = Employee_status.objects.get(title = 'active'),
+            # employee_status = Employee_status.objects.get(title = 'active'),
             visibility = True,
         )
         password = 'evitamin@123'
@@ -143,19 +144,21 @@ class userSerializer(serializers.Serializer):
 class viewUserSerializer(serializers.Serializer):
     employee_id = serializers.CharField()
     name = serializers.CharField() 
+    email_id = serializers.CharField() 
     designation = serializers.DictField() 
     department = serializers.DictField() 
     product = serializers.DictField() 
+    employee_status = serializers.BooleanField() 
 
 
-class viewUserIndividualSerializer(serializers.Serializer):
-    employee_id = serializers.CharField() 
-    name = serializers.CharField() 
-    email_id = serializers.CharField() 
-    department = serializers.ListField() 
-    designation = serializers.ListField()
-    product = serializers.ListField() 
-    employee_status = serializers.ListField() 
+# class viewUserIndividualSerializer(serializers.Serializer):
+#     employee_id = serializers.CharField() 
+#     name = serializers.CharField() 
+#     email_id = serializers.CharField() 
+#     department = serializers.ListField() 
+#     designation = serializers.ListField()
+#     product = serializers.ListField() 
+#     employee_status = serializers.ListField() 
 
 
 class updateUserSerializer(serializers.ModelSerializer):
