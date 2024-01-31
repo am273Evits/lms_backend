@@ -1072,12 +1072,12 @@ class dropdown_product(GenericAPIView):
         user = request.user
         res = Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            product = Drp_Product.objects.filter(designation = id).distinct()
+            product = Drp_Product.objects.filter(designation = id).values('product').distinct()
             print(product)
             if product.exists():
                 data = []
                 for d in product:
-                    data.append({'product_id': d.product.id, 'product_name': d.product.title})
+                    data.append({'product_id': d.get('product'), 'product_name': Product.objects.get(id = d.get('product')).title})
 
                 serializer = dropdown_productSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
