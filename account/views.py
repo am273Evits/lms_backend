@@ -249,7 +249,8 @@ class view_users(GenericAPIView):
                         'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
                         'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'designation_id':'','designation': ''},
                         'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'designation_id':'','designation': ''},
-                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}})
+                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
+                        })
 
                 serializer = viewUserSerializer(data=data, many=True)
                 if serializer.is_valid(raise_exception=True):
@@ -313,7 +314,21 @@ class view_users_search(GenericAPIView):
             if user.exists():
                 data = []
                 for u in user:
-                    data.append({'employee_id': u.employee_id, 'name': u.name if u.name else '-', 'designation': u.designation.title if u.designation else '-', 'department': u.department.title if u.department else '-'})
+                    data.append({
+                        'id': u.id ,
+                        'employee_id': u.employee_id, 
+                        'name': u.name if u.name else '-', 
+                        # 'designation': u.designation.title if u.designation else '-', 
+                        # 'department': u.department.title if u.department else '-',
+
+                        # 'employee_id': u.employee_id, 
+                        # 'name': u.name if u.name else '-', 
+                        'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
+                        'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'designation_id':'','designation': ''},
+                        'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'designation_id':'','designation': ''},
+                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
+
+                        })
 
                 serializer = viewUserSerializer(data=data, many=True)
                 if serializer.is_valid(raise_exception=True):
@@ -350,58 +365,65 @@ class view_users_search(GenericAPIView):
 
 
 
-class view_users_individual(GenericAPIView):
-    serializer_class = viewUserIndividualSerializer
-    permission_classes = [IsAuthenticated]
-    def get(self, request, employee_id ,format=None, *args, **kwargs):
-        res = Response()
-        if request.user.department.title =='admin' and request.user.designation.title == 'administrator' or request.user.department.title =='lead_management' and request.user.designation.title == 'lead_manager':
-            user = UserAccount.objects.filter(employee_id = employee_id, visibility=True)
-            if user.exists():
-                data=[]
-                for u in user:
-                    data.append({
-                        'employee_id': u.employee_id, 
-                        'name': u.name if u.name else '-', 
-                        'email_id': u.email if u.email else '-', 
-                        'department': [{'department': u.department.title, 'id': int(u.department.id)}] if u.department else [{'department': '-', 'id': '-'}], 
-                        'designation': [{'designation': u.designation.title, 'id': int(u.designation.id)}] if u.designation else [{'designation': '-', 'id': '-'}], 
-                        'product': [{'product': u.product.title, 'id': int(u.product.id)}] if u.product else [{'product': '-', 'id': '-'}], 
-                        'employee_status': [{'employee_status' : u.employee_status.title, 'id': int(u.employee_status.id)}] if u.employee_id else [{'employee_status': '-', 'id': '-'}]
-                        })
+# class view_users_individual(GenericAPIView):
+#     serializer_class = viewUserIndividualSerializer
+#     permission_classes = [IsAuthenticated]
+#     def get(self, request, employee_id ,format=None, *args, **kwargs):
+#         res = Response()
+#         if request.user.department.title =='admin' and request.user.designation.title == 'administrator' or request.user.department.title =='lead_management' and request.user.designation.title == 'lead_manager':
+#             user = UserAccount.objects.filter(employee_id = employee_id, visibility=True)
+#             if user.exists():
+#                 data=[]
+#                 for u in user:
+#                     data.append({
+#                         'id': u.id ,
+#                         'employee_id': u.employee_id, 
+#                         'name': u.name if u.name else '-', 
+#                         'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
+#                         'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'designation_id':'','designation': ''},
+#                         'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'designation_id':'','designation': ''},
+#                         'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
+#                         # 'employee_id': u.employee_id, 
+#                         # 'name': u.name if u.name else '-', 
+#                         # 'email_id': u.email if u.email else '-', 
+#                         # 'department': [{'department': u.department.title, 'id': int(u.department.id)}] if u.department else [{'department': '-', 'id': '-'}], 
+#                         # 'designation': [{'designation': u.designation.title, 'id': int(u.designation.id)}] if u.designation else [{'designation': '-', 'id': '-'}], 
+#                         # 'product': [{'product': u.product.title, 'id': int(u.product.id)}] if u.product else [{'product': '-', 'id': '-'}], 
+#                         # 'employee_status': [{'employee_status' : u.employee_status.title, 'id': int(u.employee_status.id)}] if u.employee_id else [{'employee_status': '-', 'id': '-'}]
+#                         })
 
-                serializer = viewUserIndividualSerializer(data=data, many=True)
-                if serializer.is_valid(raise_exception=True):
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'data': serializer.data,
-                        'message': 'request successful',
-                        'status': status.HTTP_200_OK
-                    }
-                else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'data': [],
-                        'message': 'request failed',
-                        'status': status.HTTP_400_BAD_REQUEST
-                    }
+#                 serializer = viewUserIndividualSerializer(data=data, many=True)
+#                 if serializer.is_valid(raise_exception=True):
+#                     res.status_code = status.HTTP_200_OK
+#                     res.data = {
+#                         'data': serializer.data,
+#                         'message': 'request successful',
+#                         'status': status.HTTP_200_OK
+#                     }
+#                 else:
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'data': [],
+#                         'message': 'request failed',
+#                         'status': status.HTTP_400_BAD_REQUEST
+#                     }
 
-            else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'message': 'no data found',
-                    'status': status.HTTP_400_BAD_REQUEST
-                }
+#             else:
+#                 res.status_code = status.HTTP_400_BAD_REQUEST
+#                 res.data = {
+#                     'data': [],
+#                     'message': 'no data found',
+#                     'status': status.HTTP_400_BAD_REQUEST
+#                 }
 
-        else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'data': [],
-                'message': 'you are not authorized to view this data',
-                'status': status.HTTP_400_BAD_REQUEST
-            }
-        return res
+#         else:
+#             res.status_code = status.HTTP_400_BAD_REQUEST
+#             res.data = {
+#                 'data': [],
+#                 'message': 'you are not authorized to view this data',
+#                 'status': status.HTTP_400_BAD_REQUEST
+#             }
+#         return res
     
 
 class user_update(CreateAPIView):
