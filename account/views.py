@@ -288,7 +288,7 @@ class view_users_search(GenericAPIView):
     serializer_class = viewUserSerializer
     def get(self, request, searchAtr ,id, format=None, *args, **kwargs):
         res = Response()
-        if str(request.user.department) == 'admin' and str(request.user.designation) == 'administrator':
+        if str(request.user.department) == 'admin' and str(request.user.designation) == 'administrator' or str(request.user.department) == 'lead_manager' and str(request.user.designation) == 'lead_management':
             if searchAtr == 'name':
                 name = id.replace('_',' ')
                 user = UserAccount.objects.filter(name__contains = name, visibility=True)
@@ -348,7 +348,7 @@ class view_users_individual(GenericAPIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, employee_id ,format=None, *args, **kwargs):
         res = Response()
-        if request.user.department.title =='admin' and request.user.designation.title == 'administrator':
+        if request.user.department.title =='admin' and request.user.designation.title == 'administrator' or request.user.department.title =='lead_management' and request.user.designation.title == 'lead_manager':
             user = UserAccount.objects.filter(employee_id = employee_id, visibility=True)
             if user.exists():
                 data=[]
@@ -401,9 +401,17 @@ class user_update(CreateAPIView):
     serializer_class = updateUserSerializer
     permission_classes = [IsAuthenticated]
     def put(self, request, employee_id ,format=None, *args, **kwargs):
+
+        # print(request.user)
         res = Response()
-        if request.user.department.title == 'admin' and request.user.designation.title == 'administrator':
+        if request.user.department.title == 'admin' and request.user.designation.title == 'administrator' or request.user.department.title == 'lead_management' and request.user.designation.title == 'lead_manager':
             user = UserAccount.objects.filter(employee_id = employee_id)
+            
+            if request.user.department.title == 'lead_management' and request.user.designation.title == 'lead_manager':
+                if user.first().department.title == 'admin' or user.first().designation.title == 'administrator':
+                    raise serializers.ValidationError('you are not authorized to make changes to this user')
+
+
             print('user', user)
             if user.exists():
                 new_data = {key: values for key, values in request.data.items() if values != '-'}

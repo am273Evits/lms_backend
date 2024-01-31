@@ -21,6 +21,19 @@ class lead_managerBlSerializer(serializers.Serializer):
     status = serializers.CharField()
     upload_date = serializers.DateTimeField()
     deadline = serializers.CharField()
+    associate = serializers.CharField()
+    service_category = serializers.CharField()
+    commercials = serializers.CharField()
+    status = serializers.CharField()
+    client_turnover = serializers.CharField()
+    business_type = serializers.CharField()
+    business_category = serializers.CharField()
+    firm_type = serializers.CharField()
+    contact_preferences = serializers.CharField()
+    followup = serializers.CharField()
+    country = serializers.CharField()
+    state = serializers.CharField()
+    city = serializers.CharField()
 
 
 class View_All_Leads(serializers.ModelSerializer):
