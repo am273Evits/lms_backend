@@ -181,9 +181,6 @@ class registration_VF(GenericAPIView):
         userDepartment = str(userDepartment.title)
         userDesignation = str(userDesignation.title)
 
-        print(userDepartment)
-        print(userDesignation)
-
         res = Response()
 
         if userDepartment == None:

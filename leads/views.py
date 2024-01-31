@@ -1030,3 +1030,46 @@ class dropdown_designation(GenericAPIView):
                 'message': 'you are not authorized for this action',
             }
         return res
+    
+
+
+
+class dropdown_product(GenericAPIView):
+    serializer_class = dropdown_productSerializer
+    permission_classes = [IsAuthenticated]
+    def get(self, request, id, format=None, *args, **kwargs):
+        user = request.user
+        res = Response()
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            product = Drp_Product.objects.filter(designation = id)
+            print(product)
+            if product.exists():
+                data = []
+                for d in product:
+                    data.append({'product_id': d.product.id, 'product_name': d.product.title})
+
+                serializer = dropdown_productSerializer(data=data, many=True)
+                serializer.is_valid(raise_exception=True)
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    'data': serializer.data,
+                    'status': status.HTTP_200_OK,
+                    'message': 'request successful',
+                }                    
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'data': [],
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': 'no product list found',
+                }
+        else:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'data': [],
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'you are not authorized for this action',
+            }
+        return res
+
+# class ()

@@ -513,7 +513,14 @@ class dropdown_departmentSerializer(serializers.Serializer):
 class dropdown_designationSerializer(serializers.Serializer):
     designation_id = serializers.CharField()
     designation_name = serializers.CharField()
-    
+
+class dropdown_productSerializer(serializers.Serializer):
+    product_id = serializers.CharField()
+    product_name = serializers.CharField()
+
+
+
+
 
 # class tableFieldSerializer(serializers.Serializer):
 #     key = serializers.CharField()

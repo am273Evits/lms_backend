@@ -58,9 +58,9 @@ class AdminRegistrationSerializer(serializers.ModelSerializer):
             visibility = True,
         )
         password = 'admin#manager@123'
-        password2 = 'admin#manager@123'
-        if password != password2:
-            raise serializers.ValidationError('password and return password do not match')
+        # password2 = 'admin#manager@123'
+        # if password != password2:
+        #     raise serializers.ValidationError('password and return password do not match')
         user.set_password(password)
         user.save()
 
@@ -68,14 +68,14 @@ class AdminRegistrationSerializer(serializers.ModelSerializer):
     
 
 class LeadManagerRegistrationSerializer(serializers.ModelSerializer):
-    password2 = serializers.CharField(style={'input_type': 'password'}, write_only = True)
+    # password2 = serializers.CharField(style={'input_type': 'password'}, write_only = True)
     class Meta:
         model = UserAccount
-        fields = ['email', 'name', 'employee_id', 'password', 'password2', 'designation', 'department', 'product']
-        extra_kwargs = {
-            'password': {'write_only': True},
-            'password2': {'write_only': True}
-        }
+        fields = ['email', 'name', 'employee_id', 'designation', 'department', 'product']
+        # extra_kwargs = {
+        #     'password': {'write_only': True},
+        #     'password2': {'write_only': True}
+        # }
 
     def save(self):
 
@@ -109,10 +109,10 @@ class LeadManagerRegistrationSerializer(serializers.ModelSerializer):
             employee_status = Employee_status.objects.get(title = 'active'),
             visibility = True,
         )
-        password = self.validated_data['password']
-        password2 = self.validated_data['password2']
-        if password != password2:
-            raise serializers.ValidationError('password and return password do not match')
+        password = 'evitamin@123'
+        # password2 = self.validated_data['password2']
+        # if password != password2:
+        #     raise serializers.ValidationError('password and return password do not match')
         user.set_password(password)
         user.save()
     

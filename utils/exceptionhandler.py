@@ -19,7 +19,8 @@ def custom_exception_handler(exc,context):
     
     if response is not None:
         # print('response', type(response.data['status_code']))
-        response.data['status_code']=response.status_code
+        # response.data['status_code']=response.status_code
+        pass
         
     exception_class=exc.__class__.__name__
 
@@ -56,14 +57,15 @@ def _handle_authentication_tokrn_perm(exc,context,response):
 
 #3 Validation Handing
 def _handle_ValidationError(exc,context,response):
-    keys=list(response.data.keys())
-    values=list(response.data.values())
-    print('keys',keys)
-    print('values',values)
-    print(response.data)
+    # print('response',)
+    # keys=list(response.data.keys())
+    # values=list(response.data.values())
+    # print('keys',keys)
+    # print('values',values)
+    # print(response.data)
     response.data={
         'status':response.status_code,
-        'message':values[0][0],
+        'message':response.data[0],
         'data':{}
     }
     return response
