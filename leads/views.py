@@ -11,7 +11,7 @@ from rest_framework import status
 import pandas as pd
 
 from .serializers import *
-from account.models import UserAccount, Drp_Product
+from account.models import UserAccount, Drp_Product, Department, Designation, Product
 from .models import Leads,  Remark_history
 from account.views import getLeadId
 
@@ -980,11 +980,12 @@ class dropdown_department(GenericAPIView):
         res = Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
 
-            department = Drp_Product.objects.all().distinct()
+            department = Drp_Product.objects.values('department').distinct()
+            print('department',department)
             if department.exists():
                 data =[]
                 for d in department:
-                    data.append({'department_id': d.department.id, 'department_name': d.department.title})
+                    data.append({'department_id': d.get('department'), 'department_name': Department.objects.get(id=d.get('department')).title})
 
                 serializer = dropdown_departmentSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
@@ -1026,15 +1027,14 @@ class dropdown_designation(GenericAPIView):
         user = request.user
         res = Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            print(user.designation)
+            # print(user.designation)
 
-            designation = Drp_Product.objects.filter(department = id).distinct()
-            print(designation)
+            designation = Drp_Product.objects.filter(department = id).values('designation').distinct()
+            # print(designation)
             if designation.exists():
-
                 data = []
                 for d in designation:
-                    data.append({'designation_id': d.designation.id, 'designation_name': d.designation.title})
+                    data.append({'designation_id': d.get('designation'), 'designation_name': Designation.objects.get(id=d.get('designation')).title})
 
                 serializer = dropdown_designationSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
