@@ -6,7 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
 from rest_framework.generics import GenericAPIView,CreateAPIView
 from rest_framework.decorators import api_view
-from .models import UserAccount
+from .models import *
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework import status
@@ -244,6 +244,7 @@ class view_users(GenericAPIView):
             if users.exists():
                 data = []
                 for u in users:
+                    # print()
                     data.append({'id': u.id ,'employee_id': u.employee_id, 'name': u.name if u.name else '-', 'designation': u.designation.title if u.designation else '-', 'department': u.department.title if u.department else '-'})
 
                 serializer = viewUserSerializer(data=data, many=True)
@@ -406,6 +407,7 @@ class user_update(CreateAPIView):
         res = Response()
         if request.user.department.title == 'admin' and request.user.designation.title == 'administrator':
             user = UserAccount.objects.filter(employee_id = employee_id)
+            print('user', user)
             if user.exists():
                 new_data = {key: values for key, values in request.data.items() if values != '-'}
                 serializer = updateUserSerializer(user.first(), data=new_data, partial=True)
@@ -442,17 +444,16 @@ class user_update(CreateAPIView):
 
 
 
-class user_delete(GenericAPIView):
+class delete_user(GenericAPIView):
     serializer_class = userDeleteSerializer
     permission_classes = [IsAuthenticated]
     def delete(self, request, employee_id ,format=None, *args, **kwargs):
         
-
         res = Response()
         if request.user.department.title == 'admin' or request.user.designation.title == 'administrator':
             user = UserAccount.objects.filter(employee_id = employee_id)
             if user.exists():
-                serializer = userDeleteSerializer(user.first(), data={'visibility': False}, partial=True)
+                serializer = userDeleteSerializer(user.first(), data={}, partial=True)
                 if serializer.is_valid(raise_exception=True):
                     serializer.save()
                     res.status_code = status.HTTP_200_OK
@@ -478,25 +479,37 @@ class user_delete(GenericAPIView):
                 }
         
         elif request.user.department.title == 'lead_management' or request.user.designation.title == 'lead_manager':
-            if user.exists():
-                
-                serializer = userDeleteSerializer(user.first(), data={'visibility': False}, partial=True)
 
-                if serializer.is_valid(raise_exception=True):
-                    serializer.save()
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'status': status.HTTP_200_OK,
-                        'data': [],
-                        'message': 'user deleted successfully',
-                    }
-                else:
+            user = UserAccount.objects.get(employee_id = employee_id)            
+            if user:
+                user_del_ch = user_delete.objects.filter(user=user.id)
+                if user_del_ch:
                     res.status_code = status.HTTP_400_BAD_REQUEST
                     res.data = {
+                        'status': status.HTTP_400_BAD_REQUEST,
                         'data': [],
-                        'message': 'request failed',
-                        'status': status.HTTP_400_BAD_REQUEST
+                        'message': 'already submitted',
                     }
+                    return res
+                else:
+                    serializer = userDeleteSerializer(user, data={'visibility': False}, partial=True)
+                    if serializer.is_valid(raise_exception=True):
+                        serializer.save()
+                        user_delete.objects.create(user = user)
+                        res.status_code = status.HTTP_200_OK
+                        res.data = {
+                            'status': status.HTTP_200_OK,
+                            'data': [],
+                            'message': 'sent for approval, user will be deleted after admin approval',
+                        }
+
+                    else:
+                        res.status_code = status.HTTP_400_BAD_REQUEST
+                        res.data = {
+                            'data': [],
+                            'message': 'request failed',
+                            'status': status.HTTP_400_BAD_REQUEST
+                        }
 
             else:
                 res.status_code = status.HTTP_400_BAD_REQUEST

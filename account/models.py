@@ -131,6 +131,7 @@ class UserAccount(AbstractBaseUser):
 class user_delete(models.Model):
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, blank=True)
     status = models.BooleanField(default=False)
+    def __str__(self): return str(self.user.name)
 
 
     
