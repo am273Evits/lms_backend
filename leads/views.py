@@ -980,7 +980,7 @@ class dropdown_department(GenericAPIView):
         res = Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
 
-            department = Drp_Product.objects.all()
+            department = Drp_Product.objects.all().distinct()
             if department.exists():
                 data =[]
                 for d in department:
@@ -1028,7 +1028,7 @@ class dropdown_designation(GenericAPIView):
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
             print(user.designation)
 
-            designation = Drp_Product.objects.filter(department = id)
+            designation = Drp_Product.objects.filter(department = id).distinct()
             print(designation)
             if designation.exists():
 
@@ -1072,7 +1072,7 @@ class dropdown_product(GenericAPIView):
         user = request.user
         res = Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            product = Drp_Product.objects.filter(designation = id)
+            product = Drp_Product.objects.filter(designation = id).distinct()
             print(product)
             if product.exists():
                 data = []

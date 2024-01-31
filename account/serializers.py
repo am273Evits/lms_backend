@@ -49,9 +49,9 @@ class AdminRegistrationSerializer(serializers.ModelSerializer):
         # self.validated_data['designation'] = 
 
         user = UserAccount(
-            email = self.validated_data['email'],
-            name = self.validated_data['name'],
-            employee_id = self.validated_data['employee_id'],
+            email = self.validated_data['email'].lower(),
+            name = self.validated_data['name'].lower(),
+            employee_id = self.validated_data['employee_id'].lower(),
             designation = self.validated_data['designation'],
             department = self.validated_data['department'],
             employee_status = Employee_status.objects.get(title = 'active'),
@@ -100,9 +100,9 @@ class LeadManagerRegistrationSerializer(serializers.ModelSerializer):
 
 
         user = UserAccount(
-            email = self.validated_data['email'],
-            name = self.validated_data['name'],
-            employee_id = self.validated_data['employee_id'],
+            email = self.validated_data['email'].lower(),
+            name = self.validated_data['name'].lower(),
+            employee_id = self.validated_data['employee_id'].lower(),
             designation = self.validated_data['designation'],
             department = self.validated_data['department'],
             product = self.validated_data['product'],
