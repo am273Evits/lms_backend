@@ -248,8 +248,8 @@ class view_users(GenericAPIView):
                         'name': u.name if u.name else '-', 
                         'email_id': u.email if u.email else '-', 
                         'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
-                        'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'designation_id':'','designation': ''},
-                        'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'designation_id':'','designation': ''},
+                        'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'department_id':'','department': ''},
+                        'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'product_id':'','product': ''},
                         'employee_status': u.employee_status
                         # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
                         })
