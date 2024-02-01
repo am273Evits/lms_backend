@@ -171,6 +171,15 @@ class updateUserSerializer(serializers.ModelSerializer):
         model = UserAccount
         fields = ['name', 'department', 'designation', 'product', 'employee_status']
 
+    def validate(self, data):
+        if len(dict(data)) == 0:
+            raise serializers.ValidationError('data is required to update')
+        return data
+    
+    # def update(self, validated_data):
+    #     return validated_data
+
+
 
 class userDeleteSerializer(serializers.ModelSerializer):
     visibility = serializers.BooleanField()
