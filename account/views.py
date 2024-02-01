@@ -430,7 +430,7 @@ class view_users_search(GenericAPIView):
 #         return res
     
 
-class user_update(CreateAPIView):
+class user_update(GenericAPIView):
     serializer_class = updateUserSerializer
     permission_classes = [IsAuthenticated]
     def put(self, request, employee_id ,format=None, *args, **kwargs):
