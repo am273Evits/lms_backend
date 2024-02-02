@@ -491,7 +491,7 @@ class delete_user(GenericAPIView):
         if request.user.department.title == 'admin' or request.user.designation.title == 'administrator':
             user = UserAccount.objects.filter(employee_id = employee_id)
             if user.exists():
-                serializer = userDeleteSerializer(user.first(), data={}, partial=True)
+                serializer = userDeleteSerializer(user.first(), data={'visibility': False}, partial=True)
                 if serializer.is_valid(raise_exception=True):
                     serializer.save()
                     res.status_code = status.HTTP_200_OK
