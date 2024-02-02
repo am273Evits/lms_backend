@@ -182,8 +182,8 @@ class registration_VF(GenericAPIView):
         userDesignation = str(userDesignation.title)
         res = Response()
 
-        existing_user  = UserAccount.objects.get(employee_id = request.data.get('employee_id'))
-        if existing_user:
+        existing_user  = UserAccount.objects.filter(employee_id = request.data.get('employee_id').lower())
+        if existing_user.exists():
             res.status_code = status.HTTP_400_BAD_REQUEST
             res.data = {
                 'status': status.HTTP_400_BAD_REQUEST,
