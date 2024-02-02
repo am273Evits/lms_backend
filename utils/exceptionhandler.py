@@ -63,7 +63,7 @@ def _handle_ValidationError(exc,context,response):
     # print('keys',keys)
     # print('values',values)
     # print(response.data)
-    print('response.data',)
+    print('response.data',response.data)
     response.data={
         'status':response.status_code,
         'message':response.data.get('non_field_errors')[0] if response.data.get('non_field_errors') else response.data[0],

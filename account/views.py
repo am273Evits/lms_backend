@@ -180,8 +180,18 @@ class registration_VF(GenericAPIView):
 
         userDepartment = str(userDepartment.title)
         userDesignation = str(userDesignation.title)
-
         res = Response()
+
+        existing_user  = UserAccount.objects.get(employee_id = request.data.get('employee_id'))
+        if existing_user:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'status': status.HTTP_400_BAD_REQUEST,
+                'data': [],
+                'message': 'user already registered, contact admin to check user\'s visibility'
+            }
+            return res
+
 
         if userDepartment == None:
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -196,7 +206,7 @@ class registration_VF(GenericAPIView):
             serializer = AdminRegistrationSerializer(data = request.data)
         
         elif userDepartment == 'lead_management' and userDesignation == 'lead_manager':
-            print(request.data)
+            print('request.user', request.data)
             serializer = LeadManagerRegistrationSerializer(data = request.data)
 
         if not serializer == '':
