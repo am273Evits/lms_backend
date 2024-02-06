@@ -188,7 +188,7 @@ class registration_VF(GenericAPIView):
             res.data = {
                 'status': status.HTTP_400_BAD_REQUEST,
                 'data': [],
-                'message': 'user already registered, contact admin to check user\'s visibility'
+                'message': 'user already registered with this employee id, please contact admin'
             }
             return res
 

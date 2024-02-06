@@ -733,11 +733,13 @@ class DeleteMarketplace(GenericAPIView):
 class ViewMarketplace(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ViewMarketplaceSerializer
-    def get(self, request, format=None, *args, **kwargs):
+    def get(self, request, page ,format=None, *args, **kwargs):
+        limit = 10
+        offset = int((page - 1) * limit)
         user = request.user
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            marketplace = Marketplace.objects.all()
+            marketplace = Marketplace.objects.all()[offset: offset+limit]
             # print(list(marketplace.values_list()))
             if marketplace.exists():
                 pass
@@ -930,11 +932,13 @@ class DeleteServices(GenericAPIView):
 class ViewServices(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ViewServicesSerializer
-    def get(self, request, format=None, *args, **kwargs):
+    def get(self, request, page, format=None, *args, **kwargs):
         user = request.user
+        limit = 10
+        offset = int((page - 1) * limit)
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            marketplace = Marketplace.objects.select_related().all()
+            marketplace = Marketplace.objects.select_related().all()[offset : offset + limit]
             if marketplace.exists():
                 services = [{'marketplace_id': m.id, 'marketplace': m.marketplace, 'service': [ {'service_id': s.id, 'service_name': s.service_name, 'commercial': [{'commercial_id': c.id, 'price_for_mou': c.price_for_mou, 'price': c.price, 'commission': c.commission } for c in s.commercials.all()] } for s in m.service.all()] } for m in marketplace]
 
