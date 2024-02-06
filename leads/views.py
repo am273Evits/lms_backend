@@ -646,7 +646,7 @@ class CreateMarketplace(CreateAPIView):
     
 
 
-class UpdateMarketplace(CreateAPIView):
+class UpdateMarketplace(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CreateMarketplaceSerializer
     def put(self, request,format=None, *args, **kwargs):
@@ -733,37 +733,37 @@ class DeleteMarketplace(GenericAPIView):
 class ViewMarketplace(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ViewMarketplaceSerializer
-    def get(self, request, page ,format=None, *args, **kwargs):
-        limit = 10
-        offset = int((page - 1) * limit)
+    def get(self, request ,format=None, *args, **kwargs):
+        # limit = 10
+        # offset = int((page - 1) * limit)
         user = request.user
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            marketplace = Marketplace.objects.all()[offset: offset+limit]
+            marketplace = Marketplace.objects.all()
             # print(list(marketplace.values_list()))
             if marketplace.exists():
                 pass
                 serializer = ViewMarketplaceSerializer(data={'marketplace': marketplace.values()})
-                pagecount = math.ceil(Marketplace.objects.filter().count()/limit)
+                # pagecount = math.ceil(Marketplace.objects.filter().count()/limit)
 
                 if serializer.is_valid(raise_exception=True):
                     res.status_code = status.HTTP_200_OK
                     res.data = {
-                        'data': {'data': serializer.data, 'total_pages': pagecount, "current_page": page},
+                        'data': serializer.data,
                         'status': status.HTTP_200_OK,
                         'message': 'request successful',
                     }
                 else:
                     res.status_code = status.HTTP_400_BAD_REQUEST
                     res.data = {
-                        'data': {'data': [], 'total_pages': 1, "current_page": page},
+                        'data': [],
                         'status': status.HTTP_400_BAD_REQUEST,
                         'message': 'request failed',
                     }
             else:
                 res.status_code = status.HTTP_400_BAD_REQUEST
                 res.data = {
-                    'data': {'data': [], 'total_pages': 1, "current_page": page},
+                    'data': [],
                     'status': status.HTTP_400_BAD_REQUEST,
                     'message': 'invalid marketplace id',
                 }
@@ -842,7 +842,7 @@ class CreateServices(CreateAPIView):
     
 
 
-class UpdateServices(CreateAPIView):
+class UpdateServices(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UpdateServicesSerializer
     def put(self, request,format=None, *args, **kwargs):

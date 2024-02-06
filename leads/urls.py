@@ -23,7 +23,7 @@ urlpatterns = [
             path('create_marketplace', CreateMarketplace.as_view()),
             path('update_marketplace', UpdateMarketplace.as_view()),
             path('delete_marketplace', DeleteMarketplace.as_view()),
-            path('view_marketplace/<int:page>', ViewMarketplace.as_view()),
+            path('view_marketplace', ViewMarketplace.as_view()),
 
             path('create_service', CreateServices.as_view()),
             path('update_service', UpdateServices.as_view()),
