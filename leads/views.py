@@ -1019,10 +1019,10 @@ class ViewCommercials(GenericAPIView):
             if comm:
                 serializer = CommercialsSerializer(data=comm[0], many=True)
                 serializer.is_valid(raise_exception=True)
-                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.status_code = status.HTTP_200_OK
                 res.data = {
                     'data': serializer.data,
-                    'status': status.HTTP_400_BAD_REQUEST,
+                    'status': status.HTTP_200_OK,
                     'message': 'request successful',
                 }                
             else:
