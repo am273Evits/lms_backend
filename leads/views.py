@@ -744,7 +744,7 @@ class ViewMarketplace(GenericAPIView):
             if marketplace.exists():
                 pass
                 serializer = ViewMarketplaceSerializer(data={'marketplace': marketplace.values()})
-                pagecount = math.ceil(Leads.objects.filter(visibility = True).count()/limit)
+                pagecount = math.ceil(Marketplace.objects.filter().count()/limit)
 
                 if serializer.is_valid(raise_exception=True):
                     res.status_code = status.HTTP_200_OK
@@ -959,7 +959,17 @@ class ViewServices(GenericAPIView):
                 print('ser',ser)
 
 
-                pagecount = math.ceil(Leads.objects.filter(visibility = True).count()/limit)
+                # pagecount = math.ceil(Marketplace.objects.filter(visibility = True).count()/limit)
+                
+                page_count = []
+                pagecount = Marketplace.objects.filter()
+                for p in pagecount:
+                    page_count.append(p.service.all())
+
+                pagecount = math.ceil(len(page_count)/limit)
+
+
+
                 # serializer = lead_managerBlSerializer(data=data, many=True)
                 # serializer.is_valid(raise_exception=True)
 
