@@ -207,7 +207,7 @@ class ViewServicesSerializer(serializers.Serializer):
     service_name = serializers.CharField()
     marketplace_id = serializers.CharField()
     marketplace = serializers.CharField()
-    commercial = serializers.ListField()
+    # commercial = serializers.ListField()
     # commercial = serializers.ListField()
     # class Meta:
     #     model = Services

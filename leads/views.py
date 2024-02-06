@@ -947,17 +947,18 @@ class ViewServices(GenericAPIView):
                 # services = [{'marketplace_id': m.id, 'marketplace': m.marketplace, 'service': [ {'service_id': s.id, 'service_name': s.service_name, 'commercial': [{'commercial_id': c.id, 'price_for_mou': c.price_for_mou, 'price': c.price, 'commission': c.commission } for c in s.commercials.all()] } for s in m.service.all()] } for m in marketplace]
 
                 # service = []
-                ser = []
+                # ser = []
 
-                for m in marketplace:
-                    for s in m.service.all():
-                        com = []
-                        for c in s.commercials.all():
-                            com.append({'commercial_id': c.id, 'price_for_mou': c.price_for_mou, 'price': c.price, 'commission': c.commission })
-                        ser.append({'service_id': s.id, 'service_name': s.service_name, 'marketplace_id': m.id, 'marketplace': m.marketplace, 'commercial': com})
+                # for m in marketplace:
+                #     for s in m.service.all():
+                        # com = []
+                        # for c in s.commercials.all():
+                        #     com.append({'commercial_id': c.id, 'price_for_mou': c.price_for_mou, 'price': c.price, 'commission': c.commission })
+                        # ser.append({'service_id': s.id, 'service_name': s.service_name, 'marketplace_id': m.id, 'marketplace': m.marketplace})
 
-                print('ser',ser)
+                ser = [ [ {'service_id': s.id, 'service_name': s.service_name, 'marketplace_id': m.id, 'marketplace': m.marketplace} for s in m.service.all()] for m in marketplace]
 
+                print(ser)
 
                 # pagecount = math.ceil(Marketplace.objects.filter(visibility = True).count()/limit)
                 
@@ -968,12 +969,10 @@ class ViewServices(GenericAPIView):
 
                 pagecount = math.ceil(len(page_count)/limit)
 
-
-
                 # serializer = lead_managerBlSerializer(data=data, many=True)
                 # serializer.is_valid(raise_exception=True)
 
-                serializer = ViewServicesSerializer(data=ser, many=True)
+                serializer = ViewServicesSerializer(data=ser[0], many=True)
                 if serializer.is_valid(raise_exception=True):
                     print(serializer.data)
                     res.status_code = status.HTTP_200_OK
