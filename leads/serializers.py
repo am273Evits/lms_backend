@@ -213,6 +213,14 @@ class ViewServicesSerializer(serializers.Serializer):
     #     model = Services
     #     fields = ['service_name', 'marketplace']
 
+class CommercialsSerializer(serializers.ModelSerializer):
+    commercial_id = serializers.IntegerField()
+    class Meta:
+        model = Commercials
+        fields = '__all__'
+
+
+
 
     # class Meta:
     #     model = Services

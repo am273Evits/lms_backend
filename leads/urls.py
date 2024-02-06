@@ -30,6 +30,8 @@ urlpatterns = [
             path('delete_service', DeleteServices.as_view()),
             path('view_service/<int:page>', ViewServices.as_view()),
 
+            path('view_commercials/<int:id>', ViewCommercials.as_view()),
+
 
             #dropdown
             path('dropdown_department', dropdown_department.as_view()),

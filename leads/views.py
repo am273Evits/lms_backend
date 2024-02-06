@@ -1007,6 +1007,48 @@ class ViewServices(GenericAPIView):
     
 
 
+class ViewCommercials(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CommercialsSerializer
+    def get(self, request, id ,format=None, *args, **kwargs):
+        user = request.user
+        res = Response()
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            comm = [[{'commercial_id': c.id, 'price': c.price, 'commission': c.commission, 'price_for_mou': c.price_for_mou} for c in s.commercials.all()] for s in Services.objects.filter(id = id)]
+            # for c in comm:
+            #     print(c)
+            if comm:
+                serializer = CommercialsSerializer(data=comm[0], many=True)
+                serializer.is_valid(raise_exception=True)
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'data': serializer.data,
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': 'request successful',
+                }                
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'data': [],
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': 'no data found',
+                }
+
+            # print(comm)
+
+
+        else:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'data': [],
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'you are not authorized for this action',
+            }
+        return res
+
+    
+
+
 class dropdown_department(GenericAPIView):
     serializer_class = dropdown_departmentSerializer
     permission_classes = [IsAuthenticated]
