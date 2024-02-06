@@ -200,9 +200,14 @@ class UpdateServicesSerializer(serializers.Serializer):
 
 
 class ViewServicesSerializer(serializers.Serializer):
-    marketplace_id = serializers.IntegerField()
+    # marketplace_id = serializers.IntegerField()
+    # marketplace = serializers.CharField()
+    # service = serializers.JSONField()
+    service_id = serializers.CharField()
+    service_name = serializers.CharField()
+    marketplace_id = serializers.CharField()
     marketplace = serializers.CharField()
-    service = serializers.ListField()
+    commercial = serializers.ListField()
     # commercial = serializers.ListField()
     # class Meta:
     #     model = Services

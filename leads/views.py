@@ -744,24 +744,26 @@ class ViewMarketplace(GenericAPIView):
             if marketplace.exists():
                 pass
                 serializer = ViewMarketplaceSerializer(data={'marketplace': marketplace.values()})
+                pagecount = math.ceil(Leads.objects.filter(visibility = True).count()/limit)
+
                 if serializer.is_valid(raise_exception=True):
                     res.status_code = status.HTTP_200_OK
                     res.data = {
-                        'data': serializer.data,
+                        'data': {'data': serializer.data, 'total_pages': pagecount, "current_page": page},
                         'status': status.HTTP_200_OK,
                         'message': 'request successful',
                     }
                 else:
                     res.status_code = status.HTTP_400_BAD_REQUEST
                     res.data = {
-                        'data': [],
+                        'data': {'data': [], 'total_pages': 1, "current_page": page},
                         'status': status.HTTP_400_BAD_REQUEST,
                         'message': 'request failed',
                     }
             else:
                 res.status_code = status.HTTP_400_BAD_REQUEST
                 res.data = {
-                    'data': [],
+                    'data': {'data': [], 'total_pages': 1, "current_page": page},
                     'status': status.HTTP_400_BAD_REQUEST,
                     'message': 'invalid marketplace id',
                 }
@@ -940,28 +942,47 @@ class ViewServices(GenericAPIView):
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
             marketplace = Marketplace.objects.select_related().all()[offset : offset + limit]
             if marketplace.exists():
-                services = [{'marketplace_id': m.id, 'marketplace': m.marketplace, 'service': [ {'service_id': s.id, 'service_name': s.service_name, 'commercial': [{'commercial_id': c.id, 'price_for_mou': c.price_for_mou, 'price': c.price, 'commission': c.commission } for c in s.commercials.all()] } for s in m.service.all()] } for m in marketplace]
+                # services = [ {'service_id': s.id, 'service_name': s.service_name, 'marketplace_id': m.id, 'marketplace': m.marketplace, 'commercial': [{'commercial_id': c.id, 'price_for_mou': c.price_for_mou, 'price': c.price, 'commission': c.commission } for c in s.commercials.all()] } for s in m.service.all()  for m in marketplace]
 
-                serializer = ViewServicesSerializer(data=services, many=True)
+                # services = [{'marketplace_id': m.id, 'marketplace': m.marketplace, 'service': [ {'service_id': s.id, 'service_name': s.service_name, 'commercial': [{'commercial_id': c.id, 'price_for_mou': c.price_for_mou, 'price': c.price, 'commission': c.commission } for c in s.commercials.all()] } for s in m.service.all()] } for m in marketplace]
+
+                # service = []
+                ser = []
+
+                for m in marketplace:
+                    for s in m.service.all():
+                        com = []
+                        for c in s.commercials.all():
+                            com.append({'commercial_id': c.id, 'price_for_mou': c.price_for_mou, 'price': c.price, 'commission': c.commission })
+                        ser.append({'service_id': s.id, 'service_name': s.service_name, 'marketplace_id': m.id, 'marketplace': m.marketplace, 'commercial': com})
+
+                print('ser',ser)
+
+
+                pagecount = math.ceil(Leads.objects.filter(visibility = True).count()/limit)
+                # serializer = lead_managerBlSerializer(data=data, many=True)
+                # serializer.is_valid(raise_exception=True)
+
+                serializer = ViewServicesSerializer(data=ser, many=True)
                 if serializer.is_valid(raise_exception=True):
                     print(serializer.data)
                     res.status_code = status.HTTP_200_OK
                     res.data = {
-                        'data': serializer.data,
+                        'data':  {'data': serializer.data, 'total_pages': pagecount, "current_page": page},
                         'status': status.HTTP_200_OK,
                         'message': 'request successful',
                     }
                 else:
                     res.status_code = status.HTTP_400_BAD_REQUEST
                     res.data = {
-                        'data': [],
+                        'data': {'data': [], 'total_pages': 1, "current_page": page},
                         'status': status.HTTP_400_BAD_REQUEST,
                         'message': 'request failed',
                     }
             else:
                 res.status_code = status.HTTP_400_BAD_REQUEST
                 res.data = {
-                    'data': [],
+                    'data': {'data': [], 'total_pages': 1, "current_page": page},
                     'status': status.HTTP_400_BAD_REQUEST,
                     'message': 'invalid services id',
                 }
