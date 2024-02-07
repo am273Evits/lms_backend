@@ -851,6 +851,7 @@ class UpdateServices(GenericAPIView):
 
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
             services = Services.objects.filter(id=request.data.get('service_id'))
+            # print('services',services)
             if services.exists():
                 serializer = UpdateServicesSerializer(services.first(), data=request.data, partial=True)
                 if serializer.is_valid(raise_exception=True):
@@ -1027,6 +1028,54 @@ class ViewCommercials(GenericAPIView):
                 'message': 'you are not authorized for this action',
             }
         return res
+    
+
+
+class DeleteCommercials(GenericAPIView):
+    serializer_class = CommercialsSerializer
+    permission_classes = [IsAuthenticated]
+    def delete(self, request, id, format=None, *args, **kwargs):
+        res = Response()
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            serv = Services.objects.get(commercials__id = id)
+            if serv:
+                for s in serv.commercials.all():
+                    if s.id == id:
+                        s.delete()
+                        res.status_code = status.HTTP_200_OK
+                        res.data = {
+                            'data': [],
+                            'status': status.HTTP_200_OK,
+                            'message': 'commercial deleted',
+                        }
+                
+
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'data': [],
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': 'no data found',
+            }
+        
+        else:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'data': [],
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'you are not authorized for this action',
+            }
+        return res
+
+
+        
+        # serv = Services.objects.get()
+        # for s in serv.commercials.all():
+        #     print(s.id, s)
+            
+                # print(s, id, s.id)
+
 
     
 

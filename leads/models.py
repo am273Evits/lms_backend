@@ -77,7 +77,7 @@ class Commercials(models.Model):
   def __str__(self): return str(self.price_for_mou)
 
 class Services(models.Model):
-  # marketplace_id = models.ForeignKey(Marketplace, on_delete=models.CASCADE, null=True, blank=True)
+  # marketplace = models.ForeignKey("leads.Marketplace", on_delete=models.CASCADE, null=True, blank=True)
   service_name = models.CharField(max_length=100, blank=True, default='')
   commercials = models.ManyToManyField(Commercials)
   def __str__(self): return str(self.service_name)

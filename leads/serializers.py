@@ -147,8 +147,6 @@ class UpdateServicesSerializer(serializers.Serializer):
     commercials = serializers.ListField()
 
     def validate(self, attrs):
-        # print('instance', self.instance )
-        # print('atts', attrs )
         instance = self.instance
 
         marketplace_id = attrs.get('marketplace_id')
@@ -164,28 +162,26 @@ class UpdateServicesSerializer(serializers.Serializer):
                 raise serializers.ValidationError('price for mou is required field')
             
         if not service_name or service_name == None or service_name == '':
-            raise serializers.ValidationError('price for mou is required field')
+            raise serializers.ValidationError('service name is required field')
 
         marketplace = Marketplace.objects.filter(id = marketplace_id)
         if not marketplace.exists():
             raise serializers.ValidationError('marketplace id is incorrect')
-
-        # print('attrs',validate)
         return attrs
 
     def update(self, instance, validated_data):
-
         instance.service_name = validated_data['service_name']
-        # instance.save()
-
         for c in validated_data['commercials']:
-            commercials = Commercials.objects.filter(id = c.get('commercial_id')).first()
-            commercials.price = c.get('price')
-            commercials.price_for_mou = c.get('price_for_mou')
-            commercials.commission = c.get('commission')
-            commercials.save()
-
-        
+            if c.get('commercial_id') == None:
+                del c['commercial_id']
+                commercial = Commercials.objects.create(**c)
+                instance.commercials.add(commercial)
+            else:
+                commercials = Commercials.objects.filter(id = c.get('commercial_id')).first()
+                commercials.price = c.get('price')
+                commercials.price_for_mou = c.get('price_for_mou')
+                commercials.commission = c.get('commission')
+                commercials.save()
         return validated_data
 
 
