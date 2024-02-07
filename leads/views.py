@@ -940,39 +940,40 @@ class ViewServices(GenericAPIView):
         offset = int((page - 1) * limit)
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            marketplace = Marketplace.objects.select_related().all()[offset : offset + limit]
+            marketplace = Marketplace.objects.select_related().values('id','marketplace','service')[offset : offset + limit]
+            print('marketplace',marketplace)
             if marketplace.exists():
                 # services = [ {'service_id': s.id, 'service_name': s.service_name, 'marketplace_id': m.id, 'marketplace': m.marketplace, 'commercial': [{'commercial_id': c.id, 'price_for_mou': c.price_for_mou, 'price': c.price, 'commission': c.commission } for c in s.commercials.all()] } for s in m.service.all()  for m in marketplace]
 
                 # services = [{'marketplace_id': m.id, 'marketplace': m.marketplace, 'service': [ {'service_id': s.id, 'service_name': s.service_name, 'commercial': [{'commercial_id': c.id, 'price_for_mou': c.price_for_mou, 'price': c.price, 'commission': c.commission } for c in s.commercials.all()] } for s in m.service.all()] } for m in marketplace]
 
                 # service = []
-                # ser = []
+                ser = []
 
-                # for m in marketplace:
-                #     for s in m.service.all():
+                for m in marketplace:
+                    service = Services.objects.get(id = m['service'])
+                    print('SERVICE', m)
+                    # for s in m.service.all():
+                    ser.append({'service_id': m['service'], 'service_name': service.service_name, 'marketplace_id': m['id'], 'marketplace': m['marketplace']})
                         # com = []
                         # for c in s.commercials.all():
                         #     com.append({'commercial_id': c.id, 'price_for_mou': c.price_for_mou, 'price': c.price, 'commission': c.commission })
                         # ser.append({'service_id': s.id, 'service_name': s.service_name, 'marketplace_id': m.id, 'marketplace': m.marketplace})
 
-                ser = [ [ {'service_id': s.id, 'service_name': s.service_name, 'marketplace_id': m.id, 'marketplace': m.marketplace} for s in m.service.all()] for m in marketplace]
+                # ser = [ [ {'service_id': s.id, 'service_name': s.service_name, 'marketplace_id': m.id, 'marketplace': m.marketplace} for s in m.service.all()] for m in marketplace]
 
                 print(ser)
 
                 # pagecount = math.ceil(Marketplace.objects.filter(visibility = True).count()/limit)
                 
                 page_count = []
-                pagecount = Marketplace.objects.filter()
+                pagecount = Marketplace.objects.all()
                 for p in pagecount:
                     page_count.append(p.service.all())
 
-                pagecount = math.ceil(len(page_count)/limit)
+                pagecount = math.ceil(Marketplace.objects.select_related().values('id','marketplace','service').count()/limit)
 
-                # serializer = lead_managerBlSerializer(data=data, many=True)
-                # serializer.is_valid(raise_exception=True)
-
-                serializer = ViewServicesSerializer(data=ser[0], many=True)
+                serializer = ViewServicesSerializer(data=ser, many=True)
                 if serializer.is_valid(raise_exception=True):
                     print(serializer.data)
                     res.status_code = status.HTTP_200_OK
