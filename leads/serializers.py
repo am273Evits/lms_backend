@@ -215,6 +215,8 @@ class ViewServicesSerializer(serializers.Serializer):
 
 class CommercialsSerializer(serializers.ModelSerializer):
     commercial_id = serializers.IntegerField()
+    commission = serializers.IntegerField()
+    price = serializers.IntegerField()
     class Meta:
         model = Commercials
         fields = '__all__'
