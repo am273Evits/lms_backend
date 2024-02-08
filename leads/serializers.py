@@ -171,6 +171,7 @@ class UpdateServicesSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         instance.service_name = validated_data['service_name']
+        instance.save()
         for c in validated_data['commercials']:
             if c.get('commercial_id') == None:
                 del c['commercial_id']
