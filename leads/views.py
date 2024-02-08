@@ -1049,8 +1049,6 @@ class DeleteCommercials(GenericAPIView):
                             'status': status.HTTP_200_OK,
                             'message': 'commercial deleted',
                         }
-                
-
             else:
                 res.status_code = status.HTTP_400_BAD_REQUEST
                 res.data = {

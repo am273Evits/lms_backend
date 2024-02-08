@@ -142,7 +142,7 @@ class CreateServicesSerializer(serializers.Serializer):
 
 class UpdateServicesSerializer(serializers.Serializer):
     marketplace_id = serializers.IntegerField()
-    service_id = serializers.CharField()
+    service_id = serializers.IntegerField()
     service_name = serializers.CharField()
     commercials = serializers.ListField()
 
