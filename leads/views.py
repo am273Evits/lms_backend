@@ -1045,7 +1045,8 @@ class DeleteCommercials(GenericAPIView):
             # print('serv',serv.commercials.all())
             if serv:
                 for s in serv.commercials.all():
-                    if s.id == id:
+                    if s.id == commercial_id:
+                        # print(s,'this wokring')
                         s.delete()
                         res.status_code = status.HTTP_200_OK
                         res.data = {
