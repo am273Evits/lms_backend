@@ -1039,6 +1039,7 @@ class DeleteCommercials(GenericAPIView):
         user = request.user
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
             serv = Services.objects.get(commercials__id = id)
+            print('serv',serv)
             if serv:
                 for s in serv.commercials.all():
                     if s.id == id:
