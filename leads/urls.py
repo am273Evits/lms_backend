@@ -31,7 +31,7 @@ urlpatterns = [
             path('view_service/<int:page>', ViewServices.as_view()),
 
             path('view_commercials/<int:id>', ViewCommercials.as_view()),
-            path('delete_commercials/<int:id>', DeleteCommercials.as_view()),
+            path('delete_commercials/<int:service_id>/<int:commercial_id>', DeleteCommercials.as_view()),
 
 
             #dropdown

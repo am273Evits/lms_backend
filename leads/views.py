@@ -1034,12 +1034,15 @@ class ViewCommercials(GenericAPIView):
 class DeleteCommercials(GenericAPIView):
     serializer_class = CommercialsSerializer
     permission_classes = [IsAuthenticated]
-    def delete(self, request, id, format=None, *args, **kwargs):
+    def delete(self, request, service_id ,commercial_id, format=None, *args, **kwargs):
         res = Response()
         user = request.user
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            serv = Services.objects.get(commercials__id = id)
-            print('serv',serv)
+            try:
+                serv = Services.objects.get(id = service_id ,commercials__id = commercial_id)
+            except:
+                serv = False
+            # print('serv',serv.commercials.all())
             if serv:
                 for s in serv.commercials.all():
                     if s.id == id:
