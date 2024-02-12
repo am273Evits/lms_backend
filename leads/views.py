@@ -890,11 +890,11 @@ class UpdateServices(GenericAPIView):
 class DeleteServices(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CreateServicesSerializer
-    def delete(self, request, format=None, *args, **kwargs):
+    def delete(self, request, id, format=None, *args, **kwargs):
         user = request.user
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            services = Services.objects.get(id=request.data.get('service_id'))
+            services = Services.objects.get(id=id)
             if services:
                 for s in services.commercials.all():
                     commercials = Commercials.objects.get(id = s.id)

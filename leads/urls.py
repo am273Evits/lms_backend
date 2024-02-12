@@ -27,7 +27,7 @@ urlpatterns = [
 
             path('create_service', CreateServices.as_view()),
             path('update_service', UpdateServices.as_view()),
-            path('delete_service', DeleteServices.as_view()),
+            path('delete_service/<int:id>', DeleteServices.as_view()),
             path('view_service/<int:page>', ViewServices.as_view()),
 
             path('view_commercials/<int:id>', ViewCommercials.as_view()),
