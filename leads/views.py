@@ -649,11 +649,11 @@ class CreateMarketplace(CreateAPIView):
 class UpdateMarketplace(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CreateMarketplaceSerializer
-    def put(self, request,format=None, *args, **kwargs):
+    def put(self, request, id, format=None, *args, **kwargs):
         user = request.user
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            marketplace = Marketplace.objects.filter(id=request.data.get('marketplace_id'), visibility=True)
+            marketplace = Marketplace.objects.filter(id=id, visibility=True)
             if marketplace.exists():
                 serializer = CreateMarketplaceSerializer(marketplace.first(), data=request.data, partial=True)
                 if serializer.is_valid(raise_exception=True):
@@ -993,7 +993,6 @@ class ViewServices(GenericAPIView):
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
             try:
                 marketplace = Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service').filter(visibility=True)[offset : offset + limit]
-                print(marketplace)
             except:
                 # marketplace = Marketplace.objects.filter(pk__in=[])
                 res.status_code = status.HTTP_200_OK
@@ -1031,14 +1030,10 @@ class ViewServices(GenericAPIView):
 
                 pagecount = math.ceil(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility').filter(visibility=True).count()/limit)
 
-
-                print('ser',ser)
-
                 # print(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility'))
 
                 serializer = ViewServicesSerializer(data=ser, many=True)
                 if serializer.is_valid(raise_exception=True):
-                    print(serializer.data)
                     res.status_code = status.HTTP_200_OK
                     res.data = {
                         'data':  {'data': serializer.data, 'total_pages': pagecount, "current_page": page},

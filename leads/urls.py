@@ -21,7 +21,7 @@ urlpatterns = [
 
             #services
             path('create_marketplace', CreateMarketplace.as_view()),
-            path('update_marketplace', UpdateMarketplace.as_view()),
+            path('update_marketplace/<int:id>', UpdateMarketplace.as_view()),
             path('delete_marketplace/<int:id>', DeleteMarketplace.as_view()),
             path('view_marketplace', ViewMarketplace.as_view()),
 
