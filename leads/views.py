@@ -993,6 +993,7 @@ class ViewServices(GenericAPIView):
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
             try:
                 marketplace = Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service').filter(visibility=True)[offset : offset + limit]
+                print(marketplace)
             except:
                 # marketplace = Marketplace.objects.filter(pk__in=[])
                 res.status_code = status.HTTP_200_OK
@@ -1007,17 +1008,18 @@ class ViewServices(GenericAPIView):
                 ser = []
 
                 for m in marketplace:
+                    # print(m['service'])
                     try:
                         service = Services.objects.get(id = m['service'], visibility=True)
                     except:
-                        # service = Services.objects.filter(pk__in=[])
-                        res.status_code = status.HTTP_200_OK
-                        res.data = {
-                            'data':  {'data': [], 'total_pages': 1, "current_page": page},
-                            'status': status.HTTP_200_OK,
-                            'message': 'no data found',
-                        }
-                        return res
+                        service = Services.objects.filter(pk__in=[])
+                        # res.status_code = status.HTTP_200_OK
+                        # res.data = {
+                            # 'data':  {'data': [], 'total_pages': 1, "current_page": page},
+                            # 'status': status.HTTP_200_OK,
+                            # 'message': 'no data found',
+                        # }
+                        # return res
 
                     if service:
                         ser.append({'service_id': m['service'], 'service_name': service.service_name, 'marketplace_id': m['id'], 'marketplace': m['marketplace']})
@@ -1028,6 +1030,10 @@ class ViewServices(GenericAPIView):
                     page_count.append(p.service.all())
 
                 pagecount = math.ceil(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility').filter(visibility=True).count()/limit)
+
+
+                print('ser',ser)
+
                 # print(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility'))
 
                 serializer = ViewServicesSerializer(data=ser, many=True)
