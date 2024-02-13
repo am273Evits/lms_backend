@@ -74,18 +74,21 @@ class Commercials(models.Model):
   price = models.CharField(max_length=100, blank=True, default='')
   commission = models.CharField(max_length=100, blank=True, default='')
   price_for_mou = models.CharField(max_length=100, blank=True, default='')
+  visibility = models.BooleanField(default=True)
   def __str__(self): return str(self.price_for_mou)
 
 class Services(models.Model):
   # marketplace = models.ForeignKey("leads.Marketplace", on_delete=models.CASCADE, null=True, blank=True)
   service_name = models.CharField(max_length=100, blank=True, default='')
   commercials = models.ManyToManyField(Commercials)
+  visibility = models.BooleanField(default=True)
   def __str__(self): return str(self.service_name)
 
   
 class Marketplace(models.Model):
   marketplace = models.CharField(max_length=100, blank=True, default='')
   service = models.ManyToManyField(Services)
+  visibility = models.BooleanField(default=True)
   def __str__(self): return str(self.marketplace)
 
   

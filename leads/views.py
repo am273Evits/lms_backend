@@ -633,7 +633,7 @@ class CreateMarketplace(CreateAPIView):
                 res.data = {
                     'data': [],
                     'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'marketplace already exists',
+                    'message': 'marketplace already exists, kindly check archieves',
                 }      
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -653,7 +653,7 @@ class UpdateMarketplace(GenericAPIView):
         user = request.user
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            marketplace = Marketplace.objects.filter(id=request.data.get('marketplace_id'))
+            marketplace = Marketplace.objects.filter(id=request.data.get('marketplace_id'), visibility=True)
             if marketplace.exists():
                 serializer = CreateMarketplaceSerializer(marketplace.first(), data=request.data, partial=True)
                 if serializer.is_valid(raise_exception=True):
@@ -676,7 +676,7 @@ class UpdateMarketplace(GenericAPIView):
                 res.data = {
                     'data': [],
                     'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'invalid marketplace id',
+                    'message': 'no data found, kindly check archieves',
                 }
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -692,27 +692,39 @@ class UpdateMarketplace(GenericAPIView):
 class DeleteMarketplace(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CreateMarketplaceSerializer
-    def delete(self, request, format=None, *args, **kwargs):
+    def delete(self, request, id, format=None, *args, **kwargs):
         user = request.user
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            marketplace = Marketplace.objects.filter(id=request.data.get('marketplace_id'))
-            print(marketplace)
-            if marketplace.exists():
-                if marketplace.delete():
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'data': [],
-                        'status': status.HTTP_200_OK,
-                        'message': 'deleted successfully',
-                    }
-                else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'data': [],
-                        'status': status.HTTP_400_BAD_REQUEST,
-                        'message': 'request failed',
-                    }
+            try:
+                marketplace = Marketplace.objects.filter(id=id, visibility=True).first()
+            except:
+                marketplace = Marketplace.objects.filter(pk__in=[]).first()
+            # print(marketplace)
+            if marketplace:
+                marketplace.visibility = False
+                for m in marketplace.service.all():
+                    for c in m.commercials.all():
+                        if c.visibility == True:
+                            c.visibility = False
+                            c.save()
+                    if m.visibility == True:
+                        m.visibility = False
+                        m.save()
+                marketplace.save()
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    'data': [],
+                    'status': status.HTTP_200_OK,
+                    'message': 'deleted successfully',
+                }
+                # else:
+                #     res.status_code = status.HTTP_400_BAD_REQUEST
+                #     res.data = {
+                #         'data': [],
+                #         'status': status.HTTP_400_BAD_REQUEST,
+                #         'message': 'request failed',
+                #     }
             else:
                 res.status_code = status.HTTP_400_BAD_REQUEST
                 res.data = {
@@ -739,7 +751,7 @@ class ViewMarketplace(GenericAPIView):
         user = request.user
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            marketplace = Marketplace.objects.all()
+            marketplace = Marketplace.objects.filter(visibility=True)
             # print(list(marketplace.values_list()))
             if marketplace.exists():
                 pass
@@ -765,7 +777,7 @@ class ViewMarketplace(GenericAPIView):
                 res.data = {
                     'data': [],
                     'status': status.HTTP_200_OK,
-                    'message': 'invalid marketplace id',
+                    'message': 'no data found',
                 }
         else:
             res.status_code = status.HTTP_401_UNAUTHORIZED
@@ -796,31 +808,56 @@ class CreateServices(CreateAPIView):
         user = request.user
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            serializer = CreateServicesSerializer(data=request.data)
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                if True:
-                    serializer = CreateServicesSerializer(data=request.data)
-                    if serializer.is_valid(raise_exception=True):
-                        # serializer.save()
-                        res.status_code = status.HTTP_200_OK
-                        res.data = {
-                            'data': serializer.data,
-                            'status': status.HTTP_200_OK,
-                            'message': 'added successfully',
-                        }                
-                    else:
-                        res.status_code = status.HTTP_400_BAD_REQUEST
-                        res.data = {
-                            'data': [],
-                            'status': status.HTTP_400_BAD_REQUEST,
-                            'message': serializer.errors if serializer.errors else 'request failed',
-                        }
-                else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
+
+            marketplace_id = request.data.get('marketplace_id')
+            service_name = request.data.get('service_name')
+            try:
+                service = Marketplace.objects.get(id = marketplace_id, service__service_name = service_name)
+                if service:
+                    res.status_code = status.HTTP_200_OK
                     res.data = {
                         'data': [],
-                        'status': status.HTTP_400_BAD_REQUEST,
+                        'status': status.HTTP_200_OK,
+                        'message': 'service name already exists, kindly check archieves',
+                    }
+                    return res   
+
+            except:
+                service = Marketplace.objects.filter(pk__in=[])
+            
+            if not service.exists():
+                serializer = CreateServicesSerializer(data=request.data)
+                if serializer.is_valid(raise_exception=True):
+                    if serializer.save():
+                        serializer = CreateServicesSerializer(data=request.data)
+                        if serializer.is_valid(raise_exception=True):
+                            # serializer.save()
+                            res.status_code = status.HTTP_200_OK
+                            res.data = {
+                                'data': serializer.data,
+                                'status': status.HTTP_200_OK,
+                                'message': 'added successfully',
+                            }                
+                        else:
+                            res.status_code = status.HTTP_400_BAD_REQUEST
+                            res.data = {
+                                'data': [],
+                                'status': status.HTTP_400_BAD_REQUEST,
+                                'message': serializer.errors if serializer.errors else 'request failed',
+                            }
+                    else:
+                        res.status_code = status.HTTP_200_OK
+                        res.data = {
+                            'data': [],
+                            'status': status.HTTP_200_OK,
+                            'message': 'request failed',
+                        }
+
+                else:
+                    res.status_code = status.HTTP_200_OK
+                    res.data = {
+                        'data': [],
+                        'status': status.HTTP_200_OK,
                         'message': 'request failed',
                     }
 
@@ -850,7 +887,17 @@ class UpdateServices(GenericAPIView):
         res =  Response()
 
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            services = Services.objects.filter(id=request.data.get('service_id'))
+            try:
+                services = Services.objects.filter(id=request.data.get('service_id'), visibility=True)
+            except:
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    'data': [],
+                    'status': status.HTTP_200_OK,
+                    'message': 'no data found, kindly check archieves',
+                }
+                return res
+            
             # print('services',services)
             if services.exists():
                 serializer = UpdateServicesSerializer(services.first(), data=request.data, partial=True)
@@ -870,11 +917,11 @@ class UpdateServices(GenericAPIView):
                         'message': 'request failed',
                     }
             else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.status_code = status.HTTP_200_OK
                 res.data = {
                     'data': [],
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'invalid services id',
+                    'status': status.HTTP_200_OK,
+                    'message': 'no data found',
                 }
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -894,13 +941,16 @@ class DeleteServices(GenericAPIView):
         user = request.user
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            services = Services.objects.get(id=id)
+            services = Services.objects.get(id=id, visibility=True)
             if services:
                 for s in services.commercials.all():
-                    commercials = Commercials.objects.get(id = s.id)
-                    commercials.delete()
-
-                services.delete()
+                    if s.visibility == True:
+                        s.visibility = False
+                        s.save()
+                    # commercials = Commercials.objects.get(id = s.id, visibility=True)
+                    # commercials.delete()
+                services.visibility = False
+                services.save()
            
                 res.status_code = status.HTTP_200_OK
                 res.data = {
@@ -941,20 +991,44 @@ class ViewServices(GenericAPIView):
         offset = int((page - 1) * limit)
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            marketplace = Marketplace.objects.select_related().values('id','marketplace','service')[offset : offset + limit]
+            try:
+                marketplace = Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service').filter(visibility=True)[offset : offset + limit]
+            except:
+                # marketplace = Marketplace.objects.filter(pk__in=[])
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    'data':  {'data': [], 'total_pages': 1, "current_page": page},
+                    'status': status.HTTP_200_OK,
+                    'message': 'no data found',
+                }
+                return res
+
             if marketplace.exists():
                 ser = []
 
                 for m in marketplace:
-                    service = Services.objects.get(id = m['service'])
-                    ser.append({'service_id': m['service'], 'service_name': service.service_name, 'marketplace_id': m['id'], 'marketplace': m['marketplace']})
+                    try:
+                        service = Services.objects.get(id = m['service'], visibility=True)
+                    except:
+                        # service = Services.objects.filter(pk__in=[])
+                        res.status_code = status.HTTP_200_OK
+                        res.data = {
+                            'data':  {'data': [], 'total_pages': 1, "current_page": page},
+                            'status': status.HTTP_200_OK,
+                            'message': 'no data found',
+                        }
+                        return res
+
+                    if service:
+                        ser.append({'service_id': m['service'], 'service_name': service.service_name, 'marketplace_id': m['id'], 'marketplace': m['marketplace']})
                 
                 page_count = []
                 pagecount = Marketplace.objects.all()
                 for p in pagecount:
                     page_count.append(p.service.all())
 
-                pagecount = math.ceil(Marketplace.objects.select_related().values('id','marketplace','service').count()/limit)
+                pagecount = math.ceil(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility').filter(visibility=True).count()/limit)
+                # print(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility'))
 
                 serializer = ViewServicesSerializer(data=ser, many=True)
                 if serializer.is_valid(raise_exception=True):
