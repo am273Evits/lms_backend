@@ -761,17 +761,17 @@ class ViewMarketplace(GenericAPIView):
                         'message': 'request failed',
                     }
             else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.status_code = status.HTTP_200_OK
                 res.data = {
                     'data': [],
-                    'status': status.HTTP_400_BAD_REQUEST,
+                    'status': status.HTTP_200_OK,
                     'message': 'invalid marketplace id',
                 }
         else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.status_code = status.HTTP_401_UNAUTHORIZED
             res.data = {
                 'data': [],
-                'status': status.HTTP_400_BAD_REQUEST,
+                'status': status.HTTP_401_UNAUTHORIZED,
                 'message': 'you are not authorized for this action',
             }
         return res
