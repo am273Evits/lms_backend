@@ -655,7 +655,7 @@ class UpdateMarketplace(GenericAPIView):
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
             marketplace = Marketplace.objects.get(id=id, visibility=True)
             if marketplace:
-                if not str(marketplace.marketplace).lower() == request.data.get('marketplace').lower():
+                if not Marketplace.objects.filter(marketplace=request.data.get('marketplace').lower()).exists():
                     serializer = CreateMarketplaceSerializer(marketplace, data=request.data, partial=True)
                     if serializer.is_valid(raise_exception=True):
                         serializer.save()
