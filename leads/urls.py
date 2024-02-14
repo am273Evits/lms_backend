@@ -30,6 +30,8 @@ urlpatterns = [
             path('update_service', UpdateServices.as_view()),
             path('delete_service/<int:id>', DeleteServices.as_view()),
             path('view_service/<int:page>', ViewServices.as_view()),
+            path('search_service/<str:searchAtr>/<str:id>', SearchService.as_view()),
+
 
             path('view_commercials/<int:id>', ViewCommercials.as_view()),
             path('delete_commercials/<int:service_id>/<int:commercial_id>', DeleteCommercials.as_view()),

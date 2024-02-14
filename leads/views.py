@@ -711,7 +711,6 @@ class SearchMarketplace(GenericAPIView):
             except:
                 marketplace = Marketplace.objects.filter(pk__in=[])
 
-
             # try: 
             #     marketplace = Marketplace.objects.get(id=id, visibility=True)
             # except:
@@ -1136,6 +1135,107 @@ class ViewServices(GenericAPIView):
                 'message': 'you are not authorized for this action',
             }
         return res
+    
+
+
+class SearchService(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewServicesSerializer
+    def get(self, request, searchAtr, id, format=None, *args, **kwargs):
+        user = request.user
+        res =  Response()
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+
+            if searchAtr == 'service':
+                name = id.replace('_',' ')
+                marketplace = Marketplace.objects.select_related().filter(service__service_name__contains = name, visibility=True).values('id','marketplace','service').filter(visibility=True)
+            elif searchAtr == 'marketplace':
+                name = id.replace('_',' ')
+                marketplace = Marketplace.objects.select_related().filter(marketplace__contains = name, visibility=True).values('id','marketplace','service').filter(visibility=True)
+                print(marketplace)
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'data': [],
+                    'message': 'invalid search term',
+                    'status': status.HTTP_400_BAD_REQUEST
+                }
+                return res
+
+
+
+            # try:
+            #     marketplace = Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service').filter(visibility=True)
+            # except:
+            #     # marketplace = Marketplace.objects.filter(pk__in=[])
+            #     res.status_code = status.HTTP_200_OK
+            #     res.data = {
+            #         'data':  [],
+            #         'status': status.HTTP_200_OK,
+            #         'message': 'no data found',
+            #     }
+            #     return res
+
+            if marketplace.exists():
+                ser = []
+
+                for m in marketplace:
+                    # print(m['service'])
+                    try:
+                        service = Services.objects.get(id = m['service'], visibility=True)
+                    except:
+                        service = Services.objects.filter(pk__in=[])
+                        # res.status_code = status.HTTP_200_OK
+                        # res.data = {
+                            # 'data':  {'data': [], 'total_pages': 1, "current_page": page},
+                            # 'status': status.HTTP_200_OK,
+                            # 'message': 'no data found',
+                        # }
+                        # return res
+
+                    if service:
+                        ser.append({'service_id': m['service'], 'service_name': service.service_name, 'marketplace_id': m['id'], 'marketplace': m['marketplace']})
+                
+                # page_count = []
+                # pagecount = Marketplace.objects.all()
+                # for p in pagecount:
+                #     page_count.append(p.service.all())
+
+                # pagecount = math.ceil(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility').filter(visibility=True).count()/limit)
+
+                # print(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility'))
+
+                serializer = ViewServicesSerializer(data=ser, many=True)
+                if serializer.is_valid(raise_exception=True):
+                    res.status_code = status.HTTP_200_OK
+                    res.data = {
+                        'data':  serializer.data,
+                        'status': status.HTTP_200_OK,
+                        'message': 'request successful',
+                    }
+                else:
+                    res.status_code = status.HTTP_400_BAD_REQUEST
+                    res.data = {
+                        'data': [],
+                        'status': status.HTTP_400_BAD_REQUEST,
+                        'message': 'request failed',
+                    }
+            else:
+                res.status_code = status.HTTP_200_OK
+                res.data = {
+                    'data': [],
+                    'status': status.HTTP_200_OK,
+                    'message': 'no data found',
+                }
+        else:
+            res.status_code = status.HTTP_401_UNAUTHORIZED
+            res.data = {
+                'data': [],
+                'status': status.HTTP_401_UNAUTHORIZED,
+                'message': 'you are not authorized for this action',
+            }
+        return res
+
     
 
 
