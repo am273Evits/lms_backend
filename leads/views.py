@@ -610,7 +610,7 @@ class CreateMarketplace(CreateAPIView):
         user = request.user
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            marketplace = Marketplace.objects.filter(marketplace = request.data.get('marketplace')).values()
+            marketplace = Marketplace.objects.filter(marketplace = request.data.get('marketplace').lower()).values()
             if not marketplace.exists():
                 serializer = CreateMarketplaceSerializer(data=request.data)
                 if serializer.is_valid(raise_exception=True):
@@ -826,25 +826,21 @@ class CreateServices(CreateAPIView):
                 service = Marketplace.objects.filter(pk__in=[])
             
             if not service.exists():
+                # serializer = CreateServicesSerializer(data=request.data)
+                # if serializer.is_valid(raise_exception=True):
+                #     if serializer.save():
+
                 serializer = CreateServicesSerializer(data=request.data)
                 if serializer.is_valid(raise_exception=True):
                     if serializer.save():
-                        serializer = CreateServicesSerializer(data=request.data)
-                        if serializer.is_valid(raise_exception=True):
-                            # serializer.save()
+                            print('serializer.validated_data',serializer.data)
                             res.status_code = status.HTTP_200_OK
                             res.data = {
                                 'data': serializer.data,
                                 'status': status.HTTP_200_OK,
                                 'message': 'added successfully',
-                            }                
-                        else:
-                            res.status_code = status.HTTP_400_BAD_REQUEST
-                            res.data = {
-                                'data': [],
-                                'status': status.HTTP_400_BAD_REQUEST,
-                                'message': serializer.errors if serializer.errors else 'request failed',
-                            }
+                            }    
+
                     else:
                         res.status_code = status.HTTP_200_OK
                         res.data = {
@@ -854,12 +850,20 @@ class CreateServices(CreateAPIView):
                         }
 
                 else:
-                    res.status_code = status.HTTP_200_OK
+                    res.status_code = status.HTTP_400_BAD_REQUEST
                     res.data = {
                         'data': [],
-                        'status': status.HTTP_200_OK,
-                        'message': 'request failed',
+                        'status': status.HTTP_400_BAD_REQUEST,
+                        'message': serializer.errors if serializer.errors else 'request failed',
                     }
+
+                # else:
+                #     res.status_code = status.HTTP_200_OK
+                #     res.data = {
+                #         'data': [],
+                #         'status': status.HTTP_200_OK,
+                #         'message': 'request failed',
+                #     }
 
             else:
                 res.status_code = status.HTTP_400_BAD_REQUEST

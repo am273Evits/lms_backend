@@ -60,15 +60,19 @@ class View_All_Leads(serializers.ModelSerializer):
 
 
 class CreateMarketplaceSerializer(serializers.ModelSerializer):
+    # marketplace = serializers.CharField()
     class Meta:
         model = Marketplace
         fields = ['marketplace']
 
     def validate(self, data):
-        marketplace = data.get('marketplace')
+        data['marketplace'] = data['marketplace'].lower()
+        # print(data)
 
-        if not marketplace or marketplace == None or marketplace == '':
+        if not data['marketplace'] or data['marketplace'] == None or data['marketplace'] == '':
             raise serializers.ValidationError('marketplace is a required field')
+        # data['testing'] = 'test'
+        # print(data)
         return data
 
     def create(self, validated_data):
