@@ -24,7 +24,7 @@ urlpatterns = [
             path('update_marketplace/<int:id>', UpdateMarketplace.as_view()),
             path('delete_marketplace/<int:id>', DeleteMarketplace.as_view()),
             path('view_marketplace', ViewMarketplace.as_view()),
-            path('search_marketplace/<int:id>', SearchMarketplace.as_view()),
+            path('search_marketplace/<str:searchAtr>/<str:id>', SearchMarketplace.as_view()),
 
             path('create_service', CreateServices.as_view()),
             path('update_service', UpdateServices.as_view()),

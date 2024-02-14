@@ -700,17 +700,42 @@ class UpdateMarketplace(GenericAPIView):
 class SearchMarketplace(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = SearchMarketplaceSerializer
-    def get(self, request, id, format=None, *args, **kwargs):
+    def get(self, request,searchAtr, id, format=None, *args, **kwargs):
         user = request.user
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            try: 
-                marketplace = Marketplace.objects.get(id=id, visibility=True)
-            except:
-                marketplace = Marketplace.objects.filter(pk__in=[])
+
+            
+            if searchAtr == 'name':
+                name = id.replace('_',' ')
+                try:
+                    marketplace = Marketplace.objects.filter(marketplace__contains = name, visibility=True)
+                except:
+                    marketplace = Marketplace.objects.filter(pk__in=[])
+            elif searchAtr == 'id':
+                try:
+                    marketplace = Marketplace.objects.filter(id = id, visibility=True)
+                except:
+                    marketplace = Marketplace.objects.filter(pk__in=[])
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'data': [],
+                    'message': 'invalid search term',
+                    'status': status.HTTP_400_BAD_REQUEST
+                }
+                return res
+
+
+
+
+            # try: 
+            #     marketplace = Marketplace.objects.get(id=id, visibility=True)
+            # except:
+            #     marketplace = Marketplace.objects.filter(pk__in=[])
             # print('marketplace',marketplace)
-            if marketplace:
-                serializer = SearchMarketplaceSerializer(data=[{'id': marketplace.id, 'marketplace': marketplace.marketplace}], many=True)
+            if marketplace.exists():
+                serializer = SearchMarketplaceSerializer(data=[{'id': marketplace.first().id, 'marketplace': marketplace.first().marketplace}], many=True)
                 if serializer.is_valid(raise_exception=True):
                     res.status_code = status.HTTP_200_OK
                     res.data = {
