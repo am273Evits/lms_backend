@@ -710,7 +710,7 @@ class SearchMarketplace(GenericAPIView):
                 marketplace = Marketplace.objects.filter(pk__in=[])
             # print('marketplace',marketplace)
             if marketplace:
-                serializer = SearchMarketplaceSerializer(data={'id': marketplace.id, 'marketplace': marketplace.marketplace, }, many=False)
+                serializer = SearchMarketplaceSerializer(data=[{'id': marketplace.id, 'marketplace': marketplace.marketplace}], many=True)
                 if serializer.is_valid(raise_exception=True):
                     res.status_code = status.HTTP_200_OK
                     res.data = {
