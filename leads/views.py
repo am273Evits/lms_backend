@@ -653,24 +653,33 @@ class UpdateMarketplace(GenericAPIView):
         user = request.user
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            marketplace = Marketplace.objects.filter(id=id, visibility=True)
-            if marketplace.exists():
-                serializer = CreateMarketplaceSerializer(marketplace.first(), data=request.data, partial=True)
-                if serializer.is_valid(raise_exception=True):
-                    serializer.save()
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'data': serializer.data,
-                        'status': status.HTTP_200_OK,
-                        'message': 'updated successfully',
-                    }
+            marketplace = Marketplace.objects.get(id=id, visibility=True)
+            if marketplace:
+                if not marketplace.marketplace == request.data.get('marketplace').lower():
+                    serializer = CreateMarketplaceSerializer(marketplace, data=request.data, partial=True)
+                    if serializer.is_valid(raise_exception=True):
+                        serializer.save()
+                        res.status_code = status.HTTP_200_OK
+                        res.data = {
+                            'data': serializer.data,
+                            'status': status.HTTP_200_OK,
+                            'message': 'updated successfully',
+                        }
+                    else:
+                        res.status_code = status.HTTP_400_BAD_REQUEST
+                        res.data = {
+                            'data': [],
+                            'status': status.HTTP_400_BAD_REQUEST,
+                            'message': 'request failed',
+                        }
                 else:
                     res.status_code = status.HTTP_400_BAD_REQUEST
                     res.data = {
                         'data': [],
                         'status': status.HTTP_400_BAD_REQUEST,
-                        'message': 'request failed',
+                        'message': 'marketplace already exists',
                     }
+
             else:
                 res.status_code = status.HTTP_400_BAD_REQUEST
                 res.data = {
