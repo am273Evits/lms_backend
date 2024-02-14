@@ -695,6 +695,59 @@ class UpdateMarketplace(GenericAPIView):
                 'message': 'you are not authorized for this action',
             }
         return res
+    
+
+class SearchMarketplace(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SearchMarketplaceSerializer
+    def get(self, request, id, format=None, *args, **kwargs):
+        user = request.user
+        res =  Response()
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try: 
+                marketplace = Marketplace.objects.get(id=id, visibility=True)
+            except:
+                marketplace = Marketplace.objects.filter(pk__in=[])
+            # print('marketplace',marketplace)
+            if marketplace:
+                serializer = SearchMarketplaceSerializer(data={'id': marketplace.id, 'marketplace': marketplace.marketplace, }, many=False)
+                if serializer.is_valid(raise_exception=True):
+                    res.status_code = status.HTTP_200_OK
+                    res.data = {
+                        'data': serializer.data,
+                        'status': status.HTTP_200_OK,
+                        'message': 'updated successfully',
+                    }
+                else:
+                    res.status_code = status.HTTP_400_BAD_REQUEST
+                    res.data = {
+                        'data': [],
+                        'status': status.HTTP_400_BAD_REQUEST,
+                        'message': 'request failed',
+                    }
+                # else:
+                #     res.status_code = status.HTTP_400_BAD_REQUEST
+                #     res.data = {
+                #         'data': [],
+                #         'status': status.HTTP_400_BAD_REQUEST,
+                #         'message': 'marketplace already exists',
+                #     }
+
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'data': [],
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': 'no data found, kindly check archieves',
+                }
+        else:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data = {
+                'data': [],
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': 'you are not authorized for this action',
+            }
+        return res
         
         
 

@@ -82,6 +82,10 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
 class ViewMarketplaceSerializer(serializers.Serializer):
     marketplace = serializers.ListField()
 
+class SearchMarketplaceSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    marketplace = serializers.CharField()
+
 
 class CreateServicesSerializer(serializers.Serializer):
     marketplace_id = serializers.IntegerField()
