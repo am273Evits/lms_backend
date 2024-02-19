@@ -25,12 +25,12 @@ class dashboard(GenericAPIView):
     serializer_class = dashboardSerializer
     permission_classes = [IsAuthenticated]
     def get(self, request, format=None, *args, **kwargs):
-        print('request', request.headers)
         user = request.user
         res = Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
 
             status_history = Status_history.objects.filter(status_date = datetime.now()).distinct()
+            print(status_history)
 
             res.status_code = status.HTTP_200_OK
             res.data = {
@@ -1101,9 +1101,10 @@ class ViewServices(GenericAPIView):
                 for p in pagecount:
                     page_count.append(p.service.all())
 
-                pagecount = math.ceil(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility').filter(visibility=True).count()/limit)
+                # pagecount = math.ceil(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility').filter(visibility=True).count()/limit)
+                pagecount = math.ceil(Marketplace.objects.select_related().filter(visibility=True, service__isnull=False).values('id','marketplace','service', 'visibility').count()/limit)
 
-                # print(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility'))
+                # print(Marketplace.objects.select_related().filter(visibility=True, service__isnull=False).values('id','marketplace','service', 'visibility'))
 
                 serializer = ViewServicesSerializer(data=ser, many=True)
                 if serializer.is_valid(raise_exception=True):
@@ -1152,7 +1153,6 @@ class SearchService(GenericAPIView):
             elif searchAtr == 'marketplace':
                 name = id.replace('_',' ')
                 marketplace = Marketplace.objects.select_related().filter(marketplace__contains = name, visibility=True).values('id','marketplace','service').filter(visibility=True)
-                print(marketplace)
             else:
                 res.status_code = status.HTTP_400_BAD_REQUEST
                 res.data = {
