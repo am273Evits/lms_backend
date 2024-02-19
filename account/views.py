@@ -128,7 +128,7 @@ class LoginView(GenericAPIView):
         res = Response()
         if serializer:
             if serializer.is_valid(raise_exception=True):
-                email=serializer.data.get('email')
+                email=serializer.data.get('email')  
                 password=serializer.data.get('password')
                 try:
                    UserAccount.objects.get(email=email, visibility=True)

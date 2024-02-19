@@ -1065,7 +1065,9 @@ class ViewServices(GenericAPIView):
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
             try:
-                marketplace = Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service').filter(visibility=True)[offset : offset + limit]
+                # marketplace = Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service').filter(visibility=True)[offset : offset + limit]
+                marketplace = Marketplace.objects.select_related().filter(visibility=True, service__isnull=False).values('id','marketplace','service')[offset : offset + limit]
+                print('marketplace',marketplace)
             except:
                 # marketplace = Marketplace.objects.filter(pk__in=[])
                 res.status_code = status.HTTP_200_OK
@@ -1079,10 +1081,13 @@ class ViewServices(GenericAPIView):
             if marketplace.exists():
                 ser = []
 
+                # print(marketplace)
+
                 for m in marketplace:
-                    # print(m['service'])
+                    # print(m)
                     try:
                         service = Services.objects.get(id = m['service'], visibility=True)
+                        print(service)
                     except:
                         service = Services.objects.filter(pk__in=[])
                         # res.status_code = status.HTTP_200_OK
