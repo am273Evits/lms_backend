@@ -66,7 +66,7 @@ def _handle_ValidationError(exc,context,response):
     print('response.data',response.data)
     response.data={
         'status':response.status_code,
-        'message':response.data.get('non_field_errors')[0] if response.data.get('non_field_errors') else response.data.get('email')[0] if response.data.get('email') else response.data[0],
+        'message':response.data.get('non_field_errors')[0] if response.data.get('non_field_errors') else response.data.get('email')[0] if response.data.get('email') else response.data['password'] if response.data['password'] else response.data[0],
         'data':{}
     }
     return response
