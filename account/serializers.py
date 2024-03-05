@@ -148,7 +148,7 @@ class viewUserSerializer(serializers.Serializer):
     designation = serializers.DictField() 
     department = serializers.DictField() 
     product = serializers.DictField() 
-    employee_status = serializers.BooleanField() 
+    employee_status = serializers.DictField() 
 
 
 # class viewUserIndividualSerializer(serializers.Serializer):

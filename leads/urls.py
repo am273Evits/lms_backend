@@ -41,6 +41,7 @@ urlpatterns = [
             path('dropdown_department', dropdown_department.as_view()),
             path('dropdown_designation/<int:id>', dropdown_designation.as_view()),
             path('dropdown_product/<int:id>', dropdown_product.as_view()),
+            path('dropdown_employee_status', dropdown_employee_status.as_view()),
 
 
             

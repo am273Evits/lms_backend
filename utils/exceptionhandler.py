@@ -3,6 +3,7 @@ from rest_framework.exceptions import ErrorDetail
 import json
 
 def custom_exception_handler(exc,context):
+    
     handlers={
         'ValidationError':_handle_ValidationError,
         'Http404':_handle_generic_error,
@@ -11,17 +12,17 @@ def custom_exception_handler(exc,context):
         'InvalidToken':_handle_authentication_tokrn_perm,
         'AuthenticationFailed':_handle_authication_fail,
         'MethodNotAllowed':_handle_MethodNotAllowed,
-        # 'ValueError': _handle_ValueErro,
+        'ValueError': _handle_ValueError,
     }
 
 
     response=exception_handler(exc,context)
     
+    
     if response is not None:
-        # print('response', type(response.data['status_code']))
-        # response.data['status_code']=response.status_code
-        pass
+        response.data['status_code']=response.status_code
         
+    
     exception_class=exc.__class__.__name__
 
     if exception_class in handlers:
@@ -57,16 +58,12 @@ def _handle_authentication_tokrn_perm(exc,context,response):
 
 #3 Validation Handing
 def _handle_ValidationError(exc,context,response):
-    # print('response',)
-    # keys=list(response.data.keys())
-    # values=list(response.data.values())
-    # print('keys',keys)
-    # print('values',values)
-    # print(response.data)
-    print('response.data',response.data)
+    keys=list(response.data.keys())
+    values=list(response.data.values())
+    print(response.data)
     response.data={
         'status':response.status_code,
-        'message':response.data.get('non_field_errors')[0] if response.data.get('non_field_errors') else response.data.get('email')[0] if response.data.get('email') else 'password: ' + response.data['password'][0] if response.data['password'] else response.data[0],
+        'message':keys[0]+" "+values[0][0],
         'data':{}
     }
     return response
@@ -101,6 +98,13 @@ def _handle_MethodNotAllowed(exc,context,response):
 
     return response
 
+def _handle_ValueError(exc, context,response):
+    error = response.data
+    response.data={
+        'status': response.status_code,
+        'message': error['detail']
+    }
+    return response
 
 def _handle_generic_error(exc,context,response):
     return response

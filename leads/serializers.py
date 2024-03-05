@@ -539,6 +539,10 @@ class dashboardSerializer(serializers.Serializer):
     lead_status = serializers.ListField()
 
 
+class dropdown_employee_statusSerializer(serializers.Serializer):
+    employee_status_id = serializers.CharField()
+    employee_status_name = serializers.CharField()
+
 class dropdown_departmentSerializer(serializers.Serializer):
     department_id = serializers.CharField()
     department_name = serializers.CharField()

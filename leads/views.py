@@ -11,12 +11,24 @@ from rest_framework import status
 import pandas as pd
 
 from .serializers import *
-from account.models import UserAccount, Drp_Product, Department, Designation, Product
+from account.models import UserAccount, Drp_Product, Department, Designation, Product, Employee_status
 from .models import Leads,  Remark_history
 from account.views import getLeadId
 
 import math
 from datetime import date, datetime, timezone, timedelta
+
+
+
+def resFun(status,message,data):
+    res = Response()
+    res.status_code = status
+    res.data = {
+        'status': status,
+        'message': message,
+        'data': data,
+    }
+    return res
 
 
 
@@ -1334,6 +1346,30 @@ class DeleteCommercials(GenericAPIView):
                 # print(s, id, s.id)
 
 
+class dropdown_employee_status(GenericAPIView):
+    serializer_class = dropdown_employee_statusSerializer
+    permission_classes = [IsAuthenticated]
+    def get(self, request, format=None, *args, **kwargs):
+        user = request.user
+        # res = Response()
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+
+            employee_status = Employee_status.objects.values('title','id').distinct()
+            # print('employee_status',employee_status)
+            if employee_status.exists():
+                data =[]
+                for d in employee_status:
+                    print(d)
+                    data.append({'employee_status_id': d.get('id'), 'employee_status_name': d.get('title')})
+
+                serializer = dropdown_employee_statusSerializer(data=data, many=True)
+                serializer.is_valid(raise_exception=True)
+                res = resFun(status.HTTP_200_OK,'request successful',serializer.data)
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST,'no employee_status list found',[])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
+        return res
     
 
 

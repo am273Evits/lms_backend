@@ -206,7 +206,7 @@ class registration_VF(GenericAPIView):
             serializer = AdminRegistrationSerializer(data = request.data)
         
         elif userDepartment == 'lead_management' and userDesignation == 'lead_manager':
-            print('request.user', request.data)
+            # print('request.user', request.data)
             serializer = LeadManagerRegistrationSerializer(data = request.data)
 
         if not serializer == '':
@@ -240,7 +240,6 @@ class view_users(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = viewUserSerializer
     def get(self, request, page, format=None, *args, **kwargs):
-
         limit = 10
         offset = int((page - 1) * limit)
         
@@ -251,7 +250,7 @@ class view_users(GenericAPIView):
             if users.exists():
                 data = []
                 for u in users:
-                    # print()
+                    # print(u.id)
                     data.append({
                         'id': u.id ,
                         'employee_id': u.employee_id, 
@@ -260,12 +259,12 @@ class view_users(GenericAPIView):
                         'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
                         'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'department_id':'','department': ''},
                         'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'product_id':'','product': ''},
-                        'employee_status': u.employee_status
+                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''}
                         # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
                         })
-
+                    
                 serializer = viewUserSerializer(data=data, many=True)
-                if serializer.is_valid(raise_exception=True):
+                if serializer.is_valid():
                     res.status_code = status.HTTP_200_OK
                     res.data = {
                         'data': {"data": serializer.data, 'current_page': page, 'total_pages': count},
@@ -275,8 +274,8 @@ class view_users(GenericAPIView):
                 else:
                     res.status_code = status.HTTP_400_BAD_REQUEST
                     res.data = {
-                        'data': [],
-                        'message': 'reqeust failed',
+                        'data': serializer.errors,
+                        'message': 'request failed',
                         'status': status.HTTP_400_BAD_REQUEST
                     }    
             else:
@@ -339,7 +338,7 @@ class view_users_search(GenericAPIView):
                         'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
                         'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'designation_id':'','designation': ''},
                         'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'designation_id':'','designation': ''},
-                        'employee_status': u.employee_status 
+                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''}
                         # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
 
                         })
