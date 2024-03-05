@@ -1359,7 +1359,6 @@ class dropdown_employee_status(GenericAPIView):
             if employee_status.exists():
                 data =[]
                 for d in employee_status:
-                    print(d)
                     data.append({'employee_status_id': d.get('id'), 'employee_status_name': d.get('title')})
 
                 serializer = dropdown_employee_statusSerializer(data=data, many=True)
