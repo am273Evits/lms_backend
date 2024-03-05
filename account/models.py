@@ -105,7 +105,7 @@ class UserAccount(AbstractBaseUser):
     is_admin = models.BooleanField(default = False)
     is_staff = models.BooleanField(default = True)
     # employee_status = models.BooleanField(default = True)
-    employee_status = models.ForeignKey(Employee_status , on_delete=models.CASCADE, null=True, blank=True)
+    employee_status = models.ForeignKey(Employee_status , on_delete=models.CASCADE, default=1)
     # gender = models.ForeignKey(Gender , on_delete=models.CASCADE)
     mobile_number = models.CharField(max_length=300, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
