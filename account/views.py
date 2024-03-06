@@ -20,6 +20,7 @@ import math
 
 
 from account.models import UserAccount
+from leads.views import resFun
 
 
 # def cookieAuth(request):
@@ -212,6 +213,9 @@ class registration_VF(GenericAPIView):
         if not serializer == '':
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
+                
+                #welcome email to the user, authentication
+
                 res.status_code = status.HTTP_200_OK
                 res.data = {
                     'status' : status.HTTP_200_OK,
@@ -298,6 +302,46 @@ class view_users(GenericAPIView):
                 'message': 'you are not authorized to view this data',
                 'status': status.HTTP_400_BAD_REQUEST
             }
+        return res
+    
+
+
+class view_users_archive(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = viewUserSerializer
+    def get(self, request, page, format=None, *args, **kwargs):
+        limit = 10
+        offset = int((page - 1) * limit)
+        
+        res = Response()
+        if str(request.user.department) == 'admin' and str(request.user.designation) == 'administrator' or str(request.user.department) == 'lead_management' and str(request.user.designation) == 'lead_manager':
+            users = UserAccount.objects.filter(visibility=False)[offset: offset+limit]
+            count = math.ceil(UserAccount.objects.all().count() / 10)
+            if users.exists():
+                data = []
+                for u in users:
+                    # print(u.id)
+                    data.append({
+                        'id': u.id ,
+                        'employee_id': u.employee_id, 
+                        'name': u.name if u.name else '-', 
+                        'email_id': u.email if u.email else '-', 
+                        'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
+                        'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'department_id':'','department': ''},
+                        'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'product_id':'','product': ''},
+                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''}
+                        # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
+                        })
+                    
+                serializer = viewUserSerializer(data=data, many=True)
+                if serializer.is_valid():
+                    res = resFun(status.HTTP_200_OK,'request successful',{"data": serializer.data, 'current_page': page, 'total_pages': count})
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',serializer.errors)
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST,'no data found',[])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized to view this data',[])
         return res
 
 
@@ -691,7 +735,48 @@ class delete_user(GenericAPIView):
         #     res.data = {'status': status.HTTP_400_BAD_REQUEST, "message": "you are not authorized to create a user", 'data':[]}
 
         # return res
+    
+
+class unarchive_user(GenericAPIView):
+    permission_classes=[IsAuthenticated]
+    serializer_class=userUnarchiveSerializer
+    def delete(self, request, employee_id ,format=None, *args, **kwargs):
+        res = Response()
+        if request.user.department.title == 'admin' or request.user.designation.title == 'administrator':
+            user = UserAccount.objects.filter(employee_id = employee_id)
+            if user.exists():
+                serializer = userDeleteSerializer(user.first(), data={'visibility': True}, partial=True)
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    res = resFun(status.HTTP_200_OK,'user restored successfully',[])
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
+            else:     
+                res = resFun(status.HTTP_400_BAD_REQUEST,'invalid employee id',[])
+
         
+        # elif request.user.department.title == 'lead_management' or request.user.designation.title == 'lead_manager':
+
+        #     user = UserAccount.objects.get(employee_id = employee_id)            
+        #     if user:
+        #         user_del_ch = user_delete.objects.filter(user=user.id)
+        #         if user_del_ch:
+        #             res = resFun(status.HTTP_400_BAD_REQUEST,'already submitted',[])
+        #             return res
+        #         else:
+        #             serializer = userDeleteSerializer(user, data={'visibility': False}, partial=True)
+        #             if serializer.is_valid(raise_exception=True):
+        #                 serializer.save()
+        #                 user_delete.objects.create(user = user)
+        #                 res = resFun(status.HTTP_400_BAD_REQUEST,'sent for approval, user will be deleted after admin approval',[])
+        #             else:
+        #                 res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
+        #     else:
+        #         res = resFun(status.HTTP_400_BAD_REQUEST,'invalid employee id',[])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized to view this data',[])
+        return res
+    
 
 
 # def UserLinks(user_id):

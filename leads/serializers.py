@@ -10,7 +10,7 @@ import re
 
 # from records.models import lead_status_record
 
-from account.views import getLeadId
+# from account.views import getLeadId
 
 
 class lead_managerBlSerializer(serializers.Serializer):

@@ -181,6 +181,13 @@ class updateUserSerializer(serializers.ModelSerializer):
 
 
 
+class userUnarchiveSerializer(serializers.ModelSerializer):
+    visibility = serializers.BooleanField()
+    class Meta:
+        model = UserAccount
+        fields = ['visibility']
+
+
 class userDeleteSerializer(serializers.ModelSerializer):
     visibility = serializers.BooleanField()
     class Meta:
