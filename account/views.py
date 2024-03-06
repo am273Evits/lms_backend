@@ -795,7 +795,7 @@ class delete_user(GenericAPIView):
 class unarchive_user(GenericAPIView):
     permission_classes=[IsAuthenticated]
     serializer_class=userUnarchiveSerializer
-    def delete(self, request, employee_id ,format=None, *args, **kwargs):
+    def put(self, request, employee_id ,format=None, *args, **kwargs):
         res = Response()
         if request.user.department.title == 'admin' or request.user.designation.title == 'administrator':
             user = UserAccount.objects.filter(employee_id = employee_id)
