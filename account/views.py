@@ -419,6 +419,61 @@ class view_users_search(GenericAPIView):
                 'status': status.HTTP_400_BAD_REQUEST
             }
         return res
+    
+
+
+class view_users_archive_search(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = viewUserSerializer
+    def get(self, request, searchAtr ,id, format=None, *args, **kwargs):
+        res = Response()
+        if str(request.user.department) == 'admin' and str(request.user.designation) == 'administrator' or str(request.user.department) == 'lead_manager' and str(request.user.designation) == 'lead_management':
+            if searchAtr == 'name':
+                name = id.replace('_',' ')
+                user = UserAccount.objects.filter(name__contains = name, visibility=False)
+            elif searchAtr == 'employee_id':
+                user = UserAccount.objects.filter(employee_id__contains = id, visibility=False)
+            else:
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    'data': [],
+                    'message': 'invalid search term',
+                    'status': status.HTTP_400_BAD_REQUEST
+                }
+                return res
+
+            if user.exists():
+                data = []
+                for u in user:
+                    data.append({
+                        'id': u.id ,
+                        'employee_id': u.employee_id, 
+                        'name': u.name if u.name else '-', 
+                        'email_id': u.email if u.email else '-', 
+                        # 'designation': u.designation.title if u.designation else '-', 
+                        # 'department': u.department.title if u.department else '-',
+                        # 'employee_id': u.employee_id, 
+                        # 'name': u.name if u.name else '-', 
+                        'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
+                        'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'designation_id':'','designation': ''},
+                        'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'designation_id':'','designation': ''},
+                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''}
+                        # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
+
+                        })
+
+                serializer = viewUserSerializer(data=data, many=True)
+                if serializer.is_valid(raise_exception=True):
+                    res = resFun(status.HTTP_200_OK,'request successful',serializer.data)
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST,'no user found',[])
+
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST,'no user found',[])
+  
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized to view this data',[])
+        return res    
 
 
 
