@@ -91,7 +91,12 @@ class Marketplace(models.Model):
   visibility = models.BooleanField(default=True)
   def __str__(self): return str(self.marketplace)
 
-  
+
+class Country(models.Model):
+  country = models.CharField(max_length=100,blank=True, default='')
+  marketplace = models.ManyToManyField(Marketplace)
+  visibility = models.BooleanField(default=True)
+  def __str__(self): return str(self.country)
 
 
 

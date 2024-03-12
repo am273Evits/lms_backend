@@ -9,9 +9,7 @@ urlpatterns = [
 
             # path('upload', uploadBusinessLeads.as_view()), #file upload
             # path('update', updateBusinessLeads.as_view()), #file upload
-            path('create_lead_manual', createLeadManual.as_view()), #file upload
-            
-
+            # path('create_lead_manual', createLeadManual.as_view()), #file upload
 
             path('dashboard', dashboard.as_view()), #file upload
 
@@ -20,6 +18,12 @@ urlpatterns = [
             path('view_lead/<str:lead_id>', viewLeadsAllIdentifiers.as_view()), #view_all_leads
 
             #services
+            path('create_country', Createcountry.as_view()),
+            path('update_country/<int:id>', Updatecountry.as_view()),
+            # path('delete_country/<int:id>', Deletecountry.as_view()),
+            path('view_country', Viewcountry.as_view()),
+            path('search_country/<str:id>', Searchcountry.as_view()),
+
             path('create_marketplace', CreateMarketplace.as_view()),
             path('update_marketplace/<int:id>', UpdateMarketplace.as_view()),
             path('delete_marketplace/<int:id>', DeleteMarketplace.as_view()),
@@ -31,7 +35,6 @@ urlpatterns = [
             path('delete_service/<int:id>', DeleteServices.as_view()),
             path('view_service/<int:page>', ViewServices.as_view()),
             path('search_service/<str:searchAtr>/<str:id>', SearchService.as_view()),
-
 
             path('view_commercials/<int:id>', ViewCommercials.as_view()),
             path('delete_commercials/<int:service_id>/<int:commercial_id>', DeleteCommercials.as_view()),

@@ -292,31 +292,31 @@ class dashboard(GenericAPIView):
 
 
 
-class createLeadManual(CreateAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = createLeadManualSerializer
-    def post(self, request, format=None, *args, **kwargs):
-        # user_role = getUserRole(request.user.id)
-        res = Response()
-        serializer = createLeadManualSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            # pass
-            if serializer.save():
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    "status": status.HTTP_200_OK,
-                    "message" : 'lead registered successfully',
-                    "data": []
-                }
-                return res
-            else :
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    "status": status.HTTP_400_BAD_REQUEST,
-                    "message" : 'request failed',
-                    "data": []
-                }
-        return res
+# class createLeadManual(CreateAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = createLeadManualSerializer
+#     def post(self, request, format=None, *args, **kwargs):
+#         # user_role = getUserRole(request.user.id)
+#         res = Response()
+#         serializer = createLeadManualSerializer(data=request.data)
+#         if serializer.is_valid(raise_exception=True):
+#             # pass
+#             if serializer.save():
+#                 res.status_code = status.HTTP_200_OK
+#                 res.data = {
+#                     "status": status.HTTP_200_OK,
+#                     "message" : 'lead registered successfully',
+#                     "data": []
+#                 }
+#                 return res
+#             else :
+#                 res.status_code = status.HTTP_400_BAD_REQUEST
+#                 res.data = {
+#                     "status": status.HTTP_400_BAD_REQUEST,
+#                     "message" : 'request failed',
+#                     "data": []
+#                 }
+#         return res
     
 
 
@@ -615,6 +615,133 @@ class viewAllLeadsSearch(GenericAPIView):
 
 
 #services:
+
+class Createcountry(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CreateCountrySerializer
+    def post(self, request, format=None, *args, **kwargs):
+        user = request.user
+        res =  Response()
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            country = Country.objects.filter(country = request.data.get('country').lower()).values()
+            if not country.exists():
+                serializer = CreateCountrySerializer(data=request.data)
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    res = resFun(status.HTTP_200_OK,'added successfully',[])
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST,'country already exists, kindly check archives',[])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
+        return res
+   
+class Updatecountry(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CreateCountrySerializer
+    def put(self, request, id, format=None, *args, **kwargs):
+        user = request.user
+        res =  Response()
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            country = Country.objects.get(id=id, visibility=True)
+            if country:
+                if not Country.objects.filter(country=request.data.get('country').lower()).exists():
+                    serializer = CreateCountrySerializer(country, data=request.data, partial=True)
+                    if serializer.is_valid(raise_exception=True):
+                        serializer.save()
+                        res = resFun(status.HTTP_400_BAD_REQUEST,'updated successfully',[])
+                    else:
+                        res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST,'marketplace already exists',[])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST,'no data found, kindly check archives',[])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
+        return res
+    
+class Deletecountry(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CreateCountrySerializer
+    def delete(self, request, id, format=None, *args, **kwargs):
+        user = request.user
+        res =  Response()
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                country = Country.objects.filter(id=id, visibility=True).first()
+            except:
+                country = Country.objects.filter(pk__in=[]).first()
+            # print(marketplace)
+            if country:
+                country.visibility = False
+                for m in country.service.all():
+                    for c in m.commercials.all():
+                        if c.visibility == True:
+                            c.visibility = False
+                            c.save()
+                    if m.visibility == True:
+                        m.visibility = False
+                        m.save()
+                country.save()
+                res = resFun(status.HTTP_200_OK,'deleted successfully',[])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST,'invalid marketplace id',[])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
+        return res
+    
+class Viewcountry(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewCountrySerializer
+    def get(self, request ,format=None, *args, **kwargs):
+        # limit = 10
+        # offset = int((page - 1) * limit)
+        user = request.user
+        res =  Response()
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            country = Country.objects.filter(visibility=True)
+            # print(list(marketplace.values_list()))
+            if country.exists():
+                serializer = ViewCountrySerializer(data={'country': country.values()})
+                # pagecount = math.ceil(Marketplace.objects.filter().count()/limit)
+                if serializer.is_valid(raise_exception=True):
+                    res = resFun(status.HTTP_200_OK,'request successful',serializer.data)
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
+            else:
+                res = resFun(status.HTTP_200_OK,'no data found',[])
+        else:
+            res = resFun(status.HTTP_401_UNAUTHORIZED,'you are not authorized for this action',[])
+        return res
+   
+class Searchcountry(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SearchCountrySerializer
+    def get(self, request, id, format=None, *args, **kwargs):
+        user = request.user
+        # res =  Response()
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            name = id.replace('_',' ')
+            try:
+                country = Country.objects.filter(country__contains = name, visibility=True)
+            except:
+                country = Country.objects.filter(pk__in=[])
+            if country.exists():
+                serializer = SearchCountrySerializer(data=[{'id': country.first().id, 'country': country.first().country}], many=True)
+                if serializer.is_valid(raise_exception=True):
+                    res = resFun(status.HTTP_200_OK,'request successful',serializer.data)
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST,'no data found, kindly check archives',[])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
+        return res
+      
+
+
+
 class CreateMarketplace(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CreateMarketplaceSerializer
@@ -645,7 +772,7 @@ class CreateMarketplace(CreateAPIView):
                 res.data = {
                     'data': [],
                     'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'marketplace already exists, kindly check archieves',
+                    'message': 'marketplace already exists, kindly check archives',
                 }      
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -656,8 +783,6 @@ class CreateMarketplace(CreateAPIView):
             }
         return res
     
-
-
 class UpdateMarketplace(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CreateMarketplaceSerializer
@@ -697,7 +822,7 @@ class UpdateMarketplace(GenericAPIView):
                 res.data = {
                     'data': [],
                     'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'no data found, kindly check archieves',
+                    'message': 'no data found, kindly check archives',
                 }
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -708,7 +833,6 @@ class UpdateMarketplace(GenericAPIView):
             }
         return res
     
-
 class SearchMarketplace(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = SearchMarketplaceSerializer
@@ -735,7 +859,7 @@ class SearchMarketplace(GenericAPIView):
                     res.data = {
                         'data': serializer.data,
                         'status': status.HTTP_200_OK,
-                        'message': 'updated successfully',
+                        'message': 'request successful',
                     }
                 else:
                     res.status_code = status.HTTP_400_BAD_REQUEST
@@ -757,7 +881,7 @@ class SearchMarketplace(GenericAPIView):
                 res.data = {
                     'data': [],
                     'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'no data found, kindly check archieves',
+                    'message': 'no data found, kindly check archives',
                 }
         else:
             res.status_code = status.HTTP_400_BAD_REQUEST
@@ -768,8 +892,6 @@ class SearchMarketplace(GenericAPIView):
             }
         return res
         
-        
-
 class DeleteMarketplace(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CreateMarketplaceSerializer
@@ -822,7 +944,6 @@ class DeleteMarketplace(GenericAPIView):
             }
         return res
     
-
 class ViewMarketplace(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ViewMarketplaceSerializer
@@ -872,16 +993,6 @@ class ViewMarketplace(GenericAPIView):
 
 
 
-
-
-
-
-
-
-
-
-
-
 class CreateServices(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CreateServicesSerializer
@@ -899,7 +1010,7 @@ class CreateServices(CreateAPIView):
                     res.data = {
                         'data': [],
                         'status': status.HTTP_200_OK,
-                        'message': 'service name already exists, kindly check archieves',
+                        'message': 'service name already exists, kindly check archives',
                     }
                     return res   
 
@@ -962,8 +1073,6 @@ class CreateServices(CreateAPIView):
             }
         return res
     
-
-
 class UpdateServices(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UpdateServicesSerializer
@@ -979,7 +1088,7 @@ class UpdateServices(GenericAPIView):
                 res.data = {
                     'data': [],
                     'status': status.HTTP_200_OK,
-                    'message': 'no data found, kindly check archieves',
+                    'message': 'no data found, kindly check archives',
                 }
                 return res
             
@@ -1017,8 +1126,6 @@ class UpdateServices(GenericAPIView):
             }
         return res
         
-        
-
 class DeleteServices(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CreateServicesSerializer
@@ -1066,7 +1173,6 @@ class DeleteServices(GenericAPIView):
             }
         return res
     
-
 class ViewServices(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ViewServicesSerializer
@@ -1154,8 +1260,6 @@ class ViewServices(GenericAPIView):
             }
         return res
     
-
-
 class SearchService(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ViewServicesSerializer
@@ -1253,7 +1357,7 @@ class SearchService(GenericAPIView):
             }
         return res
 
-    
+
 
 
 class ViewCommercials(GenericAPIView):
@@ -1295,8 +1399,6 @@ class ViewCommercials(GenericAPIView):
             }
         return res
     
-
-
 class DeleteCommercials(GenericAPIView):
     serializer_class = CommercialsSerializer
     permission_classes = [IsAuthenticated]
@@ -1370,7 +1472,6 @@ class dropdown_employee_status(GenericAPIView):
             res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
         return res
     
-
 
 class dropdown_department(GenericAPIView):
     serializer_class = dropdown_departmentSerializer
