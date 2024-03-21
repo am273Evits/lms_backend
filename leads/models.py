@@ -69,27 +69,78 @@ class Email(models.Model):
 #   title varchar
 # }
   
-class Commercials(models.Model):
-  # service_id = models.ForeignKey(Services, on_delete=models.CASCADE, null=True, blank=True)
-  price = models.CharField(max_length=100, blank=True, default='')
-  commission = models.CharField(max_length=100, blank=True, default='')
-  price_for_mou = models.CharField(max_length=100, blank=True, default='')
-  visibility = models.BooleanField(default=True)
-  def __str__(self): return str(self.price_for_mou)
+# class Commercials(models.Model):
+#   # service_id = models.ForeignKey(Services, on_delete=models.CASCADE, null=True, blank=True)
+#   price = models.CharField(max_length=100, blank=True, default='')
+#   commission = models.CharField(max_length=100, blank=True, default='')
+#   price_for_mou = models.CharField(max_length=100, blank=True, default='')
+#   visibility = models.BooleanField(default=True)
+#   def __str__(self): return str(self.price_for_mou)
 
-class Services(models.Model):
-  # marketplace = models.ForeignKey("leads.Marketplace", on_delete=models.CASCADE, null=True, blank=True)
-  service_name = models.CharField(max_length=100, blank=True, default='')
-  commercials = models.ManyToManyField(Commercials)
-  visibility = models.BooleanField(default=True)
-  def __str__(self): return str(self.service_name)
+# class Services(models.Model):
+#   # marketplace = models.ForeignKey("leads.Marketplace", on_delete=models.CASCADE, null=True, blank=True)
+#   service_name = models.CharField(max_length=100, blank=True, default='')
+#   commercials = models.ManyToManyField(Commercials)
+#   visibility = models.BooleanField(default=True)
+#   def __str__(self): return str(self.service_name)
 
-  
+
+class Segment(models.Model):
+  segment = models.CharField(max_length=100, blank=True, default='')
+  # service = models.ManyToManyField(Services)
+  visibility = models.BooleanField(default=True)
+  def __str__(self): return str(self.segment)
+
+
+
+
+class Service(models.Model):
+  service = models.CharField(max_length=100, blank=True, default='')
+  # service = models.ManyToManyField(Services)
+  visibility = models.BooleanField(default=True)
+  def __str__(self): return str(self.service)
+
+
 class Marketplace(models.Model):
   marketplace = models.CharField(max_length=100, blank=True, default='')
-  service = models.ManyToManyField(Services)
+  # service = models.ManyToManyField(Services)
   visibility = models.BooleanField(default=True)
   def __str__(self): return str(self.marketplace)
+
+
+class Program(models.Model):
+  program = models.CharField(max_length=100, blank=True, default='')
+  # service = models.ManyToManyField(Services)
+  visibility = models.BooleanField(default=True)
+  def __str__(self): return str(self.program)
+
+class Sub_Program(models.Model):
+  sub_program = models.CharField(max_length=100, blank=True, default='')
+  visibility = models.BooleanField(default=True)
+  def __str__(self): return str(self.sub_program)
+
+
+
+class Commercials(models.Model):
+  commercials = models.CharField(max_length=100)
+  visibility = models.BooleanField(default=True)
+  def __str__(self): return str(self.commercials)
+  # visibility
+
+
+class Services_and_Commercials(models.Model):
+  # program = models.CharField(max_length=100, blank=True, default='')
+  # service = models.ManyToManyField(Services)
+  segment = models.ForeignKey(Segment, on_delete=models.CASCADE)
+  service = models.ForeignKey(Service, on_delete=models.CASCADE)
+  marketplace = models.ForeignKey(Marketplace, on_delete=models.CASCADE)
+  program = models.ForeignKey(Program, on_delete=models.CASCADE)
+  sub_program = models.ForeignKey(Sub_Program, on_delete=models.CASCADE, null=True, blank=True)
+  commercials = models.ManyToManyField(Commercials)
+  visibility = models.BooleanField(default=True)
+  def __str__(self): return str(self.marketplace)
+
+
 
 
 class Country(models.Model):
@@ -167,9 +218,9 @@ class Leads(models.Model):
     email_id = models.EmailField(max_length=254, blank=True, default='')
     alternate_email_id = models.EmailField(max_length=254, blank=True, default='')
     created_date = models.CharField(max_length=100, blank=True, default='') 
-    service_category = models.ForeignKey(Services, on_delete=models.CASCADE, null=True, blank=True)
+    # service_category = models.ForeignKey(Services, on_delete=models.CASCADE, null=True, blank=True)
     # service = models.ForeignKey(Services, on_delete=models.CASCADE, null=True, blank=True)
-    commercials = models.ForeignKey(Commercials, on_delete=models.CASCADE, null=True, blank=True)
+    # commercials = models.ForeignKey(Commercials, on_delete=models.CASCADE, null=True, blank=True)
     status = models.ForeignKey(drp_lead_status, on_delete=models.CASCADE, null=True, blank=True)
 
     requester_location = models.CharField(max_length=100, blank=True, default='') 

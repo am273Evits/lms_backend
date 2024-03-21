@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'corsheaders',
     'account',
-    'leads',
+    'leads'
 
 ]
 
@@ -120,6 +120,10 @@ TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 
 USE_TZ = True
+
+# NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"
+# TAILWIND_APP_NAME = 'theme'
+# INTERNAL_IPS = ["127.0.0.1",]
 
 
 # Static files (CSS, JavaScript, Images)

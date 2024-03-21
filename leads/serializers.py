@@ -83,148 +83,308 @@ class SearchCountrySerializer(serializers.Serializer):
 
 
 
+
+class CreateSegmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Segment
+        fields = ['segment']
+
+    def validate(self, data):
+        data['segment'] = data['segment'].lower()
+
+        if not data['segment'] or data['segment'] == None or data['segment'] == '':
+            raise serializers.ValidationError('segment is a required field')
+        return data
+
+    def create(self, validated_data):
+        print('validated_data',validated_data)
+        segment = Segment.objects.create(**validated_data)
+        return segment
+    
+
+class ViewSegmentSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    # segment = serializers.CharField()
+    # visibility = serializers.BooleanField()
+    class Meta:
+        model = Segment
+        fields = '__all__'
+
+
+class ArchiveSegmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Segment
+        fields = ['visibility']
+
+
+
+class CreateServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service
+        fields = ['service']
+
+    def validate(self, data):
+        data['service'] = data['service'].lower()
+
+        if not data['service'] or data['service'] == None or data['service'] == '':
+            raise serializers.ValidationError('service is a required field')
+        return data
+
+    def create(self, validated_data):
+        print('validated_data',validated_data)
+        service = Service.objects.create(**validated_data)
+        return service
+    
+
+
+class ViewServiceSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    class Meta:
+        model = Service
+        fields = '__all__'
+
+
 class CreateMarketplaceSerializer(serializers.ModelSerializer):
-    # marketplace = serializers.CharField()
     class Meta:
         model = Marketplace
         fields = ['marketplace']
 
     def validate(self, data):
         data['marketplace'] = data['marketplace'].lower()
-        # print(data)
 
         if not data['marketplace'] or data['marketplace'] == None or data['marketplace'] == '':
             raise serializers.ValidationError('marketplace is a required field')
-        # data['testing'] = 'test'
-        # print(data)
         return data
 
     def create(self, validated_data):
         marketplace = Marketplace.objects.create(**validated_data)
         return marketplace
 
-class ViewMarketplaceSerializer(serializers.Serializer):
-    marketplace = serializers.ListField()
+
+class MarketplaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Marketplace
+        fields = '__all__'
+
+    
+
+class CreateProgramSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Program
+        fields = ['program']
+
+    def validate(self, data):
+        data['program'] = data['program'].lower()
+
+        if not data['program'] or data['program'] == None or data['program'] == '':
+            raise serializers.ValidationError('program is a required field')
+        return data
+
+    def create(self, validated_data):
+        program = Program.objects.create(**validated_data)
+        return program
+    
+
+class ProgramSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    class Meta:
+        model = Program
+        fields = '__all__'
+    
+
+
+class CreateSubProgramSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sub_Program
+        fields = ['sub_program']
+
+    def validate(self, data):
+        print('data',data)
+        data['sub_program'] = data['sub_program'].lower()
+
+        if not data['sub_program'] or data['sub_program'] == None or data['sub_program'] == '':
+            raise serializers.ValidationError('sub program is a required field')
+        return data
+
+    def create(self, validated_data):
+        program = Sub_Program.objects.create(**validated_data)
+        return program
+    
+
+class SubProgramSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    class Meta:
+        model = Sub_Program
+        fields = '__all__'
+
+
+class ViewMarketplaceSerializer(serializers.ModelSerializer):
+    # marketplace = serializers.ListField()
+    id = serializers.IntegerField()
+    class Meta:
+        model = Marketplace
+        fields = '__all__'
 
 class SearchMarketplaceSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     marketplace = serializers.CharField()
 
 
-class CreateServicesSerializer(serializers.Serializer):
-    marketplace_id = serializers.IntegerField()
-    service_name = serializers.CharField()
+class CreateServicesCommercialsSerializer(serializers.Serializer):
+    segment = serializers.IntegerField()
+    service = serializers.IntegerField()
+    marketplace = serializers.IntegerField()
+    program = serializers.IntegerField()
+    sub_program = serializers.IntegerField()
+    # service_name = serializers.CharField()
     commercials = serializers.ListField()
 
     def validate(self, attrs):
 
-        marketplace_id = attrs.get('marketplace_id')
-        service_name = attrs.get('service_name')
+        segment = attrs.get('segment')
+        service = attrs.get('service')
+        marketplace = attrs.get('marketplace')
+        program = attrs.get('program')
+        sub_program = attrs.get('sub_program')
+        # service_name = attrs.get('service_name')
         commercials = attrs.get('commercials')
+
+
+
+
+        # print('printed from the be', segment, service, marketplace, program,sub_program, commercials)
+        
+            # if not isinstance(c.get('price'), int):
+            #     raise serializers.ValidationError('price should be a number')
+        if not isinstance(segment, int):
+            raise serializers.ValidationError('segment should be a number')
+        if not isinstance(service, int):
+            raise serializers.ValidationError('services should be a number')
+        if not isinstance(marketplace, int):
+            raise serializers.ValidationError('marketplace should be a number')
+        if not isinstance(program, int):
+            raise serializers.ValidationError('program should be a number')
+        if sub_program != None:
+            if not isinstance(sub_program, int):
+                raise serializers.ValidationError('sub_program should be a number')
         
         for c in commercials:
-            if not isinstance(c.get('price'), int):
-                raise serializers.ValidationError('price should be a number')
-            if not isinstance(c.get('commission'), int):
-                raise serializers.ValidationError('commission should be a number')
-            if not c.get('price_for_mou') or c.get('price_for_mou') == None:
-                raise serializers.ValidationError('price for mou is required field')
+            if not c or c == None:
+                raise serializers.ValidationError('commercial is required field')
             
-        if not service_name or service_name == None or service_name == '':
-            raise serializers.ValidationError('price for mou is required field')
-        
+        # if not service_name or service_name == None or service_name == '':
+        #     raise serializers.ValidationError('price for mou is required field')
 
-        marketplace = Marketplace.objects.filter(id = marketplace_id)
-        if not marketplace.exists():
-            raise serializers.ValidationError('marketplace id is incorrect')
+        # marketplace = Marketplace.objects.filter(id = marketplace)
+        # if not marketplace.exists():
+        #     raise serializers.ValidationError('marketplace id is incorrect')
         
         return attrs
 
     def create(self, validated_data):
-        marketplace_id = validated_data['marketplace_id']
-        service_name = validated_data['service_name']
-        commercial = validated_data['commercials']
+        segment = Segment.objects.get(id=validated_data['segment'])
+        service = Service.objects.get(id=validated_data['service'])
+        marketplace = Marketplace.objects.get(id=validated_data['marketplace'])
+        program = Program.objects.get(id=validated_data['program'])
+        sub_program = Sub_Program.objects.get(id=validated_data['sub_program'])
+        commercials = validated_data['commercials']
 
-        
+        # del validated_data['commercials']
 
-        # print('marketplace_id',marketplace_id)
-        # print('service_name',service_name)
-        # print('commercial',commercial)
+        # print('segment',segment)
+        # print('service',service)
+        # print('marketplace',marketplace)
+        # print('program',program)
+        # print('sub_program',sub_program)
+        # print('commercials',commercials)
+        # print('validated_data',validated_data)
 
-        marketplace = Marketplace.objects.filter(id = marketplace_id).first()
+        services_and_commercials = Services_and_Commercials.objects.create(**{'segment': segment, 'service': service, 'marketplace': marketplace, 'program': program, 'sub_program': sub_program})
 
-        service = Services.objects.create(service_name = service_name)
+        # services_and_commercials.commercisals.set(commercials)
 
-        marketplace.service.add(service)
+        # print(services_and_commercials)
 
-        for c in commercial:
-            commercial = Commercials.objects.create(**c)
-            service.commercials.add(commercial)
+        # marketplace = Marketplace.objects.filter(id = marketplace).first()
 
-        # commercial = service.commercials
+        # service = Services.objects.create(service_name = service_name)
 
-        # marketplace = Marketplace.objects.filter(id = marketplace_id).first()
-        # services = Services.objects.create(**{'service_name': service_name,'marketplace_id': marketplace})
+    #     # marketplace.service.add(service)
 
-        # for c in commercial:
-        #     Commercials.objects.create(**{'service_id': services,'price': c.get('price'), 'commission': c.get('commission'), 'price_for_mou': c.get('price_for_mou')})
+        for c in commercials:
+            commercial = Commercials.objects.create(**{'commercials' :c})
+            services_and_commercials.commercials.add(commercial)
+
+    #     # commercial = service.commercials
+
+    #     # marketplace = Marketplace.objects.filter(id = marketplace_id).first()
+    #     # services = Services.objects.create(**{'service_name': service_name,'marketplace_id': marketplace})
+
+    #     # for c in commercial:
+    #     #     Commercials.objects.create(**{'service_id': services,'price': c.get('price'), 'commission': c.get('commission'), 'price_for_mou': c.get('price_for_mou')})
+
         return validated_data
     
 
 
-class UpdateServicesSerializer(serializers.Serializer):
-    marketplace_id = serializers.IntegerField()
-    service_id = serializers.IntegerField()
-    service_name = serializers.CharField()
-    commercials = serializers.ListField()
+class CreateServiceCommercials(serializers.Serializer):
+    pass
+    
 
-    def validate(self, attrs):
-        instance = self.instance
 
-        marketplace_id = attrs.get('marketplace_id')
-        service_name = attrs.get('service_name')
-        commercials = attrs.get('commercials')
+# class UpdateServicesSerializer(serializers.Serializer):
+#     marketplace_id = serializers.IntegerField()
+#     service_id = serializers.IntegerField()
+#     service_name = serializers.CharField()
+#     commercials = serializers.ListField()
+
+#     def validate(self, attrs):
+#         instance = self.instance
+
+#         marketplace_id = attrs.get('marketplace_id')
+#         service_name = attrs.get('service_name')
+#         commercials = attrs.get('commercials')
         
-        for c in commercials:
-            if not isinstance(c.get('price'), int):
-                raise serializers.ValidationError('price should be a number')
-            if not isinstance(c.get('commission'), int):
-                raise serializers.ValidationError('commission should be a number')
-            if not c.get('price_for_mou') or c.get('price_for_mou') == None:
-                raise serializers.ValidationError('price for mou is required field')
+#         for c in commercials:
+#             if not isinstance(c.get('price'), int):
+#                 raise serializers.ValidationError('price should be a number')
+#             if not isinstance(c.get('commission'), int):
+#                 raise serializers.ValidationError('commission should be a number')
+#             if not c.get('price_for_mou') or c.get('price_for_mou') == None:
+#                 raise serializers.ValidationError('price for mou is required field')
             
-        if not service_name or service_name == None or service_name == '':
-            raise serializers.ValidationError('service name is required field')
+#         if not service_name or service_name == None or service_name == '':
+#             raise serializers.ValidationError('service name is required field')
 
-        marketplace = Marketplace.objects.filter(id = marketplace_id)
-        if not marketplace.exists():
-            raise serializers.ValidationError('marketplace id is incorrect')
-        return attrs
+#         marketplace = Marketplace.objects.filter(id = marketplace_id)
+#         if not marketplace.exists():
+#             raise serializers.ValidationError('marketplace id is incorrect')
+#         return attrs
 
-    def update(self, instance, validated_data):
-        instance.service_name = validated_data['service_name']
-        instance.save()
-        for c in validated_data['commercials']:
-            if c.get('commercial_id') == None:
-                del c['commercial_id']
-                commercial = Commercials.objects.create(**c)
-                instance.commercials.add(commercial)
-            else:
-                commercials = Commercials.objects.filter(id = c.get('commercial_id')).first()
-                commercials.price = c.get('price')
-                commercials.price_for_mou = c.get('price_for_mou')
-                commercials.commission = c.get('commission')
-                commercials.save()
-        return validated_data
+#     def update(self, instance, validated_data):
+#         instance.service_name = validated_data['service_name']
+#         instance.save()
+#         for c in validated_data['commercials']:
+#             if c.get('commercial_id') == None:
+#                 del c['commercial_id']
+#                 commercial = Commercials.objects.create(**c)
+#                 instance.commercials.add(commercial)
+#             else:
+#                 commercials = Commercials.objects.filter(id = c.get('commercial_id')).first()
+#                 commercials.price = c.get('price')
+#                 commercials.price_for_mou = c.get('price_for_mou')
+#                 commercials.commission = c.get('commission')
+#                 commercials.save()
+#         return validated_data
 
 
-        # for i in instance.commercials.all():
-        #     print(i)
+#         # for i in instance.commercials.all():
+#         #     print(i)
 
-        # print('********', service)
-        # print('***********************************', instance)
-        # print('&&&&&&&&&&&&&&&&&&&&', validated_data)
-    #     return super().update(instance, validated_data)
+#         # print('********', service)
+#         # print('***********************************', instance)
+#         # print('&&&&&&&&&&&&&&&&&&&&', validated_data)
+#     #     return super().update(instance, validated_data)
     
 
 
@@ -242,13 +402,13 @@ class ViewServicesSerializer(serializers.Serializer):
     #     model = Services
     #     fields = ['service_name', 'marketplace']
 
-class CommercialsSerializer(serializers.ModelSerializer):
-    commercial_id = serializers.IntegerField()
-    commission = serializers.IntegerField()
-    price = serializers.IntegerField()
-    class Meta:
-        model = Commercials
-        fields = '__all__'
+# class CommercialsSerializer(serializers.ModelSerializer):
+#     commercial_id = serializers.IntegerField()
+#     commission = serializers.IntegerField()
+#     price = serializers.IntegerField()
+#     class Meta:
+#         model = Commercials
+#         fields = '__all__'
 
 
 

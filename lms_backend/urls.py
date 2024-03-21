@@ -6,6 +6,7 @@ from django.urls import path,include
 from rest_framework_simplejwt import views as jwt_views
 from django.conf import settings
 from django.conf.urls.static import static
+from leads.views import *
 
 
 schema_view = get_schema_view(
@@ -27,6 +28,9 @@ urlpatterns = [
     path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('account/',include('account.urls')),
     path('leads/',include('leads.urls')),
+
+
+    path('login',loginpage),
    #  path('dropdown/',include('dropdown.urls')),
    #  path('employees/',include('employees.urls')),
    #  path('evitamin/',include('evitamin.urls')),

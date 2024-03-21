@@ -1,5 +1,7 @@
 from django.db.models import Q
 from django.apps import apps
+from django.http import HttpResponse
+from django.shortcuts import render, redirect
 
 from rest_framework.generics import CreateAPIView, GenericAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -12,11 +14,20 @@ import pandas as pd
 
 from .serializers import *
 from account.models import UserAccount, Drp_Product, Department, Designation, Product, Employee_status
-from .models import Leads,  Remark_history
+from .models import Leads, Remark_history
 # from account.views import getLeadId
 
 import math
 from datetime import date, datetime, timezone, timedelta
+
+
+
+def loginpage(request):
+    context = {'text':'something'}
+    res = HttpResponse(render(request, 'login.html', context))
+    return res
+
+
 
 
 
@@ -742,6 +753,304 @@ class Searchcountry(GenericAPIView):
 
 
 
+
+class CreateSegment(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CreateSegmentSerializer
+    def post(self, request, format=None, *args, **kwargs):
+        user = request.user
+        res =  Response()
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                segment = Segment.objects.filter(segment = request.data.get('segment').lower()).values()
+            except:
+                segment = Segment.objects.filter(pk__in = []).values()
+            
+            if not segment.exists():
+                serializer = CreateSegmentSerializer(data=request.data)
+
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+
+                    res = resFun(status.HTTP_200_OK, 'added successfully',serializer.data)
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed',[])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'segment already exists, kindly check archives',[])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action',[])
+        return res
+    
+
+
+class ViewSegment(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewSegmentSerializer
+    def get(self, request, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                segment = Segment.objects.filter(visibility=True)
+            except:
+                segment = Segment.objects.filter(pk__in=[])
+
+            if segment.exists():
+                serializer = ViewSegmentSerializer(data=list(segment.values()),many=True)
+                if serializer.is_valid():
+                    res = resFun(status.HTTP_200_OK, 'request successful', serializer.data)
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', serializer.errors)
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+    
+
+class EditSegment(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewSegmentSerializer
+    def put(self, request,id, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                segment = Segment.objects.filter(id=id)
+            except:
+                segment = Segment.objects.filter(pk__in=[])
+
+            if segment.exists():
+                serializer = ViewSegmentSerializer(segment.first(), data=request.data, partial=True)
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    res = resFun(status.HTTP_200_OK, 'request successful', serializer.data)
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', serializer.errors)
+            else:
+                res = resFun(status.HTTP_200_OK, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+            
+
+
+class ArchiveSegment(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewSegmentSerializer
+    def put(self, request,id, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                segment = Segment.objects.filter(id=id)
+            except:
+                segment = Segment.objects.filter(pk__in=[])
+
+            if segment.exists():
+                segment = segment.first()
+                segment.visibility = False
+                segment.save()
+                res = resFun(status.HTTP_200_OK, 'segment archived', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+    
+
+class ViewArchiveSegment(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewSegmentSerializer
+    def get(self, request, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                segment = Segment.objects.filter(visibility=False)
+            except:
+                segment = Segment.objects.filter(pk__in=[])
+
+            if segment.exists():
+                serializer = ViewSegmentSerializer(data=list(segment.values()),many=True)
+                if serializer.is_valid():
+                    res = resFun(status.HTTP_200_OK, 'request successful', serializer.data)
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', serializer.errors)
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+    
+
+class UnarchiveSegment(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewSegmentSerializer
+    def put(self, request,id, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                segment = Segment.objects.filter(id=id)
+            except:
+                segment = Segment.objects.filter(pk__in=[])
+
+            if segment.exists():
+                segment = segment.first()
+                segment.visibility = True
+                segment.save()
+                res = resFun(status.HTTP_200_OK, 'segment unarchived', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res    
+
+
+
+class CreateService(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CreateServiceSerializer
+    def post(self, request, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                segment = Service.objects.filter(service = request.data.get('service').lower()).values()
+            except:
+                segment = Service.objects.filter(pk__in = []).values()
+            
+            if not segment.exists():
+                serializer = CreateServiceSerializer(data=request.data)
+
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+
+                    res = resFun(status.HTTP_200_OK, 'added successfully',serializer.data)
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed',[])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'service already exists, kindly check archives',[])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action',[])
+        return res    
+
+
+
+class ViewService(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewServiceSerializer
+    def get(self, request, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                service = Service.objects.filter(visibility=True)
+            except:
+                service = Service.objects.filter(pk__in=[])
+
+            if service.exists():
+                res = resFun(status.HTTP_200_OK, 'request successful', list(service.values()))
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+    
+
+class EditService(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewServiceSerializer
+    def put(self, request,id, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                service = Service.objects.filter(id=id)
+            except:
+                service = Service.objects.filter(pk__in=[])
+
+            if service.exists():
+                serializer = ViewServiceSerializer(service.first(), data=request.data, partial=True)
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    res = resFun(status.HTTP_200_OK, 'request successful', serializer.data)
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', serializer.errors)
+            else:
+                res = resFun(status.HTTP_200_OK, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+
+
+
+
+class ArchiveService(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewServiceSerializer
+    def put(self, request,id, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                service = Service.objects.filter(id=id)
+            except:
+                service = Service.objects.filter(pk__in=[])
+
+            if service.exists():
+                service = service.first()
+                service.visibility = False
+                service.save()
+                res = resFun(status.HTTP_200_OK, 'service archived', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+    
+
+
+class ViewArchiveService(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewServiceSerializer
+    def get(self, request, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                service = Service.objects.filter(visibility=False)
+            except:
+                service = Service.objects.filter(pk__in=[])
+
+            if service.exists():
+                res = resFun(status.HTTP_200_OK, 'request successful', list(service.values()))
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+
+
+
+class UnarchiveService(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewServiceSerializer
+    def put(self, request,id, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                service = Service.objects.filter(id=id)
+            except:
+                service = Service.objects.filter(pk__in=[])
+
+            if service.exists():
+                service = service.first()
+                service.visibility = True
+                service.save()
+                res = resFun(status.HTTP_200_OK, 'service archived', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+
+
+
+
 class CreateMarketplace(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CreateMarketplaceSerializer
@@ -754,698 +1063,1122 @@ class CreateMarketplace(CreateAPIView):
                 serializer = CreateMarketplaceSerializer(data=request.data)
                 if serializer.is_valid(raise_exception=True):
                     serializer.save()
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'data': serializer.data,
-                        'status': status.HTTP_200_OK,
-                        'message': 'added successfully',
-                    }                
+                    res = resFun(status.HTTP_200_OK, 'added successfully', serializer.data)
                 else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'data': [],
-                        'status': status.HTTP_400_BAD_REQUEST,
-                        'message': 'request failed',
-                    }      
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
             else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'marketplace already exists, kindly check archives',
-                }      
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'marketplace already exists, kindly check archives', [])
         else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'data': [],
-                'status': status.HTTP_400_BAD_REQUEST,
-                'message': 'you are not authorized for this action',
-            }
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
         return res
     
-class UpdateMarketplace(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = CreateMarketplaceSerializer
-    def put(self, request, id, format=None, *args, **kwargs):
-        user = request.user
-        res =  Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            marketplace = Marketplace.objects.get(id=id, visibility=True)
-            if marketplace:
-                if not Marketplace.objects.filter(marketplace=request.data.get('marketplace').lower()).exists():
-                    serializer = CreateMarketplaceSerializer(marketplace, data=request.data, partial=True)
-                    if serializer.is_valid(raise_exception=True):
-                        serializer.save()
-                        res.status_code = status.HTTP_200_OK
-                        res.data = {
-                            'data': serializer.data,
-                            'status': status.HTTP_200_OK,
-                            'message': 'updated successfully',
-                        }
-                    else:
-                        res.status_code = status.HTTP_400_BAD_REQUEST
-                        res.data = {
-                            'data': [],
-                            'status': status.HTTP_400_BAD_REQUEST,
-                            'message': 'request failed',
-                        }
-                else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'data': [],
-                        'status': status.HTTP_400_BAD_REQUEST,
-                        'message': 'marketplace already exists',
-                    }
 
-            else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'no data found, kindly check archives',
-                }
-        else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'data': [],
-                'status': status.HTTP_400_BAD_REQUEST,
-                'message': 'you are not authorized for this action',
-            }
-        return res
-    
-class SearchMarketplace(GenericAPIView):
+class ViewMarketplace(CreateAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = SearchMarketplaceSerializer
-    def get(self, request, id, format=None, *args, **kwargs):
+    serializer_class = MarketplaceSerializer
+    def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-
-            name = id.replace('_',' ')
             try:
-                marketplace = Marketplace.objects.filter(marketplace__contains = name, visibility=True)
+                marketplace = Marketplace.objects.filter(visibility=True)
             except:
                 marketplace = Marketplace.objects.filter(pk__in=[])
 
-            # try: 
-            #     marketplace = Marketplace.objects.get(id=id, visibility=True)
-            # except:
-            #     marketplace = Marketplace.objects.filter(pk__in=[])
-            # print('marketplace',marketplace)
             if marketplace.exists():
-                serializer = SearchMarketplaceSerializer(data=[{'id': marketplace.first().id, 'marketplace': marketplace.first().marketplace}], many=True)
-                if serializer.is_valid(raise_exception=True):
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'data': serializer.data,
-                        'status': status.HTTP_200_OK,
-                        'message': 'request successful',
-                    }
-                else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'data': [],
-                        'status': status.HTTP_400_BAD_REQUEST,
-                        'message': 'request failed',
-                    }
-                # else:
-                #     res.status_code = status.HTTP_400_BAD_REQUEST
-                #     res.data = {
-                #         'data': [],
-                #         'status': status.HTTP_400_BAD_REQUEST,
-                #         'message': 'marketplace already exists',
-                #     }
-
+                res = resFun(status.HTTP_200_OK, 'request successful', list(marketplace.values()))
             else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'no data found, kindly check archives',
-                }
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
         else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'data': [],
-                'status': status.HTTP_400_BAD_REQUEST,
-                'message': 'you are not authorized for this action',
-            }
-        return res
-        
-class DeleteMarketplace(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = CreateMarketplaceSerializer
-    def delete(self, request, id, format=None, *args, **kwargs):
-        user = request.user
-        res =  Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            try:
-                marketplace = Marketplace.objects.filter(id=id, visibility=True).first()
-            except:
-                marketplace = Marketplace.objects.filter(pk__in=[]).first()
-            # print(marketplace)
-            if marketplace:
-                marketplace.visibility = False
-                for m in marketplace.service.all():
-                    for c in m.commercials.all():
-                        if c.visibility == True:
-                            c.visibility = False
-                            c.save()
-                    if m.visibility == True:
-                        m.visibility = False
-                        m.save()
-                marketplace.save()
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'data': [],
-                    'status': status.HTTP_200_OK,
-                    'message': 'deleted successfully',
-                }
-                # else:
-                #     res.status_code = status.HTTP_400_BAD_REQUEST
-                #     res.data = {
-                #         'data': [],
-                #         'status': status.HTTP_400_BAD_REQUEST,
-                #         'message': 'request failed',
-                #     }
-            else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'invalid marketplace id',
-                }
-        else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'data': [],
-                'status': status.HTTP_400_BAD_REQUEST,
-                'message': 'you are not authorized for this action',
-            }
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
         return res
     
-class ViewMarketplace(GenericAPIView):
+
+class EditMarketplace(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ViewMarketplaceSerializer
-    def get(self, request ,format=None, *args, **kwargs):
-        # limit = 10
-        # offset = int((page - 1) * limit)
+    def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            marketplace = Marketplace.objects.filter(visibility=True)
-            # print(list(marketplace.values_list()))
-            if marketplace.exists():
-                pass
-                serializer = ViewMarketplaceSerializer(data={'marketplace': marketplace.values()})
-                # pagecount = math.ceil(Marketplace.objects.filter().count()/limit)
+            try:
+                marketplace = Marketplace.objects.filter(id=id)
+            except:
+                marketplace = Marketplace.objects.filter(pk__in=[])
 
+            print('marketplace',marketplace)
+
+            if marketplace.exists():
+                serializer = ViewMarketplaceSerializer(marketplace.first(), data=request.data, partial=True)
                 if serializer.is_valid(raise_exception=True):
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'data': serializer.data,
-                        'status': status.HTTP_200_OK,
-                        'message': 'request successful',
-                    }
+                    serializer.save()
+                    res = resFun(status.HTTP_200_OK, 'request successful', serializer.data)
                 else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'data': [],
-                        'status': status.HTTP_400_BAD_REQUEST,
-                        'message': 'request failed',
-                    }
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', serializer.errors)
             else:
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'data': [],
-                    'status': status.HTTP_200_OK,
-                    'message': 'no data found',
-                }
+                res = resFun(status.HTTP_200_OK, 'data not found', [])
         else:
-            res.status_code = status.HTTP_401_UNAUTHORIZED
-            res.data = {
-                'data': [],
-                'status': status.HTTP_401_UNAUTHORIZED,
-                'message': 'you are not authorized for this action',
-            }
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+    
+
+class ArchiveMarketplace(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewMarketplaceSerializer
+    def put(self, request,id, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                marketplace = Marketplace.objects.filter(id=id)
+            except:
+                marketplace = Marketplace.objects.filter(pk__in=[])
+
+            if marketplace.exists():
+                marketplace = marketplace.first()
+                marketplace.visibility = False
+                marketplace.save()
+                res = resFun(status.HTTP_200_OK, 'marketplace archived', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+    
+
+
+class ViewArchiveMarketplace(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = MarketplaceSerializer
+    def get(self, request, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                marketplace = Marketplace.objects.filter(visibility=False)
+            except:
+                marketplace = Marketplace.objects.filter(pk__in=[])
+
+            if marketplace.exists():
+                res = resFun(status.HTTP_200_OK, 'request successful', list(marketplace.values()))
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+
+
+class UnarchiveMarketplace(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewMarketplaceSerializer
+    def put(self, request,id, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                marketplace = Marketplace.objects.filter(id=id)
+            except:
+                marketplace = Marketplace.objects.filter(pk__in=[])
+
+            if marketplace.exists():
+                marketplace = marketplace.first()
+                marketplace.visibility = True
+                marketplace.save()
+                res = resFun(status.HTTP_200_OK, 'marketplace archived', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+    
+
+    
+
+class CreateProgram(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CreateProgramSerializer
+    def post(self, request, format=None, *args, **kwargs):
+        user = request.user
+        # res =  Response()
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            segment = Program.objects.filter(program = request.data.get('program').lower()).values()
+            if not segment.exists():
+                serializer = CreateProgramSerializer(data=request.data)
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    res = resFun(status.HTTP_200_OK, 'added successfully', serializer.data)
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'program already exists, kindly check archives', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
         return res
     
 
 
 
-class CreateServices(CreateAPIView):
+
+class ViewProgram(CreateAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = CreateServicesSerializer
+    serializer_class = ProgramSerializer
+    def get(self, request, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                marketplace = Program.objects.filter(visibility=True)
+            except:
+                marketplace = Program.objects.filter(pk__in=[])
+
+            if marketplace.exists():
+                res = resFun(status.HTTP_200_OK, 'request successful', list(marketplace.values()))
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+    
+
+
+
+# class EditProgram(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = ProgramSerializer
+#     def get(self,)
+
+class EditProgram(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProgramSerializer
+    def put(self, request,id, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                program = Program.objects.filter(id=id)
+            except:
+                program = Program.objects.filter(pk__in=[])
+
+            if program.exists():
+                serializer = ProgramSerializer(program.first(), data=request.data, partial=True)
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    res = resFun(status.HTTP_200_OK, 'request successful', serializer.data)
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', serializer.errors)
+            else:
+                res = resFun(status.HTTP_200_OK, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+    
+
+
+class ArchiveProgram(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProgramSerializer
+    def put(self, request,id, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                program = Program.objects.filter(id=id)
+            except:
+                program = Program.objects.filter(pk__in=[])
+
+            
+            if program.exists():
+                program = program.first()
+                program.visibility = False
+                program.save()
+                
+                print('program',program.visibility)
+                res = resFun(status.HTTP_200_OK, 'program archived', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+
+
+
+class ViewArchiveProgram(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProgramSerializer
+    def get(self, request, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                marketplace = Program.objects.filter(visibility=False)
+            except:
+                marketplace = Program.objects.filter(pk__in=[])
+
+            if marketplace.exists():
+                res = resFun(status.HTTP_200_OK, 'request successful', list(marketplace.values()))
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+    
+
+
+class UnarchiveProgram(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProgramSerializer
+    def put(self, request,id, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                program = Program.objects.filter(id=id)
+            except:
+                program = Program.objects.filter(pk__in=[])
+
+            
+            if program.exists():
+                program = program.first()
+                program.visibility = True
+                program.save()
+                
+                print('program',program.visibility)
+                res = resFun(status.HTTP_200_OK, 'program archived', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+
+
+
+
+class CreateSubProgram(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CreateSubProgramSerializer
+    def post(self, request, format=None, *args, **kwargs):
+        user = request.user
+        # res =  Response()
+        print('request.data', request.data)
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            segment = Sub_Program.objects.filter(sub_program = request.data.get('sub_program').lower()).values()
+            if not segment.exists():
+                # print('request.data', request.data)
+                serializer = CreateSubProgramSerializer(data=request.data)
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    res = resFun(status.HTTP_200_OK, 'added successfully', serializer.data)
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'program already exists, kindly check archives', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+    
+
+
+class ViewSubProgram(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SubProgramSerializer
+    def get(self, request, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                sub_program = Sub_Program.objects.filter(visibility=True)
+            except:
+                sub_program = Sub_Program.objects.filter(pk__in=[])
+            
+            if sub_program.exists():
+                res = resFun(status.HTTP_200_OK, 'request successful', list(sub_program.values()))
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+    
+
+
+class EditSubProgram(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SubProgramSerializer
+    def put(self, request,id, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                sub_program = Sub_Program.objects.filter(id=id)
+            except:
+                sub_program = Sub_Program.objects.filter(pk__in=[])
+
+            if sub_program.exists():
+                serializer = SubProgramSerializer(sub_program.first(), data=request.data, partial=True)
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    res = resFun(status.HTTP_200_OK, 'request successful', serializer.data)
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', serializer.errors)
+            else:
+                res = resFun(status.HTTP_200_OK, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+    
+
+
+class ArchiveSubProgram(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProgramSerializer
+    def put(self, request,id, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                sub_program = Sub_Program.objects.filter(id=id)
+            except:
+                sub_program = Sub_Program.objects.filter(pk__in=[])
+
+            
+            if sub_program.exists():
+                sub_program = sub_program.first()
+                sub_program.visibility = False
+                sub_program.save()
+                
+                res = resFun(status.HTTP_200_OK, 'sub program archived', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+
+
+class ViewArchiveSubProgram(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SubProgramSerializer
+    def get(self, request, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                sub_program = Sub_Program.objects.filter(visibility=False)
+            except:
+                sub_program = Sub_Program.objects.filter(pk__in=[])
+            
+            if sub_program.exists():
+                res = resFun(status.HTTP_200_OK, 'request successful', list(sub_program.values()))
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+    
+
+
+class UnarchiveSubProgram(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProgramSerializer
+    def put(self, request,id, format=None, *args, **kwargs):
+        user = request.user
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+            try:
+                sub_program = Sub_Program.objects.filter(id=id)
+            except:
+                sub_program = Sub_Program.objects.filter(pk__in=[])
+
+            
+            if sub_program.exists():
+                sub_program = sub_program.first()
+                sub_program.visibility = True
+                sub_program.save()
+                
+                res = resFun(status.HTTP_200_OK, 'sub program archived', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
+        return res
+
+
+# class CreateCommercials(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = 
+
+
+
+
+    
+
+# class UpdateMarketplace(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = CreateMarketplaceSerializer
+#     def put(self, request, id, format=None, *args, **kwargs):
+#         user = request.user
+#         res =  Response()
+#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#             marketplace = Marketplace.objects.get(id=id, visibility=True)
+#             if marketplace:
+#                 if not Marketplace.objects.filter(marketplace=request.data.get('marketplace').lower()).exists():
+#                     serializer = CreateMarketplaceSerializer(marketplace, data=request.data, partial=True)
+#                     if serializer.is_valid(raise_exception=True):
+#                         serializer.save()
+#                         res.status_code = status.HTTP_200_OK
+#                         res.data = {
+#                             'data': serializer.data,
+#                             'status': status.HTTP_200_OK,
+#                             'message': 'updated successfully',
+#                         }
+#                     else:
+#                         res.status_code = status.HTTP_400_BAD_REQUEST
+#                         res.data = {
+#                             'data': [],
+#                             'status': status.HTTP_400_BAD_REQUEST,
+#                             'message': 'request failed',
+#                         }
+#                 else:
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'data': [],
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         'message': 'marketplace already exists',
+#                     }
+
+#             else:
+#                 res.status_code = status.HTTP_400_BAD_REQUEST
+#                 res.data = {
+#                     'data': [],
+#                     'status': status.HTTP_400_BAD_REQUEST,
+#                     'message': 'no data found, kindly check archives',
+#                 }
+#         else:
+#             res.status_code = status.HTTP_400_BAD_REQUEST
+#             res.data = {
+#                 'data': [],
+#                 'status': status.HTTP_400_BAD_REQUEST,
+#                 'message': 'you are not authorized for this action',
+#             }
+#         return res
+    
+# class SearchMarketplace(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = SearchMarketplaceSerializer
+#     def get(self, request, id, format=None, *args, **kwargs):
+#         user = request.user
+#         res =  Response()
+#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+
+#             name = id.replace('_',' ')
+#             try:
+#                 marketplace = Marketplace.objects.filter(marketplace__contains = name, visibility=True)
+#             except:
+#                 marketplace = Marketplace.objects.filter(pk__in=[])
+
+#             # try: 
+#             #     marketplace = Marketplace.objects.get(id=id, visibility=True)
+#             # except:
+#             #     marketplace = Marketplace.objects.filter(pk__in=[])
+#             # print('marketplace',marketplace)
+#             if marketplace.exists():
+#                 serializer = SearchMarketplaceSerializer(data=[{'id': marketplace.first().id, 'marketplace': marketplace.first().marketplace}], many=True)
+#                 if serializer.is_valid(raise_exception=True):
+#                     res.status_code = status.HTTP_200_OK
+#                     res.data = {
+#                         'data': serializer.data,
+#                         'status': status.HTTP_200_OK,
+#                         'message': 'request successful',
+#                     }
+#                 else:
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'data': [],
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         'message': 'request failed',
+#                     }
+#                 # else:
+#                 #     res.status_code = status.HTTP_400_BAD_REQUEST
+#                 #     res.data = {
+#                 #         'data': [],
+#                 #         'status': status.HTTP_400_BAD_REQUEST,
+#                 #         'message': 'marketplace already exists',
+#                 #     }
+
+#             else:
+#                 res.status_code = status.HTTP_400_BAD_REQUEST
+#                 res.data = {
+#                     'data': [],
+#                     'status': status.HTTP_400_BAD_REQUEST,
+#                     'message': 'no data found, kindly check archives',
+#                 }
+#         else:
+#             res.status_code = status.HTTP_400_BAD_REQUEST
+#             res.data = {
+#                 'data': [],
+#                 'status': status.HTTP_400_BAD_REQUEST,
+#                 'message': 'you are not authorized for this action',
+#             }
+#         return res
+        
+# class DeleteMarketplace(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = CreateMarketplaceSerializer
+#     def delete(self, request, id, format=None, *args, **kwargs):
+#         user = request.user
+#         res =  Response()
+#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#             try:
+#                 marketplace = Marketplace.objects.filter(id=id, visibility=True).first()
+#             except:
+#                 marketplace = Marketplace.objects.filter(pk__in=[]).first()
+#             # print(marketplace)
+#             if marketplace:
+#                 marketplace.visibility = False
+#                 for m in marketplace.service.all():
+#                     for c in m.commercials.all():
+#                         if c.visibility == True:
+#                             c.visibility = False
+#                             c.save()
+#                     if m.visibility == True:
+#                         m.visibility = False
+#                         m.save()
+#                 marketplace.save()
+#                 res.status_code = status.HTTP_200_OK
+#                 res.data = {
+#                     'data': [],
+#                     'status': status.HTTP_200_OK,
+#                     'message': 'deleted successfully',
+#                 }
+#                 # else:
+#                 #     res.status_code = status.HTTP_400_BAD_REQUEST
+#                 #     res.data = {
+#                 #         'data': [],
+#                 #         'status': status.HTTP_400_BAD_REQUEST,
+#                 #         'message': 'request failed',
+#                 #     }
+#             else:
+#                 res.status_code = status.HTTP_400_BAD_REQUEST
+#                 res.data = {
+#                     'data': [],
+#                     'status': status.HTTP_400_BAD_REQUEST,
+#                     'message': 'invalid marketplace id',
+#                 }
+#         else:
+#             res.status_code = status.HTTP_400_BAD_REQUEST
+#             res.data = {
+#                 'data': [],
+#                 'status': status.HTTP_400_BAD_REQUEST,
+#                 'message': 'you are not authorized for this action',
+#             }
+#         return res
+    
+# class ViewMarketplace(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = ViewMarketplaceSerializer
+#     def get(self, request ,format=None, *args, **kwargs):
+#         # limit = 10
+#         # offset = int((page - 1) * limit)
+#         user = request.user
+#         res =  Response()
+#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#             marketplace = Marketplace.objects.filter(visibility=True)
+#             # print(list(marketplace.values_list()))
+#             if marketplace.exists():
+#                 pass
+#                 serializer = ViewMarketplaceSerializer(data={'marketplace': marketplace.values()})
+#                 # pagecount = math.ceil(Marketplace.objects.filter().count()/limit)
+
+#                 if serializer.is_valid(raise_exception=True):
+#                     res.status_code = status.HTTP_200_OK
+#                     res.data = {
+#                         'data': serializer.data,
+#                         'status': status.HTTP_200_OK,
+#                         'message': 'request successful',
+#                     }
+#                 else:
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'data': [],
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         'message': 'request failed',
+#                     }
+#             else:
+#                 res.status_code = status.HTTP_200_OK
+#                 res.data = {
+#                     'data': [],
+#                     'status': status.HTTP_200_OK,
+#                     'message': 'no data found',
+#                 }
+#         else:
+#             res.status_code = status.HTTP_401_UNAUTHORIZED
+#             res.data = {
+#                 'data': [],
+#                 'status': status.HTTP_401_UNAUTHORIZED,
+#                 'message': 'you are not authorized for this action',
+#             }
+#         return res
+    
+
+
+
+class CreateServiceCommercials(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CreateServiceCommercials
     def post(self, request, format=None, *args, **kwargs):
         user = request.user
         res =  Response()
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
 
-            marketplace_id = request.data.get('marketplace_id')
-            service_name = request.data.get('service_name')
-            try:
-                service = Marketplace.objects.get(id = marketplace_id, service__service_name = service_name)
-                if service:
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'data': [],
-                        'status': status.HTTP_200_OK,
-                        'message': 'service name already exists, kindly check archives',
-                    }
-                    return res   
+            segment = request.data.get('segment')
+            service = request.data.get('service')
+            marketplace = request.data.get('marketplace')
+            program = request.data.get('program')
+            sub_program = request.data.get('sub_program')
+            commercials = request.data.get('commercials')
 
-            except:
-                service = Marketplace.objects.filter(pk__in=[])
+            if sub_program == None:
+                service_commercials = Services_and_Commercials.objects.filter(segment=segment, service=service, marketplace=marketplace,program=program)
+                print('service_commercials',service_commercials)
+            else:
+                service_commercials = Services_and_Commercials.objects.filter(segment=segment, service=service, marketplace=marketplace,program=program)
+                print('service_commercials',service_commercials)
+
+
+            if service_commercials:
+                for s in service_commercials.first().commercials.all():
+                    for c in commercials:
+                        if c == s.commercials:
+                            print(c)
+                # pass
+            else:
+
+
+            # print(segment_id, service_id, marketplace_id, program_id, sub_program_id)
+
+            # service_name = request.data.get('service_name')
+            # try:
+            #     service = Marketplace.objects.get(id = marketplace_id, service__service_name = service_name)
+            #     if service:
+            #         res.status_code = status.HTTP_200_OK
+            #         res.data = {
+            #             'data': [],
+            #             'status': status.HTTP_200_OK,
+            #             'message': 'service name already exists, kindly check archives',
+            #         }
+            #         return res   
+
+            # except:
+            #     service = Marketplace.objects.filter(pk__in=[])
             
-            if not service.exists():
-                # serializer = CreateServicesSerializer(data=request.data)
-                # if serializer.is_valid(raise_exception=True):
-                #     if serializer.save():
-
-                serializer = CreateServicesSerializer(data=request.data)
+            # if not service.exists():
+                
+                # pass
+                serializer = CreateServicesCommercialsSerializer(data=request.data)
                 if serializer.is_valid(raise_exception=True):
                     if serializer.save():
-                            print('serializer.validated_data',serializer.data)
-                            res.status_code = status.HTTP_200_OK
-                            res.data = {
-                                'data': serializer.data,
-                                'status': status.HTTP_200_OK,
-                                'message': 'added successfully',
-                            }    
-
+                            res = resFun(status.HTTP_200_OK, 'added successfully', serializer.data)
                     else:
-                        res.status_code = status.HTTP_200_OK
-                        res.data = {
-                            'data': [],
-                            'status': status.HTTP_200_OK,
-                            'message': 'request failed',
-                        }
-
+                        res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
                 else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'data': [],
-                        'status': status.HTTP_400_BAD_REQUEST,
-                        'message': serializer.errors if serializer.errors else 'request failed',
-                    }
-
-                # else:
-                #     res.status_code = status.HTTP_200_OK
-                #     res.data = {
-                #         'data': [],
-                #         'status': status.HTTP_200_OK,
-                #         'message': 'request failed',
-                #     }
-
-            else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'services already exists',
-                }      
+                    res = resFun(status.HTTP_400_BAD_REQUEST, serializer.errors if serializer.errors else 'request failed', [] )
         else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'data': [],
-                'status': status.HTTP_400_BAD_REQUEST,
-                'message': 'you are not authorized for this action',
-            }
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [] )
         return res
+
+
+
+class EditServiceCommercials(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CreateServiceCommercials
+    def put(self, request, format=None, *args, **kwargs):
+        user = request.user
+
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+
+            segment = request.data.get('segment')
+            service = request.data.get('service')
+            marketplace = request.data.get('marketplace')
+            program = request.data.get('program')
+            sub_program = request.data.get('sub_program')
+
+            serviceCommercials=Services_and_Commercials.objects.filter(segment=segment, service=service,marketplace=marketplace, program=program)
+            print('serviceCommercials',serviceCommercials)
+
+            # serializer = CreateServicesCommercialsSerializer(data=request.data)
+            # if serializer.is_valid(raise_exception=True):
+            #     if serializer.save():
+            #             res = resFun(status.HTTP_200_OK, 'added successfully', serializer.data)
+            #     else:
+            #         res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
+            # else:
+            #     res = resFun(status.HTTP_400_BAD_REQUEST, serializer.errors if serializer.errors else 'request failed', [] )
+            # else:
+            #     res = resFun(status.HTTP_400_BAD_REQUEST, 'services already exists', [] )
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [] )
+        return res
+
+
+
+
     
-class UpdateServices(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = UpdateServicesSerializer
-    def put(self, request,format=None, *args, **kwargs):
-        user = request.user
-        res =  Response()
+# class UpdateServices(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = UpdateServicesSerializer
+#     def put(self, request,format=None, *args, **kwargs):
+#         user = request.user
+#         res =  Response()
 
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            try:
-                services = Services.objects.filter(id=request.data.get('service_id'), visibility=True)
-            except:
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'data': [],
-                    'status': status.HTTP_200_OK,
-                    'message': 'no data found, kindly check archives',
-                }
-                return res
+#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#             try:
+#                 services = Services.objects.filter(id=request.data.get('service_id'), visibility=True)
+#             except:
+#                 res.status_code = status.HTTP_200_OK
+#                 res.data = {
+#                     'data': [],
+#                     'status': status.HTTP_200_OK,
+#                     'message': 'no data found, kindly check archives',
+#                 }
+#                 return res
             
-            # print('services',services)
-            if services.exists():
-                serializer = UpdateServicesSerializer(services.first(), data=request.data, partial=True)
-                if serializer.is_valid(raise_exception=True):
-                    serializer.save()
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'data': serializer.data,
-                        'status': status.HTTP_200_OK,
-                        'message': 'updated successfully',
-                    }
-                else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'data': [],
-                        'status': status.HTTP_400_BAD_REQUEST,
-                        'message': 'request failed',
-                    }
-            else:
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'data': [],
-                    'status': status.HTTP_200_OK,
-                    'message': 'no data found',
-                }
-        else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'data': [],
-                'status': status.HTTP_400_BAD_REQUEST,
-                'message': 'you are not authorized for this action',
-            }
-        return res
+#             # print('services',services)
+#             if services.exists():
+#                 serializer = UpdateServicesSerializer(services.first(), data=request.data, partial=True)
+#                 if serializer.is_valid(raise_exception=True):
+#                     serializer.save()
+#                     res.status_code = status.HTTP_200_OK
+#                     res.data = {
+#                         'data': serializer.data,
+#                         'status': status.HTTP_200_OK,
+#                         'message': 'updated successfully',
+#                     }
+#                 else:
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'data': [],
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         'message': 'request failed',
+#                     }
+#             else:
+#                 res.status_code = status.HTTP_200_OK
+#                 res.data = {
+#                     'data': [],
+#                     'status': status.HTTP_200_OK,
+#                     'message': 'no data found',
+#                 }
+#         else:
+#             res.status_code = status.HTTP_400_BAD_REQUEST
+#             res.data = {
+#                 'data': [],
+#                 'status': status.HTTP_400_BAD_REQUEST,
+#                 'message': 'you are not authorized for this action',
+#             }
+#         return res
         
-class DeleteServices(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = CreateServicesSerializer
-    def delete(self, request, id, format=None, *args, **kwargs):
-        user = request.user
-        res =  Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            services = Services.objects.get(id=id, visibility=True)
-            if services:
-                for s in services.commercials.all():
-                    if s.visibility == True:
-                        s.visibility = False
-                        s.save()
-                    # commercials = Commercials.objects.get(id = s.id, visibility=True)
-                    # commercials.delete()
-                services.visibility = False
-                services.save()
+# class DeleteServices(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = CreateServicesSerializer
+#     def delete(self, request, id, format=None, *args, **kwargs):
+#         user = request.user
+#         res =  Response()
+#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#             services = Services.objects.get(id=id, visibility=True)
+#             if services:
+#                 for s in services.commercials.all():
+#                     if s.visibility == True:
+#                         s.visibility = False
+#                         s.save()
+#                     # commercials = Commercials.objects.get(id = s.id, visibility=True)
+#                     # commercials.delete()
+#                 services.visibility = False
+#                 services.save()
            
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'data': [],
-                    'status': status.HTTP_200_OK,
-                    'message': 'deleted successfully',
-                }
-                # else:
-                #     res.status_code = status.HTTP_400_BAD_REQUEST
-                #     res.data = {
-                #         'data': [],
-                #         'status': status.HTTP_400_BAD_REQUEST,
-                #         'message': 'request failed',
-                #     }
-            else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'invalid services id',
-                }
-        else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'data': [],
-                'status': status.HTTP_400_BAD_REQUEST,
-                'message': 'you are not authorized for this action',
-            }
-        return res
+#                 res.status_code = status.HTTP_200_OK
+#                 res.data = {
+#                     'data': [],
+#                     'status': status.HTTP_200_OK,
+#                     'message': 'deleted successfully',
+#                 }
+#                 # else:
+#                 #     res.status_code = status.HTTP_400_BAD_REQUEST
+#                 #     res.data = {
+#                 #         'data': [],
+#                 #         'status': status.HTTP_400_BAD_REQUEST,
+#                 #         'message': 'request failed',
+#                 #     }
+#             else:
+#                 res.status_code = status.HTTP_400_BAD_REQUEST
+#                 res.data = {
+#                     'data': [],
+#                     'status': status.HTTP_400_BAD_REQUEST,
+#                     'message': 'invalid services id',
+#                 }
+#         else:
+#             res.status_code = status.HTTP_400_BAD_REQUEST
+#             res.data = {
+#                 'data': [],
+#                 'status': status.HTTP_400_BAD_REQUEST,
+#                 'message': 'you are not authorized for this action',
+#             }
+#         return res
     
-class ViewServices(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = ViewServicesSerializer
-    def get(self, request, page, format=None, *args, **kwargs):
-        user = request.user
-        limit = 10
-        offset = int((page - 1) * limit)
-        res =  Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            try:
-                # marketplace = Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service').filter(visibility=True)[offset : offset + limit]
-                marketplace = Marketplace.objects.select_related().filter(visibility=True, service__isnull=False).values('id','marketplace','service')[offset : offset + limit]
-                print('marketplace',marketplace)
-            except:
-                # marketplace = Marketplace.objects.filter(pk__in=[])
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'data':  {'data': [], 'total_pages': 1, "current_page": page},
-                    'status': status.HTTP_200_OK,
-                    'message': 'no data found',
-                }
-                return res
+# class ViewServices(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = ViewServicesSerializer
+#     def get(self, request, page, format=None, *args, **kwargs):
+#         user = request.user
+#         limit = 10
+#         offset = int((page - 1) * limit)
+#         res =  Response()
+#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#             try:
+#                 # marketplace = Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service').filter(visibility=True)[offset : offset + limit]
+#                 marketplace = Marketplace.objects.select_related().filter(visibility=True, service__isnull=False).values('id','marketplace','service')[offset : offset + limit]
+#                 print('marketplace',marketplace)
+#             except:
+#                 # marketplace = Marketplace.objects.filter(pk__in=[])
+#                 res.status_code = status.HTTP_200_OK
+#                 res.data = {
+#                     'data':  {'data': [], 'total_pages': 1, "current_page": page},
+#                     'status': status.HTTP_200_OK,
+#                     'message': 'no data found',
+#                 }
+#                 return res
 
-            if marketplace.exists():
-                ser = []
+#             if marketplace.exists():
+#                 ser = []
 
-                # print(marketplace)
+#                 # print(marketplace)
 
-                for m in marketplace:
-                    # print(m)
-                    try:
-                        service = Services.objects.get(id = m['service'], visibility=True)
-                        print(service)
-                    except:
-                        service = Services.objects.filter(pk__in=[])
-                        # res.status_code = status.HTTP_200_OK
-                        # res.data = {
-                            # 'data':  {'data': [], 'total_pages': 1, "current_page": page},
-                            # 'status': status.HTTP_200_OK,
-                            # 'message': 'no data found',
-                        # }
-                        # return res
+#                 for m in marketplace:
+#                     # print(m)
+#                     try:
+#                         service = Services.objects.get(id = m['service'], visibility=True)
+#                         print(service)
+#                     except:
+#                         service = Services.objects.filter(pk__in=[])
+#                         # res.status_code = status.HTTP_200_OK
+#                         # res.data = {
+#                             # 'data':  {'data': [], 'total_pages': 1, "current_page": page},
+#                             # 'status': status.HTTP_200_OK,
+#                             # 'message': 'no data found',
+#                         # }
+#                         # return res
 
-                    if service:
-                        ser.append({'service_id': m['service'], 'service_name': service.service_name, 'marketplace_id': m['id'], 'marketplace': m['marketplace']})
+#                     if service:
+#                         ser.append({'service_id': m['service'], 'service_name': service.service_name, 'marketplace_id': m['id'], 'marketplace': m['marketplace']})
                 
-                page_count = []
-                pagecount = Marketplace.objects.all()
-                for p in pagecount:
-                    page_count.append(p.service.all())
+#                 page_count = []
+#                 pagecount = Marketplace.objects.all()
+#                 for p in pagecount:
+#                     page_count.append(p.service.all())
 
-                # pagecount = math.ceil(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility').filter(visibility=True).count()/limit)
-                pagecount = math.ceil(Marketplace.objects.select_related().filter(visibility=True, service__isnull=False).values('id','marketplace','service', 'visibility').count()/limit)
+#                 # pagecount = math.ceil(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility').filter(visibility=True).count()/limit)
+#                 pagecount = math.ceil(Marketplace.objects.select_related().filter(visibility=True, service__isnull=False).values('id','marketplace','service', 'visibility').count()/limit)
 
-                # print(Marketplace.objects.select_related().filter(visibility=True, service__isnull=False).values('id','marketplace','service', 'visibility'))
+#                 # print(Marketplace.objects.select_related().filter(visibility=True, service__isnull=False).values('id','marketplace','service', 'visibility'))
 
-                serializer = ViewServicesSerializer(data=ser, many=True)
-                if serializer.is_valid(raise_exception=True):
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'data':  {'data': serializer.data, 'total_pages': pagecount, "current_page": page},
-                        'status': status.HTTP_200_OK,
-                        'message': 'request successful',
-                    }
-                else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'data': {'data': [], 'total_pages': 1, "current_page": page},
-                        'status': status.HTTP_400_BAD_REQUEST,
-                        'message': 'request failed',
-                    }
-            else:
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'data': {'data': [], 'total_pages': 1, "current_page": page},
-                    'status': status.HTTP_200_OK,
-                    'message': 'no data found',
-                }
-        else:
-            res.status_code = status.HTTP_401_UNAUTHORIZED
-            res.data = {
-                'data': [],
-                'status': status.HTTP_401_UNAUTHORIZED,
-                'message': 'you are not authorized for this action',
-            }
-        return res
+#                 serializer = ViewServicesSerializer(data=ser, many=True)
+#                 if serializer.is_valid(raise_exception=True):
+#                     res.status_code = status.HTTP_200_OK
+#                     res.data = {
+#                         'data':  {'data': serializer.data, 'total_pages': pagecount, "current_page": page},
+#                         'status': status.HTTP_200_OK,
+#                         'message': 'request successful',
+#                     }
+#                 else:
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'data': {'data': [], 'total_pages': 1, "current_page": page},
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         'message': 'request failed',
+#                     }
+#             else:
+#                 res.status_code = status.HTTP_200_OK
+#                 res.data = {
+#                     'data': {'data': [], 'total_pages': 1, "current_page": page},
+#                     'status': status.HTTP_200_OK,
+#                     'message': 'no data found',
+#                 }
+#         else:
+#             res.status_code = status.HTTP_401_UNAUTHORIZED
+#             res.data = {
+#                 'data': [],
+#                 'status': status.HTTP_401_UNAUTHORIZED,
+#                 'message': 'you are not authorized for this action',
+#             }
+#         return res
     
-class SearchService(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = ViewServicesSerializer
-    def get(self, request, searchAtr, id, format=None, *args, **kwargs):
-        user = request.user
-        res =  Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+# class SearchService(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = ViewServicesSerializer
+#     def get(self, request, searchAtr, id, format=None, *args, **kwargs):
+#         user = request.user
+#         res =  Response()
+#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
 
-            if searchAtr == 'service':
-                name = id.replace('_',' ')
-                marketplace = Marketplace.objects.select_related().filter(service__service_name__contains = name, visibility=True).values('id','marketplace','service').filter(visibility=True)
-            elif searchAtr == 'marketplace':
-                name = id.replace('_',' ')
-                marketplace = Marketplace.objects.select_related().filter(marketplace__contains = name, visibility=True).values('id','marketplace','service').filter(visibility=True)
-            else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'message': 'invalid search term',
-                    'status': status.HTTP_400_BAD_REQUEST
-                }
-                return res
+#             if searchAtr == 'service':
+#                 name = id.replace('_',' ')
+#                 marketplace = Marketplace.objects.select_related().filter(service__service_name__contains = name, visibility=True).values('id','marketplace','service').filter(visibility=True)
+#             elif searchAtr == 'marketplace':
+#                 name = id.replace('_',' ')
+#                 marketplace = Marketplace.objects.select_related().filter(marketplace__contains = name, visibility=True).values('id','marketplace','service').filter(visibility=True)
+#             else:
+#                 res.status_code = status.HTTP_400_BAD_REQUEST
+#                 res.data = {
+#                     'data': [],
+#                     'message': 'invalid search term',
+#                     'status': status.HTTP_400_BAD_REQUEST
+#                 }
+#                 return res
 
 
 
-            # try:
-            #     marketplace = Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service').filter(visibility=True)
-            # except:
-            #     # marketplace = Marketplace.objects.filter(pk__in=[])
-            #     res.status_code = status.HTTP_200_OK
-            #     res.data = {
-            #         'data':  [],
-            #         'status': status.HTTP_200_OK,
-            #         'message': 'no data found',
-            #     }
-            #     return res
+#             # try:
+#             #     marketplace = Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service').filter(visibility=True)
+#             # except:
+#             #     # marketplace = Marketplace.objects.filter(pk__in=[])
+#             #     res.status_code = status.HTTP_200_OK
+#             #     res.data = {
+#             #         'data':  [],
+#             #         'status': status.HTTP_200_OK,
+#             #         'message': 'no data found',
+#             #     }
+#             #     return res
 
-            if marketplace.exists():
-                ser = []
+#             if marketplace.exists():
+#                 ser = []
 
-                for m in marketplace:
-                    # print(m['service'])
-                    try:
-                        service = Services.objects.get(id = m['service'], visibility=True)
-                    except:
-                        service = Services.objects.filter(pk__in=[])
-                        # res.status_code = status.HTTP_200_OK
-                        # res.data = {
-                            # 'data':  {'data': [], 'total_pages': 1, "current_page": page},
-                            # 'status': status.HTTP_200_OK,
-                            # 'message': 'no data found',
-                        # }
-                        # return res
+#                 for m in marketplace:
+#                     # print(m['service'])
+#                     try:
+#                         service = Services.objects.get(id = m['service'], visibility=True)
+#                     except:
+#                         service = Services.objects.filter(pk__in=[])
+#                         # res.status_code = status.HTTP_200_OK
+#                         # res.data = {
+#                             # 'data':  {'data': [], 'total_pages': 1, "current_page": page},
+#                             # 'status': status.HTTP_200_OK,
+#                             # 'message': 'no data found',
+#                         # }
+#                         # return res
 
-                    if service:
-                        ser.append({'service_id': m['service'], 'service_name': service.service_name, 'marketplace_id': m['id'], 'marketplace': m['marketplace']})
+#                     if service:
+#                         ser.append({'service_id': m['service'], 'service_name': service.service_name, 'marketplace_id': m['id'], 'marketplace': m['marketplace']})
                 
-                # page_count = []
-                # pagecount = Marketplace.objects.all()
-                # for p in pagecount:
-                #     page_count.append(p.service.all())
+#                 # page_count = []
+#                 # pagecount = Marketplace.objects.all()
+#                 # for p in pagecount:
+#                 #     page_count.append(p.service.all())
 
-                # pagecount = math.ceil(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility').filter(visibility=True).count()/limit)
+#                 # pagecount = math.ceil(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility').filter(visibility=True).count()/limit)
 
-                # print(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility'))
+#                 # print(Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service', 'visibility'))
 
-                serializer = ViewServicesSerializer(data=ser, many=True)
-                if serializer.is_valid(raise_exception=True):
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'data':  serializer.data,
-                        'status': status.HTTP_200_OK,
-                        'message': 'request successful',
-                    }
-                else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'data': [],
-                        'status': status.HTTP_400_BAD_REQUEST,
-                        'message': 'request failed',
-                    }
-            else:
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'data': [],
-                    'status': status.HTTP_200_OK,
-                    'message': 'no data found',
-                }
-        else:
-            res.status_code = status.HTTP_401_UNAUTHORIZED
-            res.data = {
-                'data': [],
-                'status': status.HTTP_401_UNAUTHORIZED,
-                'message': 'you are not authorized for this action',
-            }
-        return res
-
-
+#                 serializer = ViewServicesSerializer(data=ser, many=True)
+#                 if serializer.is_valid(raise_exception=True):
+#                     res.status_code = status.HTTP_200_OK
+#                     res.data = {
+#                         'data':  serializer.data,
+#                         'status': status.HTTP_200_OK,
+#                         'message': 'request successful',
+#                     }
+#                 else:
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'data': [],
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         'message': 'request failed',
+#                     }
+#             else:
+#                 res.status_code = status.HTTP_200_OK
+#                 res.data = {
+#                     'data': [],
+#                     'status': status.HTTP_200_OK,
+#                     'message': 'no data found',
+#                 }
+#         else:
+#             res.status_code = status.HTTP_401_UNAUTHORIZED
+#             res.data = {
+#                 'data': [],
+#                 'status': status.HTTP_401_UNAUTHORIZED,
+#                 'message': 'you are not authorized for this action',
+#             }
+#         return res
 
 
-class ViewCommercials(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = CommercialsSerializer
-    def get(self, request, id ,format=None, *args, **kwargs):
-        user = request.user
-        res = Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            comm = [[{'commercial_id': c.id, 'price': c.price, 'commission': c.commission, 'price_for_mou': c.price_for_mou} for c in s.commercials.all()] for s in Services.objects.filter(id = id)]
-            # for c in comm:
-            #     print(c)
-            if comm:
-                serializer = CommercialsSerializer(data=comm[0], many=True)
-                serializer.is_valid(raise_exception=True)
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'data': serializer.data,
-                    'status': status.HTTP_200_OK,
-                    'message': 'request successful',
-                }                
-            else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'no data found',
-                }
-
-            # print(comm)
 
 
-        else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'data': [],
-                'status': status.HTTP_400_BAD_REQUEST,
-                'message': 'you are not authorized for this action',
-            }
-        return res
+# class ViewCommercials(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = CommercialsSerializer
+#     def get(self, request, id ,format=None, *args, **kwargs):
+#         user = request.user
+#         res = Response()
+#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#             comm = [[{'commercial_id': c.id, 'price': c.price, 'commission': c.commission, 'price_for_mou': c.price_for_mou} for c in s.commercials.all()] for s in Services.objects.filter(id = id)]
+#             # for c in comm:
+#             #     print(c)
+#             if comm:
+#                 serializer = CommercialsSerializer(data=comm[0], many=True)
+#                 serializer.is_valid(raise_exception=True)
+#                 res.status_code = status.HTTP_200_OK
+#                 res.data = {
+#                     'data': serializer.data,
+#                     'status': status.HTTP_200_OK,
+#                     'message': 'request successful',
+#                 }                
+#             else:
+#                 res.status_code = status.HTTP_400_BAD_REQUEST
+#                 res.data = {
+#                     'data': [],
+#                     'status': status.HTTP_400_BAD_REQUEST,
+#                     'message': 'no data found',
+#                 }
+
+#             # print(comm)
+
+
+#         else:
+#             res.status_code = status.HTTP_400_BAD_REQUEST
+#             res.data = {
+#                 'data': [],
+#                 'status': status.HTTP_400_BAD_REQUEST,
+#                 'message': 'you are not authorized for this action',
+#             }
+#         return res
     
-class DeleteCommercials(GenericAPIView):
-    serializer_class = CommercialsSerializer
-    permission_classes = [IsAuthenticated]
-    def delete(self, request, service_id ,commercial_id, format=None, *args, **kwargs):
-        res = Response()
-        user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            try:
-                serv = Services.objects.get(id = service_id ,commercials__id = commercial_id)
-            except:
-                serv = False
-            # print('serv',serv.commercials.all())
-            if serv:
-                for s in serv.commercials.all():
-                    if s.id == commercial_id:
-                        # print(s,'this wokring')
-                        s.delete()
-                        res.status_code = status.HTTP_200_OK
-                        res.data = {
-                            'data': [],
-                            'status': status.HTTP_200_OK,
-                            'message': 'commercial deleted',
-                        }
-            else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'no data found',
-            }
+# class DeleteCommercials(GenericAPIView):
+#     serializer_class = CommercialsSerializer
+#     permission_classes = [IsAuthenticated]
+#     def delete(self, request, service_id ,commercial_id, format=None, *args, **kwargs):
+#         res = Response()
+#         user = request.user
+#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#             try:
+#                 serv = Services.objects.get(id = service_id ,commercials__id = commercial_id)
+#             except:
+#                 serv = False
+#             # print('serv',serv.commercials.all())
+#             if serv:
+#                 for s in serv.commercials.all():
+#                     if s.id == commercial_id:
+#                         # print(s,'this wokring')
+#                         s.delete()
+#                         res.status_code = status.HTTP_200_OK
+#                         res.data = {
+#                             'data': [],
+#                             'status': status.HTTP_200_OK,
+#                             'message': 'commercial deleted',
+#                         }
+#             else:
+#                 res.status_code = status.HTTP_400_BAD_REQUEST
+#                 res.data = {
+#                     'data': [],
+#                     'status': status.HTTP_400_BAD_REQUEST,
+#                     'message': 'no data found',
+#             }
         
-        else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'data': [],
-                'status': status.HTTP_400_BAD_REQUEST,
-                'message': 'you are not authorized for this action',
-            }
-        return res
+#         else:
+#             res.status_code = status.HTTP_400_BAD_REQUEST
+#             res.data = {
+#                 'data': [],
+#                 'status': status.HTTP_400_BAD_REQUEST,
+#                 'message': 'you are not authorized for this action',
+#             }
+#         return res
 
 
         
-        # serv = Services.objects.get()
-        # for s in serv.commercials.all():
-        #     print(s.id, s)
+#         # serv = Services.objects.get()
+#         # for s in serv.commercials.all():
+#         #     print(s.id, s)
             
-                # print(s, id, s.id)
+#                 # print(s, id, s.id)
 
 
 class dropdown_employee_status(GenericAPIView):

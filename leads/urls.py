@@ -24,20 +24,67 @@ urlpatterns = [
             path('view_country', Viewcountry.as_view()),
             path('search_country/<str:id>', Searchcountry.as_view()),
 
+
+
+
+            path('create_segment', CreateSegment.as_view()),
+            path('view_segment', ViewSegment.as_view()),
+            path('edit_segment/<int:id>', EditSegment.as_view()),
+            path('archive_segment/<int:id>', ArchiveSegment.as_view()),
+            path('view_archive_segment', ViewArchiveSegment.as_view()),
+            path('unarchive_segment/<int:id>', UnarchiveSegment.as_view()),
+            
+
+            path('create_service', CreateService.as_view()),
+            path('view_service', ViewService.as_view()),
+            path('edit_service/<int:id>', EditService.as_view()),
+            path('archive_service/<int:id>', ArchiveService.as_view()),
+            path('view_archive_service', ViewArchiveService.as_view()),
+            path('unarchive_service/<int:id>', UnarchiveService.as_view()),
+
+            
             path('create_marketplace', CreateMarketplace.as_view()),
-            path('update_marketplace/<int:id>', UpdateMarketplace.as_view()),
-            path('delete_marketplace/<int:id>', DeleteMarketplace.as_view()),
             path('view_marketplace', ViewMarketplace.as_view()),
-            path('search_marketplace/<str:id>', SearchMarketplace.as_view()),
+            path('edit_marketplace/<int:id>', EditMarketplace.as_view()),
+            path('archive_marketplace/<int:id>', ArchiveMarketplace.as_view()),
+            path('view_archive_marketplace', ViewArchiveMarketplace.as_view()),
+            path('unarchive_marketplace/<int:id>', UnarchiveMarketplace.as_view()),
 
-            path('create_service', CreateServices.as_view()),
-            path('update_service', UpdateServices.as_view()),
-            path('delete_service/<int:id>', DeleteServices.as_view()),
-            path('view_service/<int:page>', ViewServices.as_view()),
-            path('search_service/<str:searchAtr>/<str:id>', SearchService.as_view()),
 
-            path('view_commercials/<int:id>', ViewCommercials.as_view()),
-            path('delete_commercials/<int:service_id>/<int:commercial_id>', DeleteCommercials.as_view()),
+            path('create_program', CreateProgram.as_view()),
+            path('view_program', ViewProgram.as_view()),
+            path('edit_program/<int:id>', EditProgram.as_view()),
+            path('archive_program/<int:id>', ArchiveProgram.as_view()),
+            path('view_archive_program', ViewArchiveProgram.as_view()),
+            path('unarchive_program/<int:id>', UnarchiveProgram.as_view()),
+
+
+            path('create_sub_program', CreateSubProgram.as_view()),
+            path('view_sub_program', ViewSubProgram.as_view()),
+            path('edit_sub_program/<int:id>', EditSubProgram.as_view()),
+            path('archive_sub_program/<int:id>', ArchiveSubProgram.as_view()),
+            path('view_archive_sub_program', ViewArchiveSubProgram.as_view()),
+            path('unarchive_sub_program/<int:id>', UnarchiveSubProgram.as_view()),
+
+
+            path('create_commercials', CreateServiceCommercials.as_view()),
+            path('edit_commercials', EditServiceCommercials.as_view()),
+
+
+
+            # path('update_marketplace/<int:id>', UpdateMarketplace.as_view()),
+            # path('delete_marketplace/<int:id>', DeleteMarketplace.as_view()),
+            # path('view_marketplace', ViewMarketplace.as_view()),
+            # path('search_marketplace/<str:id>', SearchMarketplace.as_view()),
+
+            # path('create_service', CreateServices.as_view()),
+            # path('update_service', UpdateServices.as_view()),
+            # path('delete_service/<int:id>', DeleteServices.as_view()),
+            # path('view_service/<int:page>', ViewServices.as_view()),
+            # path('search_service/<str:searchAtr>/<str:id>', SearchService.as_view()),
+
+            # path('view_commercials/<int:id>', ViewCommercials.as_view()),
+            # path('delete_commercials/<int:service_id>/<int:commercial_id>', DeleteCommercials.as_view()),
 
 
             #dropdown

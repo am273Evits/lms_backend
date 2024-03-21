@@ -12,4 +12,4 @@ class LeadsAdmin(admin.ModelAdmin):
 
 # admin.site.register(Commercials, CommercialsAdmin)  
 admin.site.register(Leads, LeadsAdmin)
-admin.site.register([Drp_country,Drp_state ,Drp_city, Marketplace, Services, Client_turnover, Drp_business_category, Turn_Arround_Time])
+admin.site.register([Drp_country,Drp_state ,Drp_city, Marketplace, Client_turnover, Drp_business_category, Turn_Arround_Time])

@@ -112,7 +112,6 @@ class UserAccount(AbstractBaseUser):
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey('self', related_name = 'creator_of', on_delete=models.CASCADE, null=True, blank=True)
     visibility = models.BooleanField(default=True)
-
     objects = UserAccountManager()
 
     USERNAME_FIELD = 'email'
@@ -133,9 +132,6 @@ class user_delete(models.Model):
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, blank=True)
     status = models.BooleanField(default=False)
     def __str__(self): return str(self.user.name)
-
-
-    
 
 class File(models.Model):
     file = models.FileField(upload_to='files')
