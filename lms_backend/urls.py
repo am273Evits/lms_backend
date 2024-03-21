@@ -30,7 +30,7 @@ urlpatterns = [
     path('leads/',include('leads.urls')),
 
 
-    path('login',loginpage),
+   #  path('login',loginpage),
    #  path('dropdown/',include('dropdown.urls')),
    #  path('employees/',include('employees.urls')),
    #  path('evitamin/',include('evitamin.urls')),

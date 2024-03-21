@@ -67,7 +67,7 @@ urlpatterns = [
             path('unarchive_sub_program/<int:id>', UnarchiveSubProgram.as_view()),
 
 
-            path('create_commercials', CreateServiceCommercials.as_view()),
+            path('create_commercials', CreateServiceAndCommercials.as_view()),
             path('edit_commercials', EditServiceCommercials.as_view()),
 
 

@@ -1705,9 +1705,9 @@ class UnarchiveSubProgram(GenericAPIView):
 
 
 
-class CreateServiceCommercials(CreateAPIView):
+class CreateServiceAndCommercials(CreateAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = CreateServiceCommercials
+    serializer_class = CreateServicesCommercialsSerializer
     def post(self, request, format=None, *args, **kwargs):
         user = request.user
         res =  Response()
