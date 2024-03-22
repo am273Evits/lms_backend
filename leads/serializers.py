@@ -249,9 +249,6 @@ class CreateServicesCommercialsSerializer(serializers.Serializer):
         # service_name = attrs.get('service_name')
         commercials = attrs.get('commercials')
 
-
-
-
         # print('printed from the be', segment, service, marketplace, program,sub_program, commercials)
         
             # if not isinstance(c.get('price'), int):
@@ -312,7 +309,7 @@ class CreateServicesCommercialsSerializer(serializers.Serializer):
     #     # marketplace.service.add(service)
 
         for c in commercials:
-            commercial = Commercials.objects.create(**{'commercials' :c})
+            commercial = Commercials.objects.create(**{'commercials' : c.strip() })
             services_and_commercials.commercials.add(commercial)
 
     #     # commercial = service.commercials
@@ -327,8 +324,19 @@ class CreateServicesCommercialsSerializer(serializers.Serializer):
     
 
 
-class CreateServiceCommercials(serializers.Serializer):
-    pass
+class ViewServiceAndCommercialSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    segment = serializers.CharField()
+    service = serializers.CharField()
+    marketplace = serializers.CharField()
+    program = serializers.CharField()
+    sub_program = serializers.CharField()
+    commercials = serializers.ListField()
+
+
+
+# class CreateServiceCommercials(serializers.Serializer):
+#     pass
     
 
 

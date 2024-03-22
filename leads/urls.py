@@ -68,7 +68,8 @@ urlpatterns = [
 
 
             path('create_commercials', CreateServiceAndCommercials.as_view()),
-            path('edit_commercials', EditServiceCommercials.as_view()),
+            path('view_commercials/<int:page>', ViewServiceAndCommercials.as_view()),
+            path('edit_commercials/<int:id>', EditServiceCommercials.as_view()),
 
 
 

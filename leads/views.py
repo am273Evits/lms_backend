@@ -1724,39 +1724,27 @@ class CreateServiceAndCommercials(CreateAPIView):
                 service_commercials = Services_and_Commercials.objects.filter(segment=segment, service=service, marketplace=marketplace,program=program)
                 print('service_commercials',service_commercials)
             else:
-                service_commercials = Services_and_Commercials.objects.filter(segment=segment, service=service, marketplace=marketplace,program=program)
+                service_commercials = Services_and_Commercials.objects.filter(segment=segment, service=service, marketplace=marketplace,program=program,sub_program=sub_program)
                 print('service_commercials',service_commercials)
+
+            # unique_commercials = []
 
 
             if service_commercials:
-                for s in service_commercials.first().commercials.all():
-                    for c in commercials:
-                        if c == s.commercials:
-                            print(c)
-                # pass
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'already created, you can edit from commercials list.',[])
+                # saved_commercials = [s.commercials for s in service_commercials.first().commercials.all() ]
+                # print('saved_commercials',saved_commercials)
+                # print('commercials',commercials)
+
+                # for c in commercials:
+                #     if not c.strip() in saved_commercials:
+                        
+                #         commercial = Commercials.objects.create(**{'commercials' : c.strip() })
+                #         service_commercials.first().commercials.add(commercial)
+                
+                # res = resFun(status.HTTP_200_OK, 'commercial saved',[])
             else:
 
-
-            # print(segment_id, service_id, marketplace_id, program_id, sub_program_id)
-
-            # service_name = request.data.get('service_name')
-            # try:
-            #     service = Marketplace.objects.get(id = marketplace_id, service__service_name = service_name)
-            #     if service:
-            #         res.status_code = status.HTTP_200_OK
-            #         res.data = {
-            #             'data': [],
-            #             'status': status.HTTP_200_OK,
-            #             'message': 'service name already exists, kindly check archives',
-            #         }
-            #         return res   
-
-            # except:
-            #     service = Marketplace.objects.filter(pk__in=[])
-            
-            # if not service.exists():
-                
-                # pass
                 serializer = CreateServicesCommercialsSerializer(data=request.data)
                 if serializer.is_valid(raise_exception=True):
                     if serializer.save():
@@ -1771,22 +1759,86 @@ class CreateServiceAndCommercials(CreateAPIView):
 
 
 
+class ViewServiceAndCommercials(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewServiceAndCommercialSerializer
+    def get(self,request,page, format=None, *args, **kwargs):
+        user=request.user
+        limit = 10
+        offset = int((page - 1) * limit)
+        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+
+            # segment = request.data.get('segment')
+            # service = request.data.get('service')
+            # marketplace = request.data.get('marketplace')
+            # program = request.data.get('program')
+            # sub_program = request.data.get('sub_program')
+            # commercials = request.data.get('commercials')
+
+            # if sub_program == None:
+            #     service_commercials = Services_and_Commercials.objects.filter(segment=segment, service=service, marketplace=marketplace,program=program)
+            #     # print('service_commercials',service_commercials)
+            # else:
+            #     service_commercials = Services_and_Commercials.objects.filter(segment=segment, service=service, marketplace=marketplace,program=program,sub_program=sub_program)
+                # print('service_commercials',service_commercials)
+            
+            service_commercials = Services_and_Commercials.objects.filter(segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True)[offset : offset + limit]
+            print('service_commercials',service_commercials)
+
+            if service_commercials.exists():
+                data=[]
+                # service_commercials = service_commercials
+                for sc in service_commercials:
+                    d = {
+                        'id':sc.id,
+                        'segment': sc.segment.segment,
+                        'service': sc.service.service,
+                        'marketplace': sc.marketplace.marketplace,
+                        'program':sc.program.program,
+                        'sub_program':sc.sub_program.sub_program if sc.sub_program!=None else '-',
+                        'commercials': [{ 'id': s.id, 'commercials': s.commercials} for s in sc.commercials.all()]
+                    }
+                    data.append(d)
+            
+                print(data)
+
+                serializer = ViewServiceAndCommercialSerializer(data=data,many=True)
+                if serializer.is_valid():
+                    res = resFun(status.HTTP_200_OK,'request successful',serializer.data)
+                    # return res
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST,'data not available',[])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
+
+        return res
+
+
+
+
+
 class EditServiceCommercials(GenericAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = CreateServiceCommercials
-    def put(self, request, format=None, *args, **kwargs):
+    serializer_class = CreateServicesCommercialsSerializer
+    def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
 
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
 
+            print(id)
             segment = request.data.get('segment')
             service = request.data.get('service')
             marketplace = request.data.get('marketplace')
             program = request.data.get('program')
             sub_program = request.data.get('sub_program')
+            commercials = request.data.get('commercials')
 
-            serviceCommercials=Services_and_Commercials.objects.filter(segment=segment, service=service,marketplace=marketplace, program=program)
-            print('serviceCommercials',serviceCommercials)
+            # print(id,segment, service, marketplace, program, sub_program)
+
+            serviceCommercials=Services_and_Commercials.objects.filter(id=id)
+            serviceCommercials=serviceCommercials.first()
 
             # serializer = CreateServicesCommercialsSerializer(data=request.data)
             # if serializer.is_valid(raise_exception=True):
