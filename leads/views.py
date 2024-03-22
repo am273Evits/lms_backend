@@ -1809,9 +1809,11 @@ class ViewServiceAndCommercials(GenericAPIView):
                 print(data)
 
                 serializer = ViewServiceAndCommercialSerializer(data=data,many=True)
+
+                pagecount = math.ceil(Services_and_Commercials.objects.filter(segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True).count()/limit)
+
                 if serializer.is_valid():
-                    res = resFun(status.HTTP_200_OK,'request successful',serializer.data)
-                    # return res
+                    res = resFun(status.HTTP_200_OK,'request successful', {'data': serializer.data, 'total_pages': pagecount, "current_page": page})
                 else:
                     res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
             else:
@@ -1850,24 +1852,44 @@ class EditServiceCommercials(GenericAPIView):
                 service_commercials = Services_and_Commercials.objects.filter(segment=segment, service=service, marketplace=marketplace,program=program,sub_program=sub_program)
 
 
-            print('service_commercials',service_commercials)
+            print('service_commercials',service_commercials.first().id)
 
 
-            if service_commercials.exists():
+            if service_commercials.exists() and id != service_commercials.first().id:
                 # print(id,segment, service, marketplace, program, sub_program)
                 res = resFun(status.HTTP_400_BAD_REQUEST, 'already exists', [])
 
             else:
+
+                # print('working')
+
                 serviceCommercials=Services_and_Commercials.objects.filter(id=id)
                 serviceCommercials=serviceCommercials.first()
-                serviceCommercials.segment = segment
-                serviceCommercials.service = service
-                serviceCommercials.marketplace = marketplace
-                serviceCommercials.program = program
-                serviceCommercials.sub_program = sub_program
+                serviceCommercials.segment = Segment.objects.get(id=segment)
+                serviceCommercials.service = Service.objects.get(id=service)
+                serviceCommercials.marketplace = Marketplace.objects.get(id=marketplace)
+                serviceCommercials.program = Program.objects.get(id=program)
+                
+                if not sub_program == None:
+                    serviceCommercials.sub_program = Sub_Program.objects.get(id=sub_program)
 
-                serviceCommercials = [ s.commercials for s in serviceCommercials.commercials.all()]
-                print('serviceCommercials',serviceCommercials)
+                saved_Commercials = [ s.commercials for s in serviceCommercials.commercials.all() if s.visibility==True ]
+                
+                if len(saved_Commercials) > 0:
+
+                    print('if',saved_Commercials)
+                    print('if',commercials)
+
+
+                else:
+                    for c in commercials:
+                        new_commercial=Commercials.objects.create(**{'commercials':c['value'].strip()})
+                        serviceCommercials.commercials.add(new_commercial)
+                    # pass
+                    
+                serviceCommercials.save()
+
+                res = resFun(status.HTTP_200_OK, 'updated successfully', [])
 
 
             # serviceCommercials.save()
