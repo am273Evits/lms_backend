@@ -33,7 +33,7 @@ urlpatterns = [
    #  path('login',loginpage),
    #  path('dropdown/',include('dropdown.urls')),
    #  path('employees/',include('employees.urls')),
-   #  path('evitamin/',include('evitamin.urls')),
+    path('evitamin/',include('evitamin.urls')),
    #  path('records/',include('records.urls')),
     # path('appointment/',include('appointment.urls')),
     path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),

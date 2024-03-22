@@ -67,9 +67,12 @@ urlpatterns = [
             path('unarchive_sub_program/<int:id>', UnarchiveSubProgram.as_view()),
 
 
-            path('create_commercials', CreateServiceAndCommercials.as_view()),
-            path('view_commercials/<int:page>', ViewServiceAndCommercials.as_view()),
-            path('edit_commercials/<int:id>', EditServiceCommercials.as_view()),
+            # path('create_commercials', CreateServiceAndCommercials.as_view()),
+            # path('view_commercials/<int:page>', ViewServiceAndCommercials.as_view()),
+            # path('edit_commercials/<int:id>', EditServiceCommercials.as_view()),
+            # path('archive_commercials/<int:id>', ArchiveServiceCommercials.as_view()),
+            # path('view_archive_commercials/<int:page>', ViewArchivedServiceAndCommercials.as_view()),
+            # path('unarchive_commercials/<int:id>', UnarchiveServiceCommercials.as_view()),
 
 
 
