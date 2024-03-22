@@ -235,11 +235,13 @@ class CreateServicesCommercialsSerializer(serializers.Serializer):
     service = serializers.IntegerField()
     marketplace = serializers.IntegerField()
     program = serializers.IntegerField()
-    sub_program = serializers.IntegerField()
+    sub_program = serializers.IntegerField(required=False)
     # service_name = serializers.CharField()
     commercials = serializers.ListField()
 
     def validate(self, attrs):
+
+        # print('validate working')
 
         segment = attrs.get('segment')
         service = attrs.get('service')
@@ -322,6 +324,68 @@ class CreateServicesCommercialsSerializer(serializers.Serializer):
 
         return validated_data
     
+
+
+
+
+class CreateServicesCommercialsSerializer_NSP(serializers.Serializer):
+    segment = serializers.IntegerField()
+    service = serializers.IntegerField()
+    marketplace = serializers.IntegerField()
+    program = serializers.IntegerField()
+    # sub_program = serializers.IntegerField(required=False)
+    commercials = serializers.ListField()
+
+    def validate(self, attrs):
+
+        segment = attrs.get('segment')
+        service = attrs.get('service')
+        marketplace = attrs.get('marketplace')
+        program = attrs.get('program')
+        # sub_program = attrs.get('sub_program')
+        commercials = attrs.get('commercials')
+
+        if not isinstance(segment, int):
+            raise serializers.ValidationError('segment should be a number')
+        if not isinstance(service, int):
+            raise serializers.ValidationError('services should be a number')
+        if not isinstance(marketplace, int):
+            raise serializers.ValidationError('marketplace should be a number')
+        if not isinstance(program, int):
+            raise serializers.ValidationError('program should be a number')
+        # if sub_program != None:
+        #     if not isinstance(sub_program, int):
+        #         raise serializers.ValidationError('sub_program should be a number')
+        
+        for c in commercials:
+            if not c or c == None:
+                raise serializers.ValidationError('commercial is required field')
+            
+        return attrs
+
+    def create(self, validated_data):
+
+        print('validated_data',validated_data)
+
+        segment = Segment.objects.get(id=validated_data['segment'])
+        service = Service.objects.get(id=validated_data['service'])
+        marketplace = Marketplace.objects.get(id=validated_data['marketplace'])
+        program = Program.objects.get(id=validated_data['program'])
+        # sub_program = Sub_Program.objects.get(id=validated_data['sub_program'])
+        commercials = validated_data['commercials']
+
+        services_and_commercials = Services_and_Commercials.objects.create(**{'segment': segment, 'service': service, 'marketplace': marketplace, 'program': program})
+
+        for c in commercials:
+            commercial = Commercials.objects.create(**{'commercials' : c.strip() })
+            services_and_commercials.commercials.add(commercial)
+
+        return validated_data
+
+
+
+
+
 
 
 class ViewServiceAndCommercialSerializer(serializers.Serializer):

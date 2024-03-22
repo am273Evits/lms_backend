@@ -1745,7 +1745,13 @@ class CreateServiceAndCommercials(CreateAPIView):
                 # res = resFun(status.HTTP_200_OK, 'commercial saved',[])
             else:
 
-                serializer = CreateServicesCommercialsSerializer(data=request.data)
+                if sub_program == None:
+                    serializer = CreateServicesCommercialsSerializer_NSP(data=request.data)
+                else:
+                    serializer = CreateServicesCommercialsSerializer(data=request.data)
+
+
+                
                 if serializer.is_valid(raise_exception=True):
                     if serializer.save():
                             res = resFun(status.HTTP_200_OK, 'added successfully', serializer.data)
@@ -1827,7 +1833,7 @@ class EditServiceCommercials(GenericAPIView):
 
         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
 
-            print(id)
+            # print(id)
             segment = request.data.get('segment')
             service = request.data.get('service')
             marketplace = request.data.get('marketplace')
@@ -1835,10 +1841,39 @@ class EditServiceCommercials(GenericAPIView):
             sub_program = request.data.get('sub_program')
             commercials = request.data.get('commercials')
 
-            # print(id,segment, service, marketplace, program, sub_program)
 
-            serviceCommercials=Services_and_Commercials.objects.filter(id=id)
-            serviceCommercials=serviceCommercials.first()
+
+            if sub_program == None:
+                # print('this working')
+                service_commercials = Services_and_Commercials.objects.filter(segment=segment, service=service, marketplace=marketplace,program=program)
+            else:
+                service_commercials = Services_and_Commercials.objects.filter(segment=segment, service=service, marketplace=marketplace,program=program,sub_program=sub_program)
+
+
+            print('service_commercials',service_commercials)
+
+
+            if service_commercials.exists():
+                # print(id,segment, service, marketplace, program, sub_program)
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'already exists', [])
+
+            else:
+                serviceCommercials=Services_and_Commercials.objects.filter(id=id)
+                serviceCommercials=serviceCommercials.first()
+                serviceCommercials.segment = segment
+                serviceCommercials.service = service
+                serviceCommercials.marketplace = marketplace
+                serviceCommercials.program = program
+                serviceCommercials.sub_program = sub_program
+
+                serviceCommercials = [ s.commercials for s in serviceCommercials.commercials.all()]
+                print('serviceCommercials',serviceCommercials)
+
+
+            # serviceCommercials.save()
+            
+
+            # print('serviceCommercials',serviceCommercials.segment)
 
             # serializer = CreateServicesCommercialsSerializer(data=request.data)
             # if serializer.is_valid(raise_exception=True):
@@ -1851,7 +1886,7 @@ class EditServiceCommercials(GenericAPIView):
             # else:
             #     res = resFun(status.HTTP_400_BAD_REQUEST, 'services already exists', [] )
         else:
-            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [] )
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
         return res
 
 
