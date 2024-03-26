@@ -864,3 +864,8 @@ def user_VF(id):
     serializer = userSerializer(data=data)
     serializer.is_valid(raise_exception=True)
     return  {'user': serializer.data}
+
+
+
+def GeneratePassword(request, id, token):
+    pass

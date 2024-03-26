@@ -16,6 +16,10 @@ urlpatterns = [
       path('user_delete/<str:employee_id>',views.delete_user.as_view()),
 
 
+      path('generate_password/<int:id>/<str:token>', views.GeneratePassword),
+
+
+
       
 
 

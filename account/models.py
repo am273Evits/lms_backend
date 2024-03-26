@@ -16,15 +16,20 @@ class Program(models.Model):
     title = models.CharField(max_length=100, blank=True, default='')
     def __str__(self): return str(self.title)
 
+class Sub_Program(models.Model):
+    title = models.CharField(max_length=100, blank=True, default='')
+    def __str__(self): return str(self.title)
+
 # class Designation(models.Model):
 #     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
 #     designation = models.ForeignKey(Designation, on_delete=models.CASCADE, null=True, blank=True)
 #     def __str__(self): return str(self.designation)
 
 class Drp_Program(models.Model):
-    program = models.ForeignKey(Program, on_delete=models.CASCADE, null=True, blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
     designation = models.ForeignKey(Designation, on_delete=models.CASCADE, null=True, blank=True)
+    program = models.ForeignKey(Program, on_delete=models.CASCADE, null=True, blank=True)
+    sub_program = models.ForeignKey(Sub_Program, on_delete=models.CASCADE, null=True, blank=True)
     def __str__(self): return str(self.department)
 
 

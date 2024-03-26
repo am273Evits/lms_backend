@@ -21,7 +21,7 @@ class CreateServiceAndCommercials(CreateAPIView):
     def post(self, request, format=None, *args, **kwargs):
         user = request.user
         res =  Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
 
             segment = request.data.get('segment')
             service = request.data.get('service')
@@ -82,11 +82,10 @@ class ViewServiceAndCommercials(GenericAPIView):
         user=request.user
         limit = 10
         offset = int((page - 1) * limit)
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             
             service_commercials = Services_and_Commercials.objects.filter(segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)[offset : offset + limit]
             print('service_commercials',service_commercials)
-
             if service_commercials.exists():
                 data=[]
                 # service_commercials = service_commercials
@@ -126,7 +125,7 @@ class EditServiceCommercials(GenericAPIView):
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
 
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
 
             # print(id)
             segment = request.data.get('segment')
@@ -224,7 +223,7 @@ class ArchiveServiceCommercials(GenericAPIView):
     serializer_class = ViewServiceAndCommercialSerializer
     def delete(self,request,id, format=None, *args, **kwargs):
         user=request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 service_commercials = Services_and_Commercials.objects.filter(id=id,visibility=True)
             except:
@@ -252,7 +251,7 @@ class ViewArchivedServiceAndCommercials(GenericAPIView):
         user=request.user
         limit = 10
         offset = int((page - 1) * limit)
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             
             service_commercials = Services_and_Commercials.objects.filter(segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)[offset : offset + limit]
 
@@ -291,7 +290,7 @@ class UnarchiveServiceCommercials(GenericAPIView):
     serializer_class = ViewServiceAndCommercialSerializer
     def put(self,request,id, format=None, *args, **kwargs):
         user=request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 service_commercials = Services_and_Commercials.objects.filter(id=id,visibility=False)
             except:
