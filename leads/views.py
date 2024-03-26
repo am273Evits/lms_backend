@@ -13,7 +13,7 @@ from rest_framework import status
 import pandas as pd
 
 from .serializers import *
-from account.models import UserAccount, Drp_Product, Department, Designation, Product, Employee_status
+from account.models import UserAccount, Drp_Program, Department, Designation, Program, Employee_status
 from .models import Leads, Remark_history
 # from account.views import getLeadId
 
@@ -50,7 +50,7 @@ class dashboard(GenericAPIView):
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
         res = Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if str(user.department) == 'director':
 
             status_history = Status_history.objects.filter(status_date = datetime.now()).distinct()
             print(status_history)
@@ -346,7 +346,7 @@ class viewAllLeads(GenericAPIView):
                 'data': [],
             })
 
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator') or (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if str(user.department) == 'director' or (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
             data = []
             leadsData = Leads.objects.select_related().filter(visibility = True).all()[offset : offset + limit]
 
@@ -472,7 +472,7 @@ class viewLeadsAllIdentifiers(GenericAPIView):
     def post(self, request, lead_id ,format=None, *args, **kwargs):
         user = request.user
         res = Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
 
             leads = Leads.objects.select_related().filter(lead_id=lead_id, visibility =True)
             if leads.exists():
@@ -539,7 +539,7 @@ class viewAllLeadsSearch(GenericAPIView):
     def get(self, request, lead_id, format=None, *args, **kwargs):
         user = request.user
         res =  Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
 
             # user_role = getUserRole(user.id)
             # data = []
@@ -633,7 +633,7 @@ class Createcountry(CreateAPIView):
     def post(self, request, format=None, *args, **kwargs):
         user = request.user
         res =  Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             country = Country.objects.filter(country = request.data.get('country').lower()).values()
             if not country.exists():
                 serializer = CreateCountrySerializer(data=request.data)
@@ -654,7 +654,7 @@ class Updatecountry(GenericAPIView):
     def put(self, request, id, format=None, *args, **kwargs):
         user = request.user
         res =  Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             country = Country.objects.get(id=id, visibility=True)
             if country:
                 if not Country.objects.filter(country=request.data.get('country').lower()).exists():
@@ -678,7 +678,7 @@ class Deletecountry(GenericAPIView):
     def delete(self, request, id, format=None, *args, **kwargs):
         user = request.user
         res =  Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 country = Country.objects.filter(id=id, visibility=True).first()
             except:
@@ -710,7 +710,7 @@ class Viewcountry(GenericAPIView):
         # offset = int((page - 1) * limit)
         user = request.user
         res =  Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             country = Country.objects.filter(visibility=True)
             # print(list(marketplace.values_list()))
             if country.exists():
@@ -732,7 +732,7 @@ class Searchcountry(GenericAPIView):
     def get(self, request, id, format=None, *args, **kwargs):
         user = request.user
         # res =  Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             name = id.replace('_',' ')
             try:
                 country = Country.objects.filter(country__contains = name, visibility=True)
@@ -760,7 +760,7 @@ class CreateSegment(CreateAPIView):
     def post(self, request, format=None, *args, **kwargs):
         user = request.user
         res =  Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 segment = Segment.objects.filter(segment = request.data.get('segment').lower()).values()
             except:
@@ -788,7 +788,7 @@ class ViewSegment(CreateAPIView):
     serializer_class = ViewSegmentSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 segment = Segment.objects.filter(visibility=True)
             except:
@@ -812,7 +812,7 @@ class EditSegment(GenericAPIView):
     serializer_class = ViewSegmentSerializer
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 segment = Segment.objects.filter(id=id)
             except:
@@ -838,7 +838,7 @@ class ArchiveSegment(GenericAPIView):
     serializer_class = ViewSegmentSerializer
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 segment = Segment.objects.filter(id=id)
             except:
@@ -861,7 +861,7 @@ class ViewArchiveSegment(GenericAPIView):
     serializer_class = ViewSegmentSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 segment = Segment.objects.filter(visibility=False)
             except:
@@ -885,7 +885,7 @@ class UnarchiveSegment(GenericAPIView):
     serializer_class = ViewSegmentSerializer
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 segment = Segment.objects.filter(id=id)
             except:
@@ -909,7 +909,7 @@ class CreateService(CreateAPIView):
     serializer_class = CreateServiceSerializer
     def post(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 segment = Service.objects.filter(service = request.data.get('service').lower()).values()
             except:
@@ -937,7 +937,7 @@ class ViewService(CreateAPIView):
     serializer_class = ViewServiceSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 service = Service.objects.filter(visibility=True)
             except:
@@ -958,7 +958,7 @@ class EditService(GenericAPIView):
     serializer_class = ViewServiceSerializer
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 service = Service.objects.filter(id=id)
             except:
@@ -985,7 +985,7 @@ class ArchiveService(GenericAPIView):
     serializer_class = ViewServiceSerializer
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 service = Service.objects.filter(id=id)
             except:
@@ -1009,7 +1009,7 @@ class ViewArchiveService(CreateAPIView):
     serializer_class = ViewServiceSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 service = Service.objects.filter(visibility=False)
             except:
@@ -1031,7 +1031,7 @@ class UnarchiveService(GenericAPIView):
     serializer_class = ViewServiceSerializer
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 service = Service.objects.filter(id=id)
             except:
@@ -1057,7 +1057,7 @@ class CreateMarketplace(CreateAPIView):
     def post(self, request, format=None, *args, **kwargs):
         user = request.user
         res =  Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             marketplace = Marketplace.objects.filter(marketplace = request.data.get('marketplace').lower()).values()
             if not marketplace.exists():
                 serializer = CreateMarketplaceSerializer(data=request.data)
@@ -1078,7 +1078,7 @@ class ViewMarketplace(CreateAPIView):
     serializer_class = MarketplaceSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 marketplace = Marketplace.objects.filter(visibility=True)
             except:
@@ -1098,7 +1098,7 @@ class EditMarketplace(GenericAPIView):
     serializer_class = ViewMarketplaceSerializer
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 marketplace = Marketplace.objects.filter(id=id)
             except:
@@ -1125,7 +1125,7 @@ class ArchiveMarketplace(GenericAPIView):
     serializer_class = ViewMarketplaceSerializer
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 marketplace = Marketplace.objects.filter(id=id)
             except:
@@ -1149,7 +1149,7 @@ class ViewArchiveMarketplace(CreateAPIView):
     serializer_class = MarketplaceSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 marketplace = Marketplace.objects.filter(visibility=False)
             except:
@@ -1169,7 +1169,7 @@ class UnarchiveMarketplace(GenericAPIView):
     serializer_class = ViewMarketplaceSerializer
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 marketplace = Marketplace.objects.filter(id=id)
             except:
@@ -1195,7 +1195,7 @@ class CreateProgram(GenericAPIView):
     def post(self, request, format=None, *args, **kwargs):
         user = request.user
         # res =  Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             segment = Program.objects.filter(program = request.data.get('program').lower()).values()
             if not segment.exists():
                 serializer = CreateProgramSerializer(data=request.data)
@@ -1219,7 +1219,7 @@ class ViewProgram(CreateAPIView):
     serializer_class = ProgramSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 marketplace = Program.objects.filter(visibility=True)
             except:
@@ -1246,7 +1246,7 @@ class EditProgram(GenericAPIView):
     serializer_class = ProgramSerializer
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 program = Program.objects.filter(id=id)
             except:
@@ -1272,7 +1272,7 @@ class ArchiveProgram(GenericAPIView):
     serializer_class = ProgramSerializer
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 program = Program.objects.filter(id=id)
             except:
@@ -1299,7 +1299,7 @@ class ViewArchiveProgram(CreateAPIView):
     serializer_class = ProgramSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 marketplace = Program.objects.filter(visibility=False)
             except:
@@ -1320,7 +1320,7 @@ class UnarchiveProgram(GenericAPIView):
     serializer_class = ProgramSerializer
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 program = Program.objects.filter(id=id)
             except:
@@ -1350,7 +1350,7 @@ class CreateSubProgram(CreateAPIView):
         user = request.user
         # res =  Response()
         print('request.data', request.data)
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             segment = Sub_Program.objects.filter(sub_program = request.data.get('sub_program').lower()).values()
             if not segment.exists():
                 # print('request.data', request.data)
@@ -1373,12 +1373,11 @@ class ViewSubProgram(GenericAPIView):
     serializer_class = SubProgramSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 sub_program = Sub_Program.objects.filter(visibility=True)
             except:
                 sub_program = Sub_Program.objects.filter(pk__in=[])
-            
             if sub_program.exists():
                 res = resFun(status.HTTP_200_OK, 'request successful', list(sub_program.values()))
             else:
@@ -1394,12 +1393,11 @@ class EditSubProgram(GenericAPIView):
     serializer_class = SubProgramSerializer
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 sub_program = Sub_Program.objects.filter(id=id)
             except:
                 sub_program = Sub_Program.objects.filter(pk__in=[])
-
             if sub_program.exists():
                 serializer = SubProgramSerializer(sub_program.first(), data=request.data, partial=True)
                 if serializer.is_valid(raise_exception=True):
@@ -1420,18 +1418,16 @@ class ArchiveSubProgram(GenericAPIView):
     serializer_class = ProgramSerializer
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 sub_program = Sub_Program.objects.filter(id=id)
             except:
                 sub_program = Sub_Program.objects.filter(pk__in=[])
-
             
             if sub_program.exists():
                 sub_program = sub_program.first()
                 sub_program.visibility = False
                 sub_program.save()
-                
                 res = resFun(status.HTTP_200_OK, 'sub program archived', [])
             else:
                 res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
@@ -1445,7 +1441,7 @@ class ViewArchiveSubProgram(GenericAPIView):
     serializer_class = SubProgramSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 sub_program = Sub_Program.objects.filter(visibility=False)
             except:
@@ -1466,7 +1462,7 @@ class UnarchiveSubProgram(GenericAPIView):
     serializer_class = ProgramSerializer
     def put(self, request,id, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             try:
                 sub_program = Sub_Program.objects.filter(id=id)
             except:
@@ -1501,7 +1497,7 @@ class UnarchiveSubProgram(GenericAPIView):
 #     def put(self, request, id, format=None, *args, **kwargs):
 #         user = request.user
 #         res =  Response()
-#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#         if (str(user.department) == 'director'):
 #             marketplace = Marketplace.objects.get(id=id, visibility=True)
 #             if marketplace:
 #                 if not Marketplace.objects.filter(marketplace=request.data.get('marketplace').lower()).exists():
@@ -1551,7 +1547,7 @@ class UnarchiveSubProgram(GenericAPIView):
 #     def get(self, request, id, format=None, *args, **kwargs):
 #         user = request.user
 #         res =  Response()
-#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#         if (str(user.department) == 'director'):
 
 #             name = id.replace('_',' ')
 #             try:
@@ -1610,7 +1606,7 @@ class UnarchiveSubProgram(GenericAPIView):
 #     def delete(self, request, id, format=None, *args, **kwargs):
 #         user = request.user
 #         res =  Response()
-#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#         if (str(user.department) == 'director'):
 #             try:
 #                 marketplace = Marketplace.objects.filter(id=id, visibility=True).first()
 #             except:
@@ -1664,7 +1660,7 @@ class UnarchiveSubProgram(GenericAPIView):
 #         # offset = int((page - 1) * limit)
 #         user = request.user
 #         res =  Response()
-#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#         if (str(user.department) == 'director'):
 #             marketplace = Marketplace.objects.filter(visibility=True)
 #             # print(list(marketplace.values_list()))
 #             if marketplace.exists():
@@ -1716,7 +1712,7 @@ class UnarchiveSubProgram(GenericAPIView):
 #         user = request.user
 #         res =  Response()
 
-#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#         if (str(user.department) == 'director'):
 #             try:
 #                 services = Services.objects.filter(id=request.data.get('service_id'), visibility=True)
 #             except:
@@ -1768,7 +1764,7 @@ class UnarchiveSubProgram(GenericAPIView):
 #     def delete(self, request, id, format=None, *args, **kwargs):
 #         user = request.user
 #         res =  Response()
-#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#         if (str(user.department) == 'director'):
 #             services = Services.objects.get(id=id, visibility=True)
 #             if services:
 #                 for s in services.commercials.all():
@@ -1817,7 +1813,7 @@ class UnarchiveSubProgram(GenericAPIView):
 #         limit = 10
 #         offset = int((page - 1) * limit)
 #         res =  Response()
-#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#         if (str(user.department) == 'director'):
 #             try:
 #                 # marketplace = Marketplace.objects.select_related().filter(visibility=True).values('id','marketplace','service').filter(visibility=True)[offset : offset + limit]
 #                 marketplace = Marketplace.objects.select_related().filter(visibility=True, service__isnull=False).values('id','marketplace','service')[offset : offset + limit]
@@ -1902,7 +1898,7 @@ class UnarchiveSubProgram(GenericAPIView):
 #     def get(self, request, searchAtr, id, format=None, *args, **kwargs):
 #         user = request.user
 #         res =  Response()
-#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#         if (str(user.department) == 'director'):
 
 #             if searchAtr == 'service':
 #                 name = id.replace('_',' ')
@@ -2002,7 +1998,7 @@ class UnarchiveSubProgram(GenericAPIView):
 #     def get(self, request, id ,format=None, *args, **kwargs):
 #         user = request.user
 #         res = Response()
-#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#         if (str(user.department) == 'director'):
 #             comm = [[{'commercial_id': c.id, 'price': c.price, 'commission': c.commission, 'price_for_mou': c.price_for_mou} for c in s.commercials.all()] for s in Services.objects.filter(id = id)]
 #             # for c in comm:
 #             #     print(c)
@@ -2041,7 +2037,7 @@ class UnarchiveSubProgram(GenericAPIView):
 #     def delete(self, request, service_id ,commercial_id, format=None, *args, **kwargs):
 #         res = Response()
 #         user = request.user
-#         if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+#         if (str(user.department) == 'director'):
 #             try:
 #                 serv = Services.objects.get(id = service_id ,commercials__id = commercial_id)
 #             except:
@@ -2090,7 +2086,7 @@ class dropdown_employee_status(GenericAPIView):
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
         # res = Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
 
             employee_status = Employee_status.objects.values('title','id').distinct()
             # print('employee_status',employee_status)
@@ -2115,9 +2111,9 @@ class dropdown_department(GenericAPIView):
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
         res = Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
 
-            department = Drp_Product.objects.values('department').distinct()
+            department = Drp_Program.objects.values('department').distinct()
             print('department',department)
             if department.exists():
                 data =[]
@@ -2163,10 +2159,10 @@ class dropdown_designation(GenericAPIView):
     def get(self, request, id, format=None, *args, **kwargs):
         user = request.user
         res = Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if (str(user.department) == 'director'):
             # print(user.designation)
 
-            designation = Drp_Product.objects.filter(department = id).values('designation').distinct()
+            designation = Drp_Program.objects.filter(department = id).values('designation').distinct()
             # print(designation)
             if designation.exists():
                 data = []
@@ -2202,52 +2198,40 @@ class dropdown_designation(GenericAPIView):
 
 
 
-class dropdown_product(GenericAPIView):
-    serializer_class = dropdown_productSerializer
+class dropdown_program(GenericAPIView):
+    serializer_class = dropdown_programSerializer
     permission_classes = [IsAuthenticated]
     def get(self, request, id, format=None, *args, **kwargs):
         user = request.user
         res = Response()
-        if (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
-            product = Drp_Product.objects.filter(designation = id).values('product').distinct()
-            print(product)
-            if product.exists():
+        if (str(user.department) == 'director'):
+            program = Drp_Program.objects.filter(designation = id).values('program').distinct()
+            print(program)
+            if program.exists():
                 data = []
-                for d in product:
-                    if d.get('product') == None:
+                for d in program:
+                    if d.get('program') == None:
                         res.status_code = status.HTTP_400_BAD_REQUEST
                         res.data = {
                             'data': [],
                             'status': status.HTTP_400_BAD_REQUEST,
                             'message': 'invalid designation id',
                         }
+                        res = resFun(status.HTTP_200_OK,'invalid designation id',[])
+
                         return res                           
                     else:
-                        data.append({'product_id': d.get('product'), 'product_name': Product.objects.get(id = d.get('product')).title})
+                        data.append({'program_id': d.get('program'), 'program_name': Program.objects.get(id = d.get('program')).title})
 
 
-                serializer = dropdown_productSerializer(data=data, many=True)
+                serializer = dropdown_programSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'data': serializer.data,
-                    'status': status.HTTP_200_OK,
-                    'message': 'request successful',
-                }                    
+
+                res = resFun(status.HTTP_200_OK,'request successful',serializer.data)
             else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'no product list found',
-                }
+                res = resFun(status.HTTP_400_BAD_REQUEST,'no program list found',[])
         else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'data': [],
-                'status': status.HTTP_400_BAD_REQUEST,
-                'message': 'you are not authorized for this action',
-            }
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
         return res
 
 # class ()

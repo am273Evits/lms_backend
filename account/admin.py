@@ -11,10 +11,10 @@ admin.site.register(UserAccount, UserAccountAdmin)
 #     list_display = ('designation', 'department')
 # admin.site.register(Designation, DesignationAdmin)
 
-class Drp_ProductAdmin(admin.ModelAdmin):
-    list_display = ('department','designation', 'product')
-admin.site.register(Drp_Product, Drp_ProductAdmin)  
+# class Drp_ProductAdmin(admin.ModelAdmin):
+#     list_display = ('department','designation', 'product')
+# admin.site.register(Drp_Program, Drp_ProductAdmin)  
 
 
 
-admin.site.register([Department, Designation, Product, Employee_status])
+admin.site.register([Department, Designation, Program, Employee_status])

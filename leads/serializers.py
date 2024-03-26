@@ -650,9 +650,9 @@ class dropdown_designationSerializer(serializers.Serializer):
     designation_id = serializers.CharField()
     designation_name = serializers.CharField()
 
-class dropdown_productSerializer(serializers.Serializer):
-    product_id = serializers.CharField()
-    product_name = serializers.CharField()
+class dropdown_programSerializer(serializers.Serializer):
+    program_id = serializers.CharField()
+    program_name = serializers.CharField()
 
 
 

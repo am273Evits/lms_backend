@@ -203,7 +203,7 @@ class registration_VF(GenericAPIView):
             }
             return res
 
-        elif userDepartment == 'admin' and userDesignation == 'administrator':
+        elif userDepartment == 'director':
             serializer = AdminRegistrationSerializer(data = request.data)
         
         elif userDepartment == 'lead_management' and userDesignation == 'lead_manager':
@@ -248,7 +248,7 @@ class view_users(GenericAPIView):
         offset = int((page - 1) * limit)
         
         res = Response()
-        if str(request.user.department) == 'admin' and str(request.user.designation) == 'administrator' or str(request.user.department) == 'lead_management' and str(request.user.designation) == 'lead_manager':
+        if str(request.user.department) == 'director' or str(request.user.department) == 'lead_management' and str(request.user.designation) == 'lead_manager':
             users = UserAccount.objects.filter(visibility=True)[offset: offset+limit]
             count = math.ceil(UserAccount.objects.all().count() / 10)
             if users.exists():
@@ -262,7 +262,7 @@ class view_users(GenericAPIView):
                         'email_id': u.email if u.email else '-', 
                         'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
                         'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'department_id':'','department': ''},
-                        'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'product_id':'','product': ''},
+                        'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'program_id':'','program': ''},
                         'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''}
                         # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
                         })
@@ -314,7 +314,7 @@ class view_users_archive(GenericAPIView):
         offset = int((page - 1) * limit)
         
         res = Response()
-        if str(request.user.department) == 'admin' and str(request.user.designation) == 'administrator' or str(request.user.department) == 'lead_management' and str(request.user.designation) == 'lead_manager':
+        if str(request.user.department) == 'director' or str(request.user.department) == 'lead_management' and str(request.user.designation) == 'lead_manager':
             users = UserAccount.objects.filter(visibility=False)[offset: offset+limit]
             count = math.ceil(UserAccount.objects.all().count() / 10)
             if users.exists():
@@ -328,7 +328,7 @@ class view_users_archive(GenericAPIView):
                         'email_id': u.email if u.email else '-', 
                         'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
                         'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'department_id':'','department': ''},
-                        'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'product_id':'','product': ''},
+                        'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'program_id':'','program': ''},
                         'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''}
                         # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
                         })
@@ -351,7 +351,7 @@ class view_users_search(GenericAPIView):
     serializer_class = viewUserSerializer
     def get(self, request, searchAtr ,id, format=None, *args, **kwargs):
         res = Response()
-        if str(request.user.department) == 'admin' and str(request.user.designation) == 'administrator' or str(request.user.department) == 'lead_manager' and str(request.user.designation) == 'lead_management':
+        if str(request.user.department) == 'director' or str(request.user.department) == 'lead_manager' and str(request.user.designation) == 'lead_management':
             if searchAtr == 'name':
                 name = id.replace('_',' ')
                 user = UserAccount.objects.filter(name__contains = name, visibility=True)
@@ -381,7 +381,7 @@ class view_users_search(GenericAPIView):
                         # 'name': u.name if u.name else '-', 
                         'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
                         'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'designation_id':'','designation': ''},
-                        'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'designation_id':'','designation': ''},
+                        'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'designation_id':'','designation': ''},
                         'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''}
                         # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
 
@@ -427,7 +427,7 @@ class view_users_archive_search(GenericAPIView):
     serializer_class = viewUserSerializer
     def get(self, request, searchAtr ,id, format=None, *args, **kwargs):
         res = Response()
-        if str(request.user.department) == 'admin' and str(request.user.designation) == 'administrator' or str(request.user.department) == 'lead_manager' and str(request.user.designation) == 'lead_management':
+        if str(request.user.department) == 'director' or str(request.user.department) == 'lead_manager' and str(request.user.designation) == 'lead_management':
             if searchAtr == 'name':
                 name = id.replace('_',' ')
                 user = UserAccount.objects.filter(name__contains = name, visibility=False)
@@ -456,7 +456,7 @@ class view_users_archive_search(GenericAPIView):
                         # 'name': u.name if u.name else '-', 
                         'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
                         'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'designation_id':'','designation': ''},
-                        'product': {'product_id': u.product.id, 'product': u.product.title} if u.product else {'designation_id':'','designation': ''},
+                        'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'designation_id':'','designation': ''},
                         'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''}
                         # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
 
@@ -482,7 +482,7 @@ class view_users_archive_search(GenericAPIView):
 #     permission_classes = [IsAuthenticated]
 #     def get(self, request, employee_id ,format=None, *args, **kwargs):
 #         res = Response()
-#         if request.user.department.title =='admin' and request.user.designation.title == 'administrator' or request.user.department.title =='lead_management' and request.user.designation.title == 'lead_manager':
+#         if request.user.department.title =='director' and request.user.designation.title == 'super admin' or request.user.department.title =='lead_management' and request.user.designation.title == 'lead_manager':
 #             user = UserAccount.objects.filter(employee_id = employee_id, visibility=True)
 #             if user.exists():
 #                 data=[]
@@ -545,11 +545,11 @@ class user_update(GenericAPIView):
 
         # print(request.user)
         res = Response()
-        if request.user.department.title == 'admin' and request.user.designation.title == 'administrator' or request.user.department.title == 'lead_management' and request.user.designation.title == 'lead_manager':
+        if request.user.department.title == 'director' or request.user.department.title == 'lead_management' and request.user.designation.title == 'lead_manager':
             user = UserAccount.objects.filter(employee_id = employee_id)
             
             if request.user.department.title == 'lead_management' and request.user.designation.title == 'lead_manager':
-                if user.first().department.title == 'admin' or user.first().designation.title == 'administrator':
+                if user.first().department.title == 'director':
                     raise serializers.ValidationError('you are not authorized to make changes to this user')
 
 
@@ -596,7 +596,7 @@ class delete_user(GenericAPIView):
     def delete(self, request, employee_id ,format=None, *args, **kwargs):
         
         res = Response()
-        if request.user.department.title == 'admin' or request.user.designation.title == 'administrator':
+        if request.user.department.title == 'director':
             user = UserAccount.objects.filter(employee_id = employee_id)
             if user.exists():
                 serializer = userDeleteSerializer(user.first(), data={'visibility': False}, partial=True)
@@ -797,7 +797,7 @@ class unarchive_user(GenericAPIView):
     serializer_class=userUnarchiveSerializer
     def put(self, request, employee_id ,format=None, *args, **kwargs):
         res = Response()
-        if request.user.department.title == 'admin' or request.user.designation.title == 'administrator':
+        if request.user.department.title == 'director':
             user = UserAccount.objects.filter(employee_id = employee_id)
             if user.exists():
                 serializer = userDeleteSerializer(user.first(), data={'visibility': True}, partial=True)
@@ -851,9 +851,9 @@ class unarchive_user(GenericAPIView):
 
 def user_VF(id):
     user = UserAccount.objects.get(id=id)
-    print(user.product)
+    print(user.program)
     data = {
-        'product' : user.product.title if user and user.product and user.product.title != '' else '-',
+        'program' : user.program.title if user and user.program and user.program.title != '' else '-',
         'department' : user.department.title if user and user.department and user.department.title != '' else '-',
         'designation' : user.designation.title if user and user.designation and user.designation.title != '' else '-',
         'name' : user.name,
