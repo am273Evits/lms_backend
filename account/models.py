@@ -12,13 +12,13 @@ class Designation(models.Model):
     title = models.CharField(max_length=100, blank=True, default='')
     def __str__(self): return str(self.title)
 
-class Program(models.Model):
-    title = models.CharField(max_length=100, blank=True, default='')
-    def __str__(self): return str(self.title)
+# class Program_User(models.Model):
+#     title = models.CharField(max_length=100, blank=True, default='')
+#     def __str__(self): return str(self.title)
 
-class Sub_Program(models.Model):
-    title = models.CharField(max_length=100, blank=True, default='')
-    def __str__(self): return str(self.title)
+# class Sub_Program(models.Model):
+#     title = models.CharField(max_length=100, blank=True, default='')
+#     def __str__(self): return str(self.title)
 
 # class Designation(models.Model):
 #     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
@@ -28,9 +28,15 @@ class Sub_Program(models.Model):
 class Drp_Program(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
     designation = models.ForeignKey(Designation, on_delete=models.CASCADE, null=True, blank=True)
-    program = models.ForeignKey(Program, on_delete=models.CASCADE, null=True, blank=True)
-    sub_program = models.ForeignKey(Sub_Program, on_delete=models.CASCADE, null=True, blank=True)
+    # program = models.ForeignKey(Program_User, on_delete=models.CASCADE, null=True, blank=True)
+    # sub_program = models.ForeignKey(Sub_Program, on_delete=models.CASCADE, null=True, blank=True)
     def __str__(self): return str(self.department)
+
+
+class canned_email(models.Model):
+    email = models.TextField()
+    email_type = models.CharField( max_length=50, null=True, blank=True)
+    def __str__(self): return str(self.email_type)
 
 
 # class User_links(models.Model):
@@ -101,7 +107,7 @@ class UserAccount(AbstractBaseUser):
     employee_id = models.CharField(max_length=100, null=False, unique=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
     designation = models.ForeignKey(Designation, on_delete=models.CASCADE, null=True, blank=True)
-    program = models.ForeignKey(Program, on_delete=models.CASCADE, null=True, blank=True)
+    # program = models.ForeignKey(Program_User, on_delete=models.CASCADE, null=True, blank=True)
     # user_role = models.ForeignKey(User_role, on_delete=models.CASCADE, null=True, blank=True)
     team_leader = models.ForeignKey("self", related_name = 'team_members' , on_delete=models.CASCADE, null=True, blank=True)
     admin = models.ForeignKey("self", related_name = 'admin_of', on_delete=models.CASCADE, null=True, blank=True)
@@ -116,6 +122,7 @@ class UserAccount(AbstractBaseUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey('self', related_name = 'creator_of', on_delete=models.CASCADE, null=True, blank=True)
+    user_pwd_token = models.CharField(max_length=300, blank=True, default='')
     visibility = models.BooleanField(default=True)
     objects = UserAccountManager()
 

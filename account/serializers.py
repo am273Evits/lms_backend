@@ -1,6 +1,15 @@
 from rest_framework import serializers
 from .models import *
+import string
+import secrets
+# from account.views import generate_random_code
 
+
+
+def generate_random_code(length=25):
+    alphabet = string.ascii_letters + string.digits
+    random_code = ''.join(secrets.choice(alphabet) for _ in range(length))
+    return random_code
 
 
 class loginSerializer(serializers.ModelSerializer):
@@ -8,6 +17,9 @@ class loginSerializer(serializers.ModelSerializer):
     class Meta:
         model=UserAccount
         fields=['email','password']
+
+
+
 
 
 
@@ -37,7 +49,8 @@ class AdminRegistrationSerializer(serializers.ModelSerializer):
         elif not Department.objects.filter(title = self.validated_data.get('department')):
             raise serializers.ValidationError("invalid field department")
         if self.validated_data.get('designation') == None:
-            raise serializers.ValidationError("designation is required")
+            pass
+            # raise serializers.ValidationError("designation is required")
         elif not Designation.objects.filter(title = self.validated_data.get('designation')).exists():
             raise serializers.ValidationError("invalid field designation")
         
@@ -54,10 +67,13 @@ class AdminRegistrationSerializer(serializers.ModelSerializer):
             employee_id = self.validated_data['employee_id'].lower(),
             designation = self.validated_data['designation'],
             department = self.validated_data['department'],
+            user_pwd_token = generate_random_code(),
             # employee_status = Employee_status.objects.get(title = 'active'),
             visibility = True,
         )
         password = 'admin#manager@123'
+
+
         # password2 = 'admin#manager@123'
         # if password != password2:
         #     raise serializers.ValidationError('password and return password do not match')

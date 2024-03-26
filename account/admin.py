@@ -17,4 +17,4 @@ admin.site.register(UserAccount, UserAccountAdmin)
 
 
 
-admin.site.register([Department, Designation, Program, Employee_status])
+admin.site.register([Department, Designation, Employee_status])

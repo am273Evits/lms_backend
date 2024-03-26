@@ -1,5 +1,5 @@
 from django.db import models
-from account.models import UserAccount, Program
+from account.models import UserAccount
 # from dropdown.models import lead_status
 
 # Create your models here.

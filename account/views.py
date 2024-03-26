@@ -15,12 +15,16 @@ from rest_framework.permissions import IsAuthenticated
 from datetime import datetime
 import random
 import math
+from django.core.mail import EmailMultiAlternatives
+
+
 # from employees.models import *
 # from dropdown.models import user_links, lead_status, ev_department, ev_designation, user_role_list
 
 
 from account.models import UserAccount
 from leads.views import resFun
+
 
 
 # def cookieAuth(request):
@@ -180,7 +184,7 @@ class registration_VF(GenericAPIView):
         serializer = ''
 
         userDepartment = str(userDepartment.title)
-        userDesignation = str(userDesignation.title)
+        # userDesignation = str(userDesignation.title)
         res = Response()
 
         existing_user  = UserAccount.objects.filter(employee_id = request.data.get('employee_id').lower())
@@ -213,6 +217,38 @@ class registration_VF(GenericAPIView):
         if not serializer == '':
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
+
+                # data = {}
+                # data['name'] = request.POST['name']
+                # data['contact_number'] = request.POST['contact_number']
+                # data['email_id'] = request.POST['email_id']
+                # data['client_token'] = generate_random_code()
+                # upload = AddClientForm(data)
+                # if upload.is_valid():
+                #     instance = upload.save()
+        
+                print('upload.data',serializer.data['email'])
+                ua_ser = UserAccount.objects.filter(email=serializer.data['email']).first()
+
+                message = canned_email.objects.get(email_type = 'welcome_email')
+                message = message.email
+                message = str(message).replace("{{{link}}}", f'<a href="http://127.0.0.1:8000/account/generate_password/{ua_ser.pk}/{ua_ser.user_pwd_token}">fill more details</a>')
+    
+                email_id = ua_ser.email
+    
+                subject = 'Welcome to Evitamin!'
+                from_email = 'akshatnigamcfl@gmail.com'
+                recipient_list = [email_id]
+                text = 'email sent from MyDjango'
+    
+                # if send_mail(subject, message, from_email, recipient_list):
+    
+                email = EmailMultiAlternatives(subject, text, from_email, recipient_list)
+                email.attach_alternative(message, 'text/html')
+                # email.attach_file('files/uploadFile_0dTGU7A.csv', 'text/csv')
+                email.send()
+
+
                 
                 #welcome email to the user, authentication
 
@@ -869,3 +905,5 @@ def user_VF(id):
 
 def GeneratePassword(request, id, token):
     print(id, token)
+
+    return render(request, 'generate_password.html', {'data': 'some data'})

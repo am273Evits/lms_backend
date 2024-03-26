@@ -13,7 +13,7 @@ from rest_framework import status
 import pandas as pd
 
 from .serializers import *
-from account.models import UserAccount, Drp_Program, Department, Designation, Program, Employee_status
+from account.models import UserAccount, Drp_Program, Department, Designation, Employee_status
 from .models import Leads, Remark_history
 # from account.views import getLeadId
 
@@ -1224,6 +1224,8 @@ class ViewProgram(CreateAPIView):
                 marketplace = Program.objects.filter(visibility=True)
             except:
                 marketplace = Program.objects.filter(pk__in=[])
+
+            print('marketplace',marketplace)
 
             if marketplace.exists():
                 res = resFun(status.HTTP_200_OK, 'request successful', list(marketplace.values()))
