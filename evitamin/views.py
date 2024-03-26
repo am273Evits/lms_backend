@@ -109,7 +109,7 @@ class ViewServiceAndCommercials(GenericAPIView):
                 else:
                     res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST,'data not available',[])
+                res = resFun(status.HTTP_204_NO_CONTENT,'data not available',[])
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
 
@@ -277,7 +277,7 @@ class ViewArchivedServiceAndCommercials(GenericAPIView):
                 else:
                     res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST,'data not available',[])
+                res = resFun(status.HTTP_204_NO_CONTENT,'data not available',[])
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
 

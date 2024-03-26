@@ -905,5 +905,7 @@ def user_VF(id):
 
 def GeneratePassword(request, id, token):
     print(id, token)
+    user = UserAccount.objects.filter(id=id,user_pwd_token=token)
+    # print('user',user)
 
-    return render(request, 'generate_password.html', {'data': 'some data'})
+    return render(request, 'generate_password.html', {'data': user})
