@@ -868,4 +868,4 @@ def user_VF(id):
 
 
 def GeneratePassword(request, id, token):
-    pass
+    print(id, token)

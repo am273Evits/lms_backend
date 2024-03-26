@@ -234,7 +234,7 @@ class ArchiveServiceCommercials(GenericAPIView):
                 service_commercials.visibility = False
                 service_commercials.save()
                 
-                res = resFun(status.HTTP_400_BAD_REQUEST,'archive successful',[])
+                res = resFun(status.HTTP_200_OK,'archive successful',[])
             else:
                 res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
         else:
@@ -301,7 +301,7 @@ class UnarchiveServiceCommercials(GenericAPIView):
                 service_commercials.visibility = True
                 service_commercials.save()
                 
-                res = resFun(status.HTTP_400_BAD_REQUEST,'restored successful',[])
+                res = resFun(status.HTTP_200_OK,'restored successful',[])
             else:
                 res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
         else:
