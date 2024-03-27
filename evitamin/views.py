@@ -335,7 +335,7 @@ class ViewServiceAndCommercialsSearch(GenericAPIView):
             elif  search_attribute=='program':
                 services_and_commercials = Services_and_Commercials.objects.filter(program__program__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
 
-        elif type == 'archive':
+        elif type == 'archives':
             if search_attribute=='segment':
                 services_and_commercials = Services_and_Commercials.objects.filter(segment__segment__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
                 # pagecount = math.ceil(services_and_commercials.count()/limit)
