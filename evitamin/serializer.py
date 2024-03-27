@@ -162,11 +162,11 @@ class CreateServicesCommercialsSerializer_NSP(serializers.Serializer):
 
 class ViewServiceAndCommercialSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    segment = serializers.CharField()
-    service = serializers.CharField()
-    marketplace = serializers.CharField()
-    program = serializers.CharField()
-    sub_program = serializers.CharField()
+    segment = serializers.DictField()
+    service = serializers.DictField()
+    marketplace = serializers.DictField()
+    program = serializers.DictField()
+    sub_program = serializers.DictField()
     commercials = serializers.ListField()
 
 
