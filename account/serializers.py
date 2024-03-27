@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import *
 import string
 import secrets
+from django.contrib.auth.hashers import make_password
 # from account.views import generate_random_code
 
 
@@ -154,7 +155,7 @@ class userSerializer(serializers.Serializer):
     employee_id = serializers.CharField()
     department = serializers.CharField()
     designation = serializers.CharField()
-    program = serializers.CharField()
+    # program = serializers.CharField()
 
 
 class viewUserSerializer(serializers.Serializer):

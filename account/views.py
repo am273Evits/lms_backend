@@ -23,6 +23,7 @@ from django.core.mail import EmailMultiAlternatives
 
 
 from account.models import UserAccount
+from leads.models import Program
 from leads.views import resFun
 
 
@@ -887,9 +888,9 @@ class unarchive_user(GenericAPIView):
 
 def user_VF(id):
     user = UserAccount.objects.get(id=id)
-    print(user.program)
+    # print(user.program)
     data = {
-        'program' : user.program.title if user and user.program and user.program.title != '' else '-',
+        # 'program' : user.program.program if user and user.program and user.program.program != '' else '-',
         'department' : user.department.title if user and user.department and user.department.title != '' else '-',
         'designation' : user.designation.title if user and user.designation and user.designation.title != '' else '-',
         'name' : user.name,
@@ -904,8 +905,26 @@ def user_VF(id):
 
 
 def GeneratePassword(request, id, token):
-    print(id, token)
-    user = UserAccount.objects.filter(id=id,user_pwd_token=token)
+
+    try:
+        user = UserAccount.objects.get(id=id,user_pwd_token=token)
+
+        if request.POST:
+            password = request.POST.get('password')
+            repeat_password = request.POST.get('repeat_password')
+            if password != repeat_password:
+                return render(request, 'generate_password.html', {'data': user, "error":"password & repeat password doesn't match" })
+            else:
+                user.user_pwd_token=generate_random_code()
+                user.password = make_password(password)
+                user.save()
+                return render(request, 'generate_password.html', {'data': user, "success":"password updated successfully" })
+            
+    except:
+        return render(request, 'generate_password.html', {'data': 'no data found', "link_error":"link is invalid or expired!" })
+        
+
+    # print(id, token)
     # print('user',user)
 
     return render(request, 'generate_password.html', {'data': user})
