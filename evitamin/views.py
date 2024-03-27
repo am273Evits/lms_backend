@@ -319,30 +319,32 @@ class ViewServiceAndCommercialsSearch(GenericAPIView):
     serializer_class = ViewServiceAndCommercialSerializer
     def get(self, request, type, search_attribute,search_term, format=None, *args, **kwargs):
 
+        search_term_R = search_term.replace("_",' ')
+
         if type=='active':
             if search_attribute=='segment':
-                services_and_commercials = Services_and_Commercials.objects.filter(segment__segment__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
+                services_and_commercials = Services_and_Commercials.objects.filter(segment__segment__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
 
                 print('services_and_commercials',services_and_commercials)
                 # pagecount = math.ceil(services_and_commercials.count()/limit)
 
             elif  search_attribute=='service':
-                services_and_commercials = Services_and_Commercials.objects.filter(service__service__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
+                services_and_commercials = Services_and_Commercials.objects.filter(service__service__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
             elif  search_attribute=='marketplace':
-                services_and_commercials = Services_and_Commercials.objects.filter(marketplace__marketplace__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
+                services_and_commercials = Services_and_Commercials.objects.filter(marketplace__marketplace__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
             elif  search_attribute=='program':
-                services_and_commercials = Services_and_Commercials.objects.filter(program__program__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
+                services_and_commercials = Services_and_Commercials.objects.filter(program__program__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
 
         elif type == 'archive':
             if search_attribute=='segment':
-                services_and_commercials = Services_and_Commercials.objects.filter(segment__segment__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
+                services_and_commercials = Services_and_Commercials.objects.filter(segment__segment__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
                 # pagecount = math.ceil(services_and_commercials.count()/limit)
             elif  search_attribute=='service':
-                services_and_commercials = Services_and_Commercials.objects.filter(service__service__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
+                services_and_commercials = Services_and_Commercials.objects.filter(service__service__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
             elif  search_attribute=='marketplace':
-                services_and_commercials = Services_and_Commercials.objects.filter(marketplace__marketplace__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
+                services_and_commercials = Services_and_Commercials.objects.filter(marketplace__marketplace__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
             elif  search_attribute=='program':
-                services_and_commercials = Services_and_Commercials.objects.filter(program__program__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
+                services_and_commercials = Services_and_Commercials.objects.filter(program__program__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
 
 
         if services_and_commercials.exists():
