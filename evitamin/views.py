@@ -287,7 +287,7 @@ class ArchiveServiceCommercials(GenericAPIView):
 
 class ViewArchivedServiceAndCommercials(GenericAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = ViewServiceAndCommercialSerializer
+    serializer_class = ViewServiceAndCommercial_NC_Serializer
     def get(self,request,page, format=None, *args, **kwargs):
         user=request.user
         limit = 10
@@ -325,7 +325,7 @@ class ViewArchivedServiceAndCommercials(GenericAPIView):
                     }
                     data.append(d)
             
-                serializer = ViewServiceAndCommercialSerializer(data=data,many=True)
+                serializer = ViewServiceAndCommercial_NC_Serializer(data=data,many=True)
                 pagecount = math.ceil(Services_and_Commercials.objects.filter(segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False).count()/limit)
 
                 if serializer.is_valid():
