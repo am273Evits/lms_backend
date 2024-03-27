@@ -314,6 +314,62 @@ class UnarchiveServiceCommercials(GenericAPIView):
 
 
 
+class ViewServiceAndCommercialsSearch(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewServiceAndCommercialSerializer
+    def get(self, request, type, search_attribute,search_term, format=None, *args, **kwargs):
+
+        if type=='active':
+            if search_attribute=='segment':
+                services_and_commercials = Services_and_Commercials.objects.filter(segment__segment__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
+
+                print('services_and_commercials',services_and_commercials)
+                # pagecount = math.ceil(services_and_commercials.count()/limit)
+
+            elif  search_attribute=='service':
+                services_and_commercials = Services_and_Commercials.objects.filter(service__service__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
+            elif  search_attribute=='marketplace':
+                services_and_commercials = Services_and_Commercials.objects.filter(marketplace__marketplace__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
+            elif  search_attribute=='program':
+                services_and_commercials = Services_and_Commercials.objects.filter(program__program__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
+
+        elif type == 'archive':
+            if search_attribute=='segment':
+                services_and_commercials = Services_and_Commercials.objects.filter(segment__segment__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
+                # pagecount = math.ceil(services_and_commercials.count()/limit)
+            elif  search_attribute=='service':
+                services_and_commercials = Services_and_Commercials.objects.filter(service__service__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
+            elif  search_attribute=='marketplace':
+                services_and_commercials = Services_and_Commercials.objects.filter(marketplace__marketplace__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
+            elif  search_attribute=='program':
+                services_and_commercials = Services_and_Commercials.objects.filter(program__program__icontains=search_term, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
+
+
+        if services_and_commercials.exists():
+            data=[]
+            for sc in services_and_commercials:
+                d = {
+                    'id':sc.id,
+                    'segment': sc.segment.segment,
+                    'service': sc.service.service,
+                    'marketplace': sc.marketplace.marketplace,
+                    'program':sc.program.program,
+                    'sub_program':sc.sub_program.sub_program if sc.sub_program!=None else '-',
+                    'commercials': [{ 'id': s.id, 'commercials': s.commercials} for s in sc.commercials.all()]
+                }
+                data.append(d)
+        
+            serializer = ViewServiceAndCommercialSerializer(data=data,many=True)
+            # pagecount = math.ceil(Services_and_Commercials.objects.filter(segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False).count()/limit)
+            if serializer.is_valid():
+                res = resFun(status.HTTP_200_OK,'request successful', serializer.data)
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
+        else:
+            res = resFun(status.HTTP_204_NO_CONTENT,'data not available',[])
+        return res
+        
+
 
 
 # class createServices(CreateAPIView):
