@@ -77,7 +77,7 @@ class CreateServiceAndCommercials(CreateAPIView):
 
 class ViewServiceAndCommercials(GenericAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = ViewServiceAndCommercialSerializer
+    serializer_class = ViewServiceAndCommercial_NC_Serializer
     def get(self,request,page, format=None, *args, **kwargs):
         user=request.user
         limit = 10
@@ -97,11 +97,11 @@ class ViewServiceAndCommercials(GenericAPIView):
                         'marketplace': {"id": sc.marketplace.id, "marketplace_name": sc.marketplace.marketplace},
                         'program': {"id": sc.program.id, 'program_name': sc.program.program},
                         'sub_program': {"id": sc.sub_program.id if sc.sub_program!=None else 0 ,'sub_program_name': sc.sub_program.sub_program if sc.sub_program!=None else '-'},
-                        'commercials': { 'active': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==True ], "archive": [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==False] }
+                        # 'commercials': { 'active': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==True ], "archive": [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==False] }
                     }
                     data.append(d)
             
-                serializer = ViewServiceAndCommercialSerializer(data=data,many=True)
+                serializer = ViewServiceAndCommercial_NC_Serializer(data=data,many=True)
                 pagecount = math.ceil(Services_and_Commercials.objects.filter(segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True).count()/limit)
 
                 if serializer.is_valid():
@@ -116,6 +116,47 @@ class ViewServiceAndCommercials(GenericAPIView):
         return res
 
 
+
+class ViewServiceAndCommercialsIndv(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewServiceAndCommercialSerializer
+    def get(self,request,id, format=None, *args, **kwargs):
+        user=request.user
+        # print('id',id)
+        # limit = 10
+        # offset = int((page - 1) * limit)
+        if (str(user.department) == 'director'):
+            
+            service_commercials = Services_and_Commercials.objects.filter(id=id, visibility=True)
+            print('service_commercials',service_commercials)
+            if service_commercials.exists():
+                data=[]
+                # service_commercials = service_commercials
+                for sc in service_commercials:
+                    d = {
+                        'id':sc.id,
+                        # 'segment': {"id": sc.segment.id, "segment_name": sc.segment.segment},
+                        # 'service': {"id": sc.service.id, "service_name": sc.service.service},
+                        # 'marketplace': {"id": sc.marketplace.id, "marketplace_name": sc.marketplace.marketplace},
+                        # 'program': {"id": sc.program.id, 'program_name': sc.program.program},
+                        # 'sub_program': {"id": sc.sub_program.id if sc.sub_program!=None else 0 ,'sub_program_name': sc.sub_program.sub_program if sc.sub_program!=None else '-'},
+                        'commercials': { 'active': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==True ], "archive": [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==False] }
+                    }
+                    data.append(d)
+            
+                serializer = ViewServiceAndCommercialSerializer(data=data,many=True)
+                # pagecount = math.ceil(Services_and_Commercials.objects.filter(segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True).count()/limit)
+
+                if serializer.is_valid():
+                    res = resFun(status.HTTP_200_OK,'request successful', serializer.data)
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
+            else:
+                res = resFun(status.HTTP_204_NO_CONTENT,'data not available',[])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
+
+        return res
 
 
 
@@ -331,71 +372,110 @@ class ViewServiceAndCommercialsSearch(GenericAPIView):
     serializer_class = ViewServiceAndCommercialSerializer
     def get(self, request, type, search_attribute,search_term, format=None, *args, **kwargs):
 
-        search_term_R = search_term.replace("_",' ')
+        if (str(request.user.department) == 'director'):
 
-        if type=='active':
-            if search_attribute=='segment':
-                services_and_commercials = Services_and_Commercials.objects.filter(segment__segment__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
+            search_term_R = search_term.replace("_",' ')
 
-                print('services_and_commercials',services_and_commercials)
-                # pagecount = math.ceil(services_and_commercials.count()/limit)
+            if type=='active':
+                if search_attribute=='segment':
+                    services_and_commercials = Services_and_Commercials.objects.filter(segment__segment__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
 
-            elif  search_attribute=='service':
-                services_and_commercials = Services_and_Commercials.objects.filter(service__service__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
-            elif  search_attribute=='marketplace':
-                services_and_commercials = Services_and_Commercials.objects.filter(marketplace__marketplace__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
-            elif  search_attribute=='program':
-                services_and_commercials = Services_and_Commercials.objects.filter(program__program__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
+                    print('services_and_commercials',services_and_commercials)
+                    # pagecount = math.ceil(services_and_commercials.count()/limit)
 
-        elif type == 'archives':
-            if search_attribute=='segment':
-                services_and_commercials = Services_and_Commercials.objects.filter(segment__segment__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
-                # pagecount = math.ceil(services_and_commercials.count()/limit)
-            elif  search_attribute=='service':
-                services_and_commercials = Services_and_Commercials.objects.filter(service__service__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
-            elif  search_attribute=='marketplace':
-                services_and_commercials = Services_and_Commercials.objects.filter(marketplace__marketplace__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
-            elif  search_attribute=='program':
-                services_and_commercials = Services_and_Commercials.objects.filter(program__program__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
+                elif  search_attribute=='service':
+                    services_and_commercials = Services_and_Commercials.objects.filter(service__service__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
+                elif  search_attribute=='marketplace':
+                    services_and_commercials = Services_and_Commercials.objects.filter(marketplace__marketplace__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
+                elif  search_attribute=='program':
+                    services_and_commercials = Services_and_Commercials.objects.filter(program__program__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True)
+
+            elif type == 'archives':
+                if search_attribute=='segment':
+                    services_and_commercials = Services_and_Commercials.objects.filter(segment__segment__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
+                    # pagecount = math.ceil(services_and_commercials.count()/limit)
+                elif  search_attribute=='service':
+                    services_and_commercials = Services_and_Commercials.objects.filter(service__service__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
+                elif  search_attribute=='marketplace':
+                    services_and_commercials = Services_and_Commercials.objects.filter(marketplace__marketplace__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
+                elif  search_attribute=='program':
+                    services_and_commercials = Services_and_Commercials.objects.filter(program__program__icontains=search_term_R, segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)
 
 
-        if services_and_commercials.exists():
-            data=[]
-            # for sc in services_and_commercials:
-            #     d = {
-            #         'id':sc.id,
-            #         'segment': sc.segment.segment,
-            #         'service': sc.service.service,
-            #         'marketplace': sc.marketplace.marketplace,
-            #         'program':sc.program.program,
-            #         'sub_program':sc.sub_program.sub_program if sc.sub_program!=None else '-',
-            #         'commercials': [{ 'id': s.id, 'commercials': s.commercials} for s in sc.commercials.all()]
-            #     }
-            #     data.append(d)
+            if services_and_commercials.exists():
+                data=[]
+                # for sc in services_and_commercials:
+                #     d = {
+                #         'id':sc.id,
+                #         'segment': sc.segment.segment,
+                #         'service': sc.service.service,
+                #         'marketplace': sc.marketplace.marketplace,
+                #         'program':sc.program.program,
+                #         'sub_program':sc.sub_program.sub_program if sc.sub_program!=None else '-',
+                #         'commercials': [{ 'id': s.id, 'commercials': s.commercials} for s in sc.commercials.all()]
+                #     }
+                #     data.append(d)
 
-            for sc in services_and_commercials:
-                d = {
-                    'id':sc.id,
-                    'segment': {"id": sc.segment.id, "segment_name": sc.segment.segment},
-                    'service': {"id": sc.service.id, "service_name": sc.service.service},
-                    'marketplace': {"id": sc.marketplace.id, "marketplace_name": sc.marketplace.marketplace},
-                    'program': {"id": sc.program.id, 'program_name': sc.program.program},
-                    'sub_program': {"id": sc.sub_program.id if sc.sub_program!=None else 0 ,'sub_program_name': sc.sub_program.sub_program if sc.sub_program!=None else '-'},
-                    'commercials': { 'active': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==True ], "archive": [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==False] }
-                }
-                data.append(d)
-        
-            serializer = ViewServiceAndCommercialSerializer(data=data,many=True)
-            # pagecount = math.ceil(Services_and_Commercials.objects.filter(segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False).count()/limit)
-            if serializer.is_valid():
-                res = resFun(status.HTTP_200_OK,'request successful', {'data':serializer.data, 'type':type, 'search_attribute': search_attribute, 'search_term': search_term})
+                for sc in services_and_commercials:
+                    d = {
+                        'id':sc.id,
+                        'segment': {"id": sc.segment.id, "segment_name": sc.segment.segment},
+                        'service': {"id": sc.service.id, "service_name": sc.service.service},
+                        'marketplace': {"id": sc.marketplace.id, "marketplace_name": sc.marketplace.marketplace},
+                        'program': {"id": sc.program.id, 'program_name': sc.program.program},
+                        'sub_program': {"id": sc.sub_program.id if sc.sub_program!=None else 0 ,'sub_program_name': sc.sub_program.sub_program if sc.sub_program!=None else '-'},
+                        'commercials': { 'active': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==True ], "archive": [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==False] }
+                    }
+                    data.append(d)
+
+                serializer = ViewServiceAndCommercialSerializer(data=data,many=True)
+                # pagecount = math.ceil(Services_and_Commercials.objects.filter(segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False).count()/limit)
+                if serializer.is_valid():
+                    res = resFun(status.HTTP_200_OK,'request successful', {'data':serializer.data, 'type':type, 'search_attribute': search_attribute, 'search_term': search_term})
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
-        else:
-            res = resFun(status.HTTP_204_NO_CONTENT,'data not available',[])
-        return res
+                res = resFun(status.HTTP_204_NO_CONTENT,'data not available',[])
+            return res
     
 
+
+class ArchiveServiceCommercialIndv(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewServiceAndCommercialSerializer
+    def put(self, request, id, format=None, *args, **kwargs):
+
+        if (str(request.user.department) == 'director'):
+
+            try:
+                commercials = Commercials.objects.get(id=id, visibility=True)
+                commercials.visibility = False
+                commercials.save()
+
+                res = resFun(status.HTTP_200_OK, 'commercial archived', [])
+            except:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+            
+            return res 
+
+
+class UnarchiveServiceCommercialIndv(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ViewServiceAndCommercialSerializer
+    def put(self, request, id, format=None, *args, **kwargs):
+
+        if (str(request.user.department) == 'director'):
+
+            try:
+                commercials = Commercials.objects.get(id=id, visibility=False)
+                commercials.visibility = True
+                commercials.save()
+
+                res = resFun(status.HTTP_200_OK, 'commercial restored', [])
+            except:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+            
+            return res 
 
 
 # class createServices(CreateAPIView):

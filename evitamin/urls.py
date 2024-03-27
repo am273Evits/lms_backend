@@ -16,11 +16,14 @@ urlpatterns = [
     
             path('create_commercials', CreateServiceAndCommercials.as_view()),
             path('view_commercials/<int:page>', ViewServiceAndCommercials.as_view()),
+            path('view_commercials_indv/<int:id>', ViewServiceAndCommercialsIndv.as_view()),
             path('edit_commercials/<int:id>', EditServiceCommercials.as_view()),
             path('archive_commercials/<int:id>', ArchiveServiceCommercials.as_view()),
             path('view_archive_commercials/<int:page>', ViewArchivedServiceAndCommercials.as_view()),
             path('unarchive_commercials/<int:id>', UnarchiveServiceCommercials.as_view()),
             path('view_commercials_search/<str:type>/<str:search_attribute>/<str:search_term>', ViewServiceAndCommercialsSearch.as_view()),
 
+            path('archive_commercial_ind/<int:id>', ArchiveServiceCommercialIndv.as_view()),
+            path('unarchive_commercial_ind/<int:id>', UnarchiveServiceCommercialIndv.as_view()),
 
 ]
