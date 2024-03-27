@@ -97,7 +97,7 @@ class ViewServiceAndCommercials(GenericAPIView):
                         'marketplace': {"id": sc.marketplace.id, "marketplace_name": sc.marketplace.marketplace},
                         'program': {"id": sc.program.id, 'program_name': sc.program.program},
                         'sub_program': {"id": sc.sub_program.id if sc.sub_program!=None else 0 ,'sub_program_name': sc.sub_program.sub_program if sc.sub_program!=None else '-'},
-                        'commercials': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all()]
+                        'commercials': { 'active': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==True ], "archive": [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==False] }
                     }
                     data.append(d)
             
@@ -280,7 +280,7 @@ class ViewArchivedServiceAndCommercials(GenericAPIView):
                         'marketplace': {"id": sc.marketplace.id, "marketplace_name": sc.marketplace.marketplace},
                         'program': {"id": sc.program.id, 'program_name': sc.program.program},
                         'sub_program': {"id": sc.sub_program.id if sc.sub_program!=None else 0 ,'sub_program_name': sc.sub_program.sub_program if sc.sub_program!=None else '-'},
-                        'commercials': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all()]
+                        'commercials': { 'active': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==True ], "archive": [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==False] }
                     }
                     data.append(d)
             
@@ -381,7 +381,7 @@ class ViewServiceAndCommercialsSearch(GenericAPIView):
                     'marketplace': {"id": sc.marketplace.id, "marketplace_name": sc.marketplace.marketplace},
                     'program': {"id": sc.program.id, 'program_name': sc.program.program},
                     'sub_program': {"id": sc.sub_program.id if sc.sub_program!=None else 0 ,'sub_program_name': sc.sub_program.sub_program if sc.sub_program!=None else '-'},
-                    'commercials': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all()]
+                    'commercials': { 'active': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==True ], "archive": [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==False] }
                 }
                 data.append(d)
         
@@ -394,7 +394,7 @@ class ViewServiceAndCommercialsSearch(GenericAPIView):
         else:
             res = resFun(status.HTTP_204_NO_CONTENT,'data not available',[])
         return res
-        
+    
 
 
 

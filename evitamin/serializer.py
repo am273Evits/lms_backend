@@ -167,7 +167,7 @@ class ViewServiceAndCommercialSerializer(serializers.Serializer):
     marketplace = serializers.DictField()
     program = serializers.DictField()
     sub_program = serializers.DictField()
-    commercials = serializers.ListField()
+    commercials = serializers.DictField()
 
 
 
