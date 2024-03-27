@@ -361,15 +361,27 @@ class ViewServiceAndCommercialsSearch(GenericAPIView):
 
         if services_and_commercials.exists():
             data=[]
+            # for sc in services_and_commercials:
+            #     d = {
+            #         'id':sc.id,
+            #         'segment': sc.segment.segment,
+            #         'service': sc.service.service,
+            #         'marketplace': sc.marketplace.marketplace,
+            #         'program':sc.program.program,
+            #         'sub_program':sc.sub_program.sub_program if sc.sub_program!=None else '-',
+            #         'commercials': [{ 'id': s.id, 'commercials': s.commercials} for s in sc.commercials.all()]
+            #     }
+            #     data.append(d)
+
             for sc in services_and_commercials:
                 d = {
                     'id':sc.id,
-                    'segment': sc.segment.segment,
-                    'service': sc.service.service,
-                    'marketplace': sc.marketplace.marketplace,
-                    'program':sc.program.program,
-                    'sub_program':sc.sub_program.sub_program if sc.sub_program!=None else '-',
-                    'commercials': [{ 'id': s.id, 'commercials': s.commercials} for s in sc.commercials.all()]
+                    'segment': {"id": sc.segment.id, "segment_name": sc.segment.segment},
+                    'service': {"id": sc.service.id, "service_name": sc.service.service},
+                    'marketplace': {"id": sc.marketplace.id, "marketplace_name": sc.marketplace.marketplace},
+                    'program': {"id": sc.program.id, 'program_name': sc.program.program},
+                    'sub_program': {"id": sc.sub_program.id if sc.sub_program!=None else 0 ,'sub_program_name': sc.sub_program.sub_program if sc.sub_program!=None else '-'},
+                    'commercials': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all()]
                 }
                 data.append(d)
         
