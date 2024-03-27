@@ -299,7 +299,7 @@ class view_users(GenericAPIView):
                         'email_id': u.email if u.email else '-', 
                         'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
                         'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'department_id':'','department': ''},
-                        'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'program_id':'','program': ''},
+                        # 'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'program_id':'','program': ''},
                         'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''}
                         # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
                         })
@@ -365,7 +365,7 @@ class view_users_archive(GenericAPIView):
                         'email_id': u.email if u.email else '-', 
                         'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
                         'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'department_id':'','department': ''},
-                        'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'program_id':'','program': ''},
+                        # 'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'program_id':'','program': ''},
                         'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''}
                         # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
                         })
@@ -418,7 +418,7 @@ class view_users_search(GenericAPIView):
                         # 'name': u.name if u.name else '-', 
                         'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
                         'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'designation_id':'','designation': ''},
-                        'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'designation_id':'','designation': ''},
+                        # 'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'designation_id':'','designation': ''},
                         'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''}
                         # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
 

@@ -88,7 +88,7 @@ class LeadManagerRegistrationSerializer(serializers.ModelSerializer):
     # password2 = serializers.CharField(style={'input_type': 'password'}, write_only = True)
     class Meta:
         model = UserAccount
-        fields = ['email', 'name', 'employee_id', 'designation', 'department', 'program']
+        fields = ['email', 'name', 'employee_id', 'designation', 'department']
         # extra_kwargs = {
         #     'password': {'write_only': True},
         #     'password2': {'write_only': True}
@@ -96,7 +96,7 @@ class LeadManagerRegistrationSerializer(serializers.ModelSerializer):
 
     def save(self):
 
-        print(self.validated_data.get('program'))
+        # print(self.validated_data.get('program'))
 
         if self.validated_data.get('employee_id') == None:
             raise serializers.ValidationError("employee_id field id is required")
@@ -110,10 +110,10 @@ class LeadManagerRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("designation is required")
         elif not Designation.objects.filter(title = self.validated_data.get('designation')).exists():
             raise serializers.ValidationError("invalid field designation")
-        if self.validated_data.get('program') == None:
-            raise serializers.ValidationError("program is required")
-        elif not Program.objects.filter(title = self.validated_data.get('program')).exists():
-            raise serializers.ValidationError("invalid field program")
+        # if self.validated_data.get('program') == None:
+            # raise serializers.ValidationError("program is required")
+        # elif not Program.objects.filter(title = self.validated_data.get('program')).exists():
+            # raise serializers.ValidationError("invalid field program")
 
         print("self.validated_data['employee_id']",self.validated_data['employee_id'])
 
@@ -123,7 +123,7 @@ class LeadManagerRegistrationSerializer(serializers.ModelSerializer):
             employee_id = self.validated_data['employee_id'].lower(),
             designation = self.validated_data['designation'],
             department = self.validated_data['department'],
-            program = self.validated_data['program'],
+            # program = self.validated_data['program'],
             # employee_status = Employee_status.objects.get(title = 'active'),
             visibility = True,
         )
@@ -164,7 +164,7 @@ class viewUserSerializer(serializers.Serializer):
     email_id = serializers.CharField() 
     designation = serializers.DictField() 
     department = serializers.DictField() 
-    program = serializers.DictField() 
+    # program = serializers.DictField() 
     employee_status = serializers.DictField() 
 
 
@@ -186,7 +186,7 @@ class updateUserSerializer(serializers.ModelSerializer):
     # employee_status = serializers.IntegerField()
     class Meta:
         model = UserAccount
-        fields = ['name', 'department', 'designation', 'program', 'employee_status']
+        fields = ['name', 'department', 'designation', 'employee_status']
 
     def validate(self, data):
         if len(dict(data)) == 0:

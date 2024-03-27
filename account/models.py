@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser)
+# from leads.models import Program
 
 
 
@@ -107,7 +108,7 @@ class UserAccount(AbstractBaseUser):
     employee_id = models.CharField(max_length=100, null=False, unique=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
     designation = models.ForeignKey(Designation, on_delete=models.CASCADE, null=True, blank=True)
-    # program = models.ForeignKey(Program_User, on_delete=models.CASCADE, null=True, blank=True)
+    # program = models.ForeignKey(Program, on_delete=models.CASCADE, null=True, blank=True)
     # user_role = models.ForeignKey(User_role, on_delete=models.CASCADE, null=True, blank=True)
     team_leader = models.ForeignKey("self", related_name = 'team_members' , on_delete=models.CASCADE, null=True, blank=True)
     admin = models.ForeignKey("self", related_name = 'admin_of', on_delete=models.CASCADE, null=True, blank=True)
