@@ -128,37 +128,41 @@ class ViewServiceAndCommercialsIndv(GenericAPIView):
         if (str(user.department) == 'director'):
             
             service_commercials = Services_and_Commercials.objects.filter(id=id, visibility=True)
-            print('service_commercials',service_commercials)
+            # print('service_commercials',service_commercials)
             if service_commercials.exists():
-                data=[]
+                # data=[]
                 
                 # service_commercials = service_commercials
                 for sc in service_commercials:
                     if type == 'active':
-                        d = {
-                            'id':sc.id,
+                        d = [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==True ]
+                        # {
+                            # 'id':sc.id,
                             # 'segment': {"id": sc.segment.id, "segment_name": sc.segment.segment},
                             # 'service': {"id": sc.service.id, "service_name": sc.service.service},
                             # 'marketplace': {"id": sc.marketplace.id, "marketplace_name": sc.marketplace.marketplace},
                             # 'program': {"id": sc.program.id, 'program_name': sc.program.program},
                             # 'sub_program': {"id": sc.sub_program.id if sc.sub_program!=None else 0 ,'sub_program_name': sc.sub_program.sub_program if sc.sub_program!=None else '-'},
-                                'commercials': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==True ],
-                                'type': type
-                        }
-                    elif type == 'archive':
-                        d = {
-                            'id':sc.id,
+                                # ,
+                                # 'type': type
+                        # }
+                    elif type == 'archives':
+                        d = [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==False]
+                        # {
+                            # 'id':sc.id,
                             # 'segment': {"id": sc.segment.id, "segment_name": sc.segment.segment},
                             # 'service': {"id": sc.service.id, "service_name": sc.service.service},
                             # 'marketplace': {"id": sc.marketplace.id, "marketplace_name": sc.marketplace.marketplace},
                             # 'program': {"id": sc.program.id, 'program_name': sc.program.program},
                             # 'sub_program': {"id": sc.sub_program.id if sc.sub_program!=None else 0 ,'sub_program_name': sc.sub_program.sub_program if sc.sub_program!=None else '-'},
-                                'commercials': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==False],
-                                'type': type
-                        }
-                    data.append(d)
+                                # ,
+                                # 'type': type
+                        # }
+                    # data.append(d)
+
+                data = {'commercials': d, 'type': type}
             
-                serializer = ViewServiceAndCommercialSerializer(data=data,many=True)
+                serializer = ViewServiceAndCommercialSerializer(data=data,many=False)
                 # pagecount = math.ceil(Services_and_Commercials.objects.filter(segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True).count()/limit)
 
                 if serializer.is_valid():
