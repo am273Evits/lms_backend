@@ -462,7 +462,7 @@ class ViewServiceAndCommercialsSearch(GenericAPIView):
 class ArchiveServiceCommercialIndv(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ViewServiceAndCommercialSerializer
-    def put(self, request, id, format=None, *args, **kwargs):
+    def delete(self, request, id, format=None, *args, **kwargs):
 
         if (str(request.user.department) == 'director'):
 
