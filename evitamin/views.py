@@ -160,7 +160,7 @@ class ViewServiceAndCommercialsIndv(GenericAPIView):
                 # pagecount = math.ceil(Services_and_Commercials.objects.filter(segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True).count()/limit)
 
                 if serializer.is_valid():
-                    res = resFun(status.HTTP_200_OK,'request successful', serializer.data)
+                    res = resFun(status.HTTP_200_OK,'request successful', {'data':serializer.data, 'type':type})
                 else:
                     res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
             else:
