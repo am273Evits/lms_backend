@@ -120,7 +120,7 @@ class ViewServiceAndCommercials(GenericAPIView):
 class ViewServiceAndCommercialsIndv(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ViewServiceAndCommercialSerializer
-    def get(self,request,id, format=None, *args, **kwargs):
+    def get(self,request, type,id, format=None, *args, **kwargs):
         user=request.user
         # print('id',id)
         # limit = 10
@@ -131,17 +131,29 @@ class ViewServiceAndCommercialsIndv(GenericAPIView):
             print('service_commercials',service_commercials)
             if service_commercials.exists():
                 data=[]
+                
                 # service_commercials = service_commercials
                 for sc in service_commercials:
-                    d = {
-                        'id':sc.id,
-                        # 'segment': {"id": sc.segment.id, "segment_name": sc.segment.segment},
-                        # 'service': {"id": sc.service.id, "service_name": sc.service.service},
-                        # 'marketplace': {"id": sc.marketplace.id, "marketplace_name": sc.marketplace.marketplace},
-                        # 'program': {"id": sc.program.id, 'program_name': sc.program.program},
-                        # 'sub_program': {"id": sc.sub_program.id if sc.sub_program!=None else 0 ,'sub_program_name': sc.sub_program.sub_program if sc.sub_program!=None else '-'},
-                        'commercials': { 'active': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==True ], "archive": [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==False] }
-                    }
+                    if type == 'active':
+                        d = {
+                            'id':sc.id,
+                            # 'segment': {"id": sc.segment.id, "segment_name": sc.segment.segment},
+                            # 'service': {"id": sc.service.id, "service_name": sc.service.service},
+                            # 'marketplace': {"id": sc.marketplace.id, "marketplace_name": sc.marketplace.marketplace},
+                            # 'program': {"id": sc.program.id, 'program_name': sc.program.program},
+                            # 'sub_program': {"id": sc.sub_program.id if sc.sub_program!=None else 0 ,'sub_program_name': sc.sub_program.sub_program if sc.sub_program!=None else '-'},
+                                'commercials': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==True ]
+                        }
+                    elif type == 'archive':
+                        d = {
+                            'id':sc.id,
+                            # 'segment': {"id": sc.segment.id, "segment_name": sc.segment.segment},
+                            # 'service': {"id": sc.service.id, "service_name": sc.service.service},
+                            # 'marketplace': {"id": sc.marketplace.id, "marketplace_name": sc.marketplace.marketplace},
+                            # 'program': {"id": sc.program.id, 'program_name': sc.program.program},
+                            # 'sub_program': {"id": sc.sub_program.id if sc.sub_program!=None else 0 ,'sub_program_name': sc.sub_program.sub_program if sc.sub_program!=None else '-'},
+                                'commercials': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==False]
+                        }
                     data.append(d)
             
                 serializer = ViewServiceAndCommercialSerializer(data=data,many=True)
@@ -157,6 +169,7 @@ class ViewServiceAndCommercialsIndv(GenericAPIView):
             res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
 
         return res
+
 
 
 
