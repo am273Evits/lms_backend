@@ -142,7 +142,8 @@ class ViewServiceAndCommercialsIndv(GenericAPIView):
                             # 'marketplace': {"id": sc.marketplace.id, "marketplace_name": sc.marketplace.marketplace},
                             # 'program': {"id": sc.program.id, 'program_name': sc.program.program},
                             # 'sub_program': {"id": sc.sub_program.id if sc.sub_program!=None else 0 ,'sub_program_name': sc.sub_program.sub_program if sc.sub_program!=None else '-'},
-                                'commercials': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==True ]
+                                'commercials': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==True ],
+                                'type': type
                         }
                     elif type == 'archive':
                         d = {
@@ -152,7 +153,8 @@ class ViewServiceAndCommercialsIndv(GenericAPIView):
                             # 'marketplace': {"id": sc.marketplace.id, "marketplace_name": sc.marketplace.marketplace},
                             # 'program': {"id": sc.program.id, 'program_name': sc.program.program},
                             # 'sub_program': {"id": sc.sub_program.id if sc.sub_program!=None else 0 ,'sub_program_name': sc.sub_program.sub_program if sc.sub_program!=None else '-'},
-                                'commercials': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==False]
+                                'commercials': [{ 'id': s.id, 'commercials_name': s.commercials} for s in sc.commercials.all() if s.visibility==False],
+                                'type': type
                         }
                     data.append(d)
             
@@ -160,7 +162,7 @@ class ViewServiceAndCommercialsIndv(GenericAPIView):
                 # pagecount = math.ceil(Services_and_Commercials.objects.filter(segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=True).count()/limit)
 
                 if serializer.is_valid():
-                    res = resFun(status.HTTP_200_OK,'request successful', {'data':serializer.data, 'type':type})
+                    res = resFun(status.HTTP_200_OK,'request successful', serializer.data)
                 else:
                     res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
             else:

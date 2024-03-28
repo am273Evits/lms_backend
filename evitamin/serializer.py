@@ -168,6 +168,7 @@ class ViewServiceAndCommercialSerializer(serializers.Serializer):
     # program = serializers.DictField()
     # sub_program = serializers.DictField()
     commercials = serializers.ListField()
+    type = serializers.CharField()
 
 
 class ViewServiceAndCommercial_NC_Serializer(serializers.Serializer):
