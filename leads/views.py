@@ -469,7 +469,7 @@ class viewAllLeads(GenericAPIView):
 class viewLeadsAllIdentifiers(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = View_All_Leads
-    def post(self, request, lead_id ,format=None, *args, **kwargs):
+    def get(self, request, lead_id ,format=None, *args, **kwargs):
         user = request.user
         res = Response()
         if (str(user.department) == 'director'):
@@ -494,7 +494,7 @@ class viewLeadsAllIdentifiers(GenericAPIView):
                 leads_val["state"] = leads.state.title if leads.state else '-'
                 leads_val["city"] = leads.city.title if leads.city else '-'
 
-                print(leads_val)
+                # print(leads_val)
 
                 serializer = View_All_Leads(data=leads_val)
 
@@ -801,7 +801,7 @@ class ViewSegment(GenericAPIView):
                 else:
                     res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', serializer.errors)
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+                res = resFun(status.HTTP_204_NO_CONTENT, 'data not found', [])
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
         return res
@@ -836,7 +836,7 @@ class EditSegment(GenericAPIView):
 class ArchiveSegment(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ViewSegmentSerializer
-    def put(self, request,id, format=None, *args, **kwargs):
+    def delete(self, request,id, format=None, *args, **kwargs):
         user = request.user
         if (str(user.department) == 'director'):
             try:
@@ -874,7 +874,7 @@ class ViewArchiveSegment(GenericAPIView):
                 else:
                     res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', serializer.errors)
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+                res = resFun(status.HTTP_204_NO_CONTENT, 'data not found', [])
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
         return res
@@ -946,7 +946,7 @@ class ViewService(GenericAPIView):
             if service.exists():
                 res = resFun(status.HTTP_200_OK, 'request successful', list(service.values()))
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+                res = resFun(status.HTTP_204_NO_CONTENT, 'data not found', [])
 
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
@@ -983,7 +983,7 @@ class EditService(GenericAPIView):
 class ArchiveService(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ViewServiceSerializer
-    def put(self, request,id, format=None, *args, **kwargs):
+    def delete(self, request,id, format=None, *args, **kwargs):
         user = request.user
         if (str(user.department) == 'director'):
             try:
@@ -1018,7 +1018,7 @@ class ViewArchiveService(GenericAPIView):
             if service.exists():
                 res = resFun(status.HTTP_200_OK, 'request successful', list(service.values()))
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+                res = resFun(status.HTTP_204_NO_CONTENT, 'data not found', [])
 
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
@@ -1087,7 +1087,7 @@ class ViewMarketplace(GenericAPIView):
             if marketplace.exists():
                 res = resFun(status.HTTP_200_OK, 'request successful', list(marketplace.values()))
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+                res = resFun(status.HTTP_204_NO_CONTENT, 'data not found', [])
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
         return res
@@ -1123,7 +1123,7 @@ class EditMarketplace(GenericAPIView):
 class ArchiveMarketplace(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ViewMarketplaceSerializer
-    def put(self, request,id, format=None, *args, **kwargs):
+    def delete(self, request,id, format=None, *args, **kwargs):
         user = request.user
         if (str(user.department) == 'director'):
             try:
@@ -1158,7 +1158,7 @@ class ViewArchiveMarketplace(GenericAPIView):
             if marketplace.exists():
                 res = resFun(status.HTTP_200_OK, 'request successful', list(marketplace.values()))
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+                res = resFun(status.HTTP_204_NO_CONTENT, 'data not found', [])
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
         return res
@@ -1230,7 +1230,7 @@ class ViewProgram(GenericAPIView):
             if marketplace.exists():
                 res = resFun(status.HTTP_200_OK, 'request successful', list(marketplace.values()))
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+                res = resFun(status.HTTP_204_NO_CONTENT, 'data not found', [])
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
         return res
@@ -1272,7 +1272,7 @@ class EditProgram(GenericAPIView):
 class ArchiveProgram(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProgramSerializer
-    def put(self, request,id, format=None, *args, **kwargs):
+    def delete(self, request,id, format=None, *args, **kwargs):
         user = request.user
         if (str(user.department) == 'director'):
             try:
@@ -1310,7 +1310,7 @@ class ViewArchiveProgram(GenericAPIView):
             if marketplace.exists():
                 res = resFun(status.HTTP_200_OK, 'request successful', list(marketplace.values()))
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+                res = resFun(status.HTTP_204_NO_CONTENT, 'data not found', [])
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
         return res
@@ -1383,7 +1383,7 @@ class ViewSubProgram(GenericAPIView):
             if sub_program.exists():
                 res = resFun(status.HTTP_200_OK, 'request successful', list(sub_program.values()))
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+                res = resFun(status.HTTP_204_NO_CONTENT, 'data not found', [])
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
         return res
@@ -1418,7 +1418,7 @@ class EditSubProgram(GenericAPIView):
 class ArchiveSubProgram(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProgramSerializer
-    def put(self, request,id, format=None, *args, **kwargs):
+    def delete(self, request,id, format=None, *args, **kwargs):
         user = request.user
         if (str(user.department) == 'director'):
             try:
@@ -1452,7 +1452,7 @@ class ViewArchiveSubProgram(GenericAPIView):
             if sub_program.exists():
                 res = resFun(status.HTTP_200_OK, 'request successful', list(sub_program.values()))
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'data not found', [])
+                res = resFun(status.HTTP_204_NO_CONTENT, 'data not found', [])
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [])
         return res

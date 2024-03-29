@@ -17,7 +17,7 @@ urlpatterns = [
             path('view_all_leads/<int:page>', viewAllLeads.as_view()), #view_all_leads
             path('view_lead/<str:lead_id>', viewLeadsAllIdentifiers.as_view()), #view_all_leads
 
-            #services
+            #services   
             path('create_country', Createcountry.as_view()),
             path('update_country/<int:id>', Updatecountry.as_view()),
             # path('delete_country/<int:id>', Deletecountry.as_view()),
