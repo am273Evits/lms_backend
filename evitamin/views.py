@@ -203,8 +203,10 @@ class EditServiceCommercials(GenericAPIView):
             else:
                 service_commercials = Services_and_Commercials.objects.filter(segment=segment, service=service, marketplace=marketplace,program=program,sub_program=sub_program)
 
+            # print('service_commercials',service_commercials)
 
-            print('service_commercials',service_commercials.first().id)
+
+            # print('service_commercials',service_commercials.first().id)
 
 
             if service_commercials.exists() and id != service_commercials.first().id:
