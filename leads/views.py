@@ -783,7 +783,7 @@ class CreateSegment(CreateAPIView):
     
 
 
-class ViewSegment(CreateAPIView):
+class ViewSegment(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ViewSegmentSerializer
     def get(self, request, format=None, *args, **kwargs):
@@ -932,7 +932,7 @@ class CreateService(CreateAPIView):
 
 
 
-class ViewService(CreateAPIView):
+class ViewService(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ViewServiceSerializer
     def get(self, request, format=None, *args, **kwargs):
@@ -1004,7 +1004,7 @@ class ArchiveService(GenericAPIView):
     
 
 
-class ViewArchiveService(CreateAPIView):
+class ViewArchiveService(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ViewServiceSerializer
     def get(self, request, format=None, *args, **kwargs):
@@ -1073,7 +1073,7 @@ class CreateMarketplace(CreateAPIView):
         return res
     
 
-class ViewMarketplace(CreateAPIView):
+class ViewMarketplace(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = MarketplaceSerializer
     def get(self, request, format=None, *args, **kwargs):
@@ -1144,7 +1144,7 @@ class ArchiveMarketplace(GenericAPIView):
     
 
 
-class ViewArchiveMarketplace(CreateAPIView):
+class ViewArchiveMarketplace(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = MarketplaceSerializer
     def get(self, request, format=None, *args, **kwargs):
@@ -1214,7 +1214,7 @@ class CreateProgram(GenericAPIView):
 
 
 
-class ViewProgram(CreateAPIView):
+class ViewProgram(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProgramSerializer
     def get(self, request, format=None, *args, **kwargs):
@@ -1296,7 +1296,7 @@ class ArchiveProgram(GenericAPIView):
 
 
 
-class ViewArchiveProgram(CreateAPIView):
+class ViewArchiveProgram(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProgramSerializer
     def get(self, request, format=None, *args, **kwargs):
