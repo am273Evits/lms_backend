@@ -237,19 +237,19 @@ class EditServiceCommercials(GenericAPIView):
                         if not c['id'] == None:
                             commercial_instance = Commercials.objects.filter(id=c['id'])
                             commercial_instance=commercial_instance.first()
-                            commercial_instance.commercials = c['value']
+                            commercial_instance.commercials = c['commercials_name']
                             commercial_instance.save()
                         else:
-                            # commercial_instance = Commercials.objects.filter(commercials=c['value'])
-                            if c['value'].strip() in saved_Commercials:
+                            # commercial_instance = Commercials.objects.filter(commercials=c['commercials_name'])
+                            if c['commercials_name'].strip() in saved_Commercials:
                                 duplicate_commercials.append(c)
                             else:
-                                new_commercial=Commercials.objects.create(**{'commercials':c['value'].strip()})
+                                new_commercial=Commercials.objects.create(**{'commercials':c['commercials_name'].strip()})
                                 serviceCommercials.commercials.add(new_commercial)
 
                 else:
                     for c in commercials:
-                        new_commercial=Commercials.objects.create(**{'commercials':c['value'].strip()})
+                        new_commercial=Commercials.objects.create(**{'commercials':c['commercials_name'].strip()})
                         serviceCommercials.commercials.add(new_commercial)
                     
                 serviceCommercials.save()
