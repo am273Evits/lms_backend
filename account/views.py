@@ -201,7 +201,7 @@ class registration_VF(GenericAPIView):
         elif userDepartment == 'director':
             serializer = AdminRegistrationSerializer(data = request.data)
         
-        elif userDepartment == 'admin' and userDesignation == 'lead_manager':
+        elif userDepartment == 'admin' and userDesignation == 'user_manager':
             # print('request.user', request.data)
             serializer = LeadManagerRegistrationSerializer(data = request.data)
 
@@ -259,7 +259,7 @@ class view_users(GenericAPIView):
         offset = int((page - 1) * limit)
         
         res = Response()
-        if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'lead_manager':
+        if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'user_manager':
             users = UserAccount.objects.filter(visibility=True)[offset: offset+limit]
             count = math.ceil(UserAccount.objects.all().count() / 10)
             if users.exists():
@@ -302,7 +302,7 @@ class view_users_archive(GenericAPIView):
         offset = int((page - 1) * limit)
         
         res = Response()
-        if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'lead_manager':
+        if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'user_manager':
             users = UserAccount.objects.filter(visibility=False)[offset: offset+limit]
             count = math.ceil(UserAccount.objects.all().count() / 10)
             if users.exists():
@@ -443,7 +443,7 @@ class view_users_archive_search(GenericAPIView):
 #     permission_classes = [IsAuthenticated]
 #     def get(self, request, employee_id ,format=None, *args, **kwargs):
 #         res = Response()
-#         if request.user.department.title =='director' and request.user.designation.title == 'super admin' or request.user.department.title =='lead_management' and request.user.designation.title == 'lead_manager':
+#         if request.user.department.title =='director' and request.user.designation.title == 'super admin' or request.user.department.title =='lead_management' and request.user.designation.title == 'user_manager':
 #             user = UserAccount.objects.filter(employee_id = employee_id, visibility=True)
 #             if user.exists():
 #                 data=[]
@@ -506,10 +506,10 @@ class user_update(GenericAPIView):
 
         # print(request.user)
         res = Response()
-        if request.user.department.title == 'director' or request.user.department.title == 'admin' and request.user.designation.title == 'lead_manager':
+        if request.user.department.title == 'director' or request.user.department.title == 'admin' and request.user.designation.title == 'user_manager':
             user = UserAccount.objects.filter(employee_id = employee_id)
             
-            if request.user.department.title == 'admin' and request.user.designation.title == 'lead_manager':
+            if request.user.department.title == 'admin' and request.user.designation.title == 'user_manager':
                 if user.first().department.title == 'director':
                     raise serializers.ValidationError('you are not authorized to make changes to this user')
 
@@ -549,7 +549,7 @@ class delete_user(GenericAPIView):
             else:
                 res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid employee id', [] )
         
-        elif request.user.department.title == 'admin' or request.user.designation.title == 'lead_manager':
+        elif request.user.department.title == 'admin' or request.user.designation.title == 'user_manager':
 
             user = UserAccount.objects.get(employee_id = employee_id)            
             if user:
@@ -581,7 +581,7 @@ class delete_user(GenericAPIView):
             # print('data saved')
 
 
-        #     if Muser_role == 'lead_manager':
+        #     if Muser_role == 'user_manager':
         #         if user_role == 'admin':
         #             res.status_code = status.HTTP_203_NON_AUTHORITATIVE_INFORMATION
         #             res.data = {"status": status.HTTP_203_NON_AUTHORITATIVE_INFORMATION, "message": "you are not authorized to create admin user, please select a different user role", 'data': [] }
@@ -618,7 +618,7 @@ class delete_user(GenericAPIView):
 
 
         # res = Response()
-        # if Muser_role == 'admin' or Muser_role == 'lead_manager':
+        # if Muser_role == 'admin' or Muser_role == 'user_manager':
 
         #     employee_id = request.data.get('employee_id')
         #     name = request.data.get('name')
@@ -626,7 +626,7 @@ class delete_user(GenericAPIView):
         #     department = request.data.get('department')
         #     user_role = request.data.get('user_role')
 
-        #     if Muser_role == 'lead_manager':
+        #     if Muser_role == 'user_manager':
         #         if user_role == 'admin':
         #             res.status_code = status.HTTP_203_NON_AUTHORITATIVE_INFORMATION
         #             res.data = {"status": status.HTTP_203_NON_AUTHORITATIVE_INFORMATION, "message": "you are not authorized to create admin user, please select a different user role", 'data': [] }
@@ -710,7 +710,7 @@ class unarchive_user(GenericAPIView):
                 res = resFun(status.HTTP_400_BAD_REQUEST,'invalid employee id',[])
 
         
-        # elif request.user.department.title == 'lead_management' or request.user.designation.title == 'lead_manager':
+        # elif request.user.department.title == 'lead_management' or request.user.designation.title == 'user_manager':
 
         #     user = UserAccount.objects.get(employee_id = employee_id)            
         #     if user:
