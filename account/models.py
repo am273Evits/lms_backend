@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser)
-# from leads.models import Program
+# from leads.models import Segment
 
 
 
@@ -105,21 +105,31 @@ class UserAccount(AbstractBaseUser):
     email = models.EmailField(max_length = 200 , unique = True)
     name = models.CharField(max_length=100, null=False)
     # username = models.CharField(max_length=50)(max_length = 200, unique = True)
+    # contact_number = models.CharField(max_length=15, null=False, blank=True)
     employee_id = models.CharField(max_length=100, null=False, unique=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
     designation = models.ForeignKey(Designation, on_delete=models.CASCADE, null=True, blank=True)
     # program = models.ForeignKey(Program, on_delete=models.CASCADE, null=True, blank=True)
     # user_role = models.ForeignKey(User_role, on_delete=models.CASCADE, null=True, blank=True)
-    team_leader = models.ForeignKey("self", related_name = 'team_members' , on_delete=models.CASCADE, null=True, blank=True)
-    admin = models.ForeignKey("self", related_name = 'admin_of', on_delete=models.CASCADE, null=True, blank=True)
+    # admin = models.ForeignKey("self", related_name = 'admin_of', on_delete=models.CASCADE, null=True, blank=True)
     # user_links = models.ManyToManyField(user_links)
     is_superuser = models.BooleanField(default=False)
     is_admin = models.BooleanField(default = False)
     is_staff = models.BooleanField(default = True)
     # employee_status = models.BooleanField(default = True)
     employee_status = models.ForeignKey(Employee_status , on_delete=models.CASCADE, default=1)
+    # director = models.ForeignKey('self', related_name = 'director_of', on_delete=models.CASCADE, null=True, blank=True)
+    # user_manager = models.ForeignKey('self', related_name = 'user_manager_of', on_delete=models.CASCADE, null=True, blank=True)
+    # lead_manager = models.ForeignKey('self', related_name = 'lead_manager_of', on_delete=models.CASCADE, null=True, blank=True)
+    team_leader = models.ForeignKey("self", related_name = 'team_leaders_of' , on_delete=models.CASCADE, null=True, blank=True)
+    segment = models.ForeignKey("leads.Segment", on_delete=models.CASCADE, null=True, blank=True)
+    service = models.ManyToManyField("leads.Service")
+    marketplace = models.ManyToManyField("leads.Marketplace")
+    program = models.ManyToManyField("leads.Program")
+    sub_program = models.ManyToManyField("leads.Sub_program")
+    # service = models.ManyToManyField(Service)
     # gender = models.ForeignKey(Gender , on_delete=models.CASCADE)
-    mobile_number = models.CharField(max_length=300, blank=True, default='')
+    mobile_number = models.CharField(max_length=15, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey('self', related_name = 'creator_of', on_delete=models.CASCADE, null=True, blank=True)

@@ -24,6 +24,6 @@ urlpatterns = [
             path('view_commercials_search/<str:type>/<str:search_attribute>/<str:search_term>', ViewServiceAndCommercialsSearch.as_view()),
 
             path('archive_commercial_ind/<int:id>', ArchiveServiceCommercialIndv.as_view()),
-            path('unarchive_commercial_ind/<int:id>', UnarchiveServiceCommercialIndv.as_view()),
+            path('unarchive_commercial_ind/<int:id>', UnarchiveServiceCommercialIndv.as_view()),    
 
 ]

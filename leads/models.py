@@ -92,8 +92,6 @@ class Segment(models.Model):
   def __str__(self): return str(self.segment)
 
 
-
-
 class Service(models.Model):
   service = models.CharField(max_length=100, blank=True, default='')
   # service = models.ManyToManyField(Services)

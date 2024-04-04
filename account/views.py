@@ -190,28 +190,18 @@ class registration_VF(GenericAPIView):
 
         existing_user  = UserAccount.objects.filter(employee_id = request.data.get('employee_id').lower())
         if existing_user.exists():
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'status': status.HTTP_400_BAD_REQUEST,
-                'data': [],
-                'message': 'user already registered with this employee id, please contact admin'
-            }
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'user already registered with this employee id, please contact admin', [])
             return res
 
 
         if userDepartment == None:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'status': status.HTTP_400_BAD_REQUEST,
-                'data': [],
-                'message': 'User Department not set, please contact admin'
-            }
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'User Department not set, please contact admin', [])
             return res
 
         elif userDepartment == 'director':
             serializer = AdminRegistrationSerializer(data = request.data)
         
-        elif userDepartment == 'lead_management' and userDesignation == 'lead_manager':
+        elif userDepartment == 'admin' and userDesignation == 'lead_manager':
             # print('request.user', request.data)
             serializer = LeadManagerRegistrationSerializer(data = request.data)
 
@@ -228,7 +218,7 @@ class registration_VF(GenericAPIView):
                 # if upload.is_valid():
                 #     instance = upload.save()
         
-                print('upload.data',serializer.data['email'])
+                # print('upload.data',serializer.data['email'])
                 ua_ser = UserAccount.objects.filter(email=serializer.data['email']).first()
 
                 message = canned_email.objects.get(email_type = 'welcome_email')
@@ -248,33 +238,17 @@ class registration_VF(GenericAPIView):
                 email.attach_alternative(message, 'text/html')
                 # email.attach_file('files/uploadFile_0dTGU7A.csv', 'text/csv')
                 email.send()
-
-
                 
                 #welcome email to the user, authentication
 
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'status' : status.HTTP_200_OK,
-                    'message' : 'registration successful',
-                    'data': serializer.data
-                }
+                res = resFun(status.HTTP_200_OK,'registration successful',serializer.data)
             else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'status' : status.HTTP_400_BAD_REQUEST,
-                    'message' : 'registration failed',
-                    'data': [] 
-                }
+                res = resFun(status.HTTP_400_BAD_REQUEST,'registration failed',serializer.data)
         else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'status' : status.HTTP_400_BAD_REQUEST,
-                'message' : serializer.errors if not serializer=='' else 'registration failed',
-                'data': [] 
-            }
+            res = resFun(status.HTTP_400_BAD_REQUEST,[ f'{k} - ' + f'{v[0]}' for k, v in serializer.errors.items()] if not serializer=='' else 'registration failed',[])
         return res
     
+
 
 
 class view_users(GenericAPIView):
@@ -285,7 +259,7 @@ class view_users(GenericAPIView):
         offset = int((page - 1) * limit)
         
         res = Response()
-        if str(request.user.department) == 'director' or str(request.user.department) == 'lead_management' and str(request.user.designation) == 'lead_manager':
+        if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'lead_manager':
             users = UserAccount.objects.filter(visibility=True)[offset: offset+limit]
             count = math.ceil(UserAccount.objects.all().count() / 10)
             if users.exists():
@@ -306,39 +280,16 @@ class view_users(GenericAPIView):
                     
                 serializer = viewUserSerializer(data=data, many=True)
                 if serializer.is_valid():
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'data': {"data": serializer.data, 'current_page': page, 'total_pages': count},
-                        'message': 'request successful',
-                        'status': status.HTTP_200_OK
-                    }
+                    res = resFun(status.HTTP_200_OK, 'request successful', {"data": serializer.data, 'current_page': page, 'total_pages': count})
                 else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'data': serializer.errors,
-                        'message': 'request failed',
-                        'status': status.HTTP_400_BAD_REQUEST
-                    }    
+                    res = resFun(status.HTTP_400_BAD_REQUEST, [ f'{k} - ' + f'{v[0]}' for k, v in serializer.errors.items()] , [])
             else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': {'data': [], 'current_page': page, 'total_pages': count},
-                    'message': 'no data found',
-                    'status': status.HTTP_400_BAD_REQUEST
-                }
+                res = resFun(status.HTTP_204_NO_CONTENT, 'no data found', {'data': [], 'current_page': page, 'total_pages': count} )
 
         # elif :
 
-
-
-
         else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'data': [],
-                'message': 'you are not authorized to view this data',
-                'status': status.HTTP_400_BAD_REQUEST
-            }
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', [] )
         return res
     
 
@@ -351,7 +302,7 @@ class view_users_archive(GenericAPIView):
         offset = int((page - 1) * limit)
         
         res = Response()
-        if str(request.user.department) == 'director' or str(request.user.department) == 'lead_management' and str(request.user.designation) == 'lead_manager':
+        if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'lead_manager':
             users = UserAccount.objects.filter(visibility=False)[offset: offset+limit]
             count = math.ceil(UserAccount.objects.all().count() / 10)
             if users.exists():
@@ -388,7 +339,7 @@ class view_users_search(GenericAPIView):
     serializer_class = viewUserSerializer
     def get(self, request, searchAtr ,id, format=None, *args, **kwargs):
         res = Response()
-        if str(request.user.department) == 'director' or str(request.user.department) == 'lead_manager' and str(request.user.designation) == 'lead_management':
+        if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'lead_management':
             if searchAtr == 'name':
                 name = id.replace('_',' ')
                 user = UserAccount.objects.filter(name__contains = name, visibility=True)
@@ -426,35 +377,13 @@ class view_users_search(GenericAPIView):
 
                 serializer = viewUserSerializer(data=data, many=True)
                 if serializer.is_valid(raise_exception=True):
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'data': serializer.data,
-                        'message': 'request successful',
-                        'status': status.HTTP_200_OK
-                    }  
+                    res = resFun(status.HTTP_200_OK, 'request successful', serializer.data )
                 else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'data': [],
-                        'message': 'no user found',
-                        'status': status.HTTP_400_BAD_REQUEST
-                    }  
-
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
             else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'message': 'no user found',
-                    'status': status.HTTP_400_BAD_REQUEST
-                }         
-  
+                res = resFun(status.HTTP_204_NO_CONTENT, 'no user found', [] )
         else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'data': [],
-                'message': 'you are not authorized to view this data',
-                'status': status.HTTP_400_BAD_REQUEST
-            }
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', [] )
         return res
     
 
@@ -464,19 +393,14 @@ class view_users_archive_search(GenericAPIView):
     serializer_class = viewUserSerializer
     def get(self, request, searchAtr ,id, format=None, *args, **kwargs):
         res = Response()
-        if str(request.user.department) == 'director' or str(request.user.department) == 'lead_manager' and str(request.user.designation) == 'lead_management':
+        if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'lead_management':
             if searchAtr == 'name':
                 name = id.replace('_',' ')
                 user = UserAccount.objects.filter(name__contains = name, visibility=False)
             elif searchAtr == 'employee_id':
                 user = UserAccount.objects.filter(employee_id__contains = id, visibility=False)
             else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'message': 'invalid search term',
-                    'status': status.HTTP_400_BAD_REQUEST
-                }
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid search term', [])
                 return res
 
             if user.exists():
@@ -582,47 +506,27 @@ class user_update(GenericAPIView):
 
         # print(request.user)
         res = Response()
-        if request.user.department.title == 'director' or request.user.department.title == 'lead_management' and request.user.designation.title == 'lead_manager':
+        if request.user.department.title == 'director' or request.user.department.title == 'admin' and request.user.designation.title == 'lead_manager':
             user = UserAccount.objects.filter(employee_id = employee_id)
             
-            if request.user.department.title == 'lead_management' and request.user.designation.title == 'lead_manager':
+            if request.user.department.title == 'admin' and request.user.designation.title == 'lead_manager':
                 if user.first().department.title == 'director':
                     raise serializers.ValidationError('you are not authorized to make changes to this user')
 
 
-            print('user', user)
+            # print('user', user)
             if user.exists():
                 new_data = {key: values for key, values in request.data.items() if values != '-'}
                 serializer = updateUserSerializer(user.first(), data=new_data, partial=True)
                 if serializer.is_valid(raise_exception=True):
                     serializer.save()
-                    res.status_code = status.HTTP_200_OK  
-                    res.data = {
-                        'data': serializer.data,
-                        'message': 'changes saved successfully',
-                        'status': status.HTTP_200_OK    
-                    }
+                    res = resFun(status.HTTP_200_OK, 'changes saved successfully', serializer.data )
                 else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'data': [],
-                        'message': serializer.errors if serializer.errors else 'request data',
-                        'status': status.HTTP_400_BAD_REQUEST
-                    }
+                    res = resFun(status.HTTP_400_BAD_REQUEST, [ f'{k} - ' + f'{v[0]}' for k, v in serializer.errors.items()] , [] )
             else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'message': 'invalid employee id',
-                    'status': status.HTTP_400_BAD_REQUEST
-                }
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid employee id', [] )
         else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'data': [],
-                'message': 'you are not authorized to view this data',
-                'status': status.HTTP_400_BAD_REQUEST
-            }
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', [] )
         return res
 
 
@@ -639,76 +543,35 @@ class delete_user(GenericAPIView):
                 serializer = userDeleteSerializer(user.first(), data={'visibility': False}, partial=True)
                 if serializer.is_valid(raise_exception=True):
                     serializer.save()
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'status': status.HTTP_200_OK,
-                        'data': [],
-                        'message': 'user deleted successfully',
-                    }
+                    res = resFun(status.HTTP_200_OK, 'user deleted successfully', [] )
                 else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'data': [],
-                        'message': 'request failed',
-                        'status': status.HTTP_400_BAD_REQUEST
-                    }
-
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
             else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'message': 'invalid employee id',
-                    'status': status.HTTP_400_BAD_REQUEST
-                }
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid employee id', [] )
         
-        elif request.user.department.title == 'lead_management' or request.user.designation.title == 'lead_manager':
+        elif request.user.department.title == 'admin' or request.user.designation.title == 'lead_manager':
 
             user = UserAccount.objects.get(employee_id = employee_id)            
             if user:
                 user_del_ch = user_delete.objects.filter(user=user.id)
                 if user_del_ch:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'status': status.HTTP_400_BAD_REQUEST,
-                        'data': [],
-                        'message': 'already submitted',
-                    }
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'already submitted', [] )
                     return res
                 else:
                     serializer = userDeleteSerializer(user, data={'visibility': False}, partial=True)
                     if serializer.is_valid(raise_exception=True):
                         serializer.save()
                         user_delete.objects.create(user = user)
-                        res.status_code = status.HTTP_200_OK
-                        res.data = {
-                            'status': status.HTTP_200_OK,
-                            'data': [],
-                            'message': 'sent for approval, user will be deleted after admin approval',
-                        }
+                        res = resFun(status.HTTP_200_OK, 'sent for approval, user will be deleted after admin approval', [] )
 
                     else:
-                        res.status_code = status.HTTP_400_BAD_REQUEST
-                        res.data = {
-                            'data': [],
-                            'message': 'request failed',
-                            'status': status.HTTP_400_BAD_REQUEST
-                        }
+                        res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
 
             else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'message': 'invalid employee id',
-                    'status': status.HTTP_400_BAD_REQUEST
-                }
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid employee id', [] )
 
         else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'data': [],
-                'message': 'you are not authorized to view this data',
-                'status': status.HTTP_400_BAD_REQUEST
-            }
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', [] )
         return res
 
 
