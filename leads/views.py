@@ -11,6 +11,7 @@ from rest_framework import status
 
 
 import pandas as pd
+import random
 
 from .serializers import *
 from account.models import UserAccount, Drp_Program, Department, Designation, Employee_status
@@ -28,7 +29,12 @@ def loginpage(request):
     return res
 
 
-
+def getLeadId():
+    date = datetime.now()
+    date = date.strftime('%Y%m%d%H%M%S%f')
+    random_int = random.randint(100,499) + random.randint(100,499)
+    lead_id = f'L{str(date) + str(random_int)}'
+    return lead_id
 
 
 def resFun(status,message,data):
@@ -80,225 +86,227 @@ class dashboard(GenericAPIView):
 
 
 
-# class uploadBusinessLeads(CreateAPIView):
-#     permission_classes = [IsAuthenticated]
-#     parser_classes = [MultiPartParser, FormParser]
-#     serializer_class = uploadFileSerializer
-#     def post(self, request, format=None, *args, **kwargs):
-#         user = request.FILES
-#         if (str(user.department) == 'lead_management' and str(user.designation) == 'lead_manager'):
-#             if request.method == 'POST':
-#                 if request.FILES:
-#                     file = request.FILES['file']
-#                     df = pd.read_csv(file, delimiter=',',   header=0)
-#                     df = pd.DataFrame(df)
-#                     df.fillna('', inplace=True)
-#                     head_row = df.columns.values
-#                     h_row = [f.replace(' ', '_').replace('(', '').replace(')', '').replace('/', '_').replace('__', '_').replace('__', '_').lower() for f in head_row]
-#                     h_row[h_row.index('requester_name')] = 'client_name'
-#                     h_row[h_row.index('phone_number')] = 'contact_number'
+class uploadBusinessLeads(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    serializer_class = uploadFileSerializer
+    def post(self, request, format=None, *args, **kwargs):
+        user = request.user
+        if (user.department.title == 'admin' and user.designation.title == 'lead_manager'):
+            if request.method == 'POST':
+                if request.FILES:
+                    file = request.FILES['file']
+                    df = pd.read_csv(file, delimiter=',',   header=0)
+                    df = pd.DataFrame(df)
+                    df.fillna('', inplace=True)
+                    head_row = df.columns.values
+                    h_row = [f.replace(' ', '_').replace('(', '').replace(')', '').replace('/', '_').replace('__', '_').replace('__', '_').lower() for f in head_row]
+                    h_row[h_row.index('requester_name')] = 'client_name'
+                    h_row[h_row.index('phone_number')] = 'contact_number'
 
-#                     db_head_row_all_rw = Leads._meta.get_fields()
-#                     db_head_row_all = [field.name for field in db_head_row_all_rw]
+                    # print('h_row',h_row)
 
-#                     # db_head_row_all_type = [field.get_internal_type() for field in db_head_row_all_rw]
+                    db_head_row_all_rw = Leads._meta.get_fields()
+                    db_head_row_all = [field.name for field in db_head_row_all_rw]
 
-#                     # db_head_row_phNum_rw = Contact_number._meta.get_fields()
-#                     # db_head_row_phNum = [field.name for field in db_head_row_phNum_rw]
+                    # db_head_row_all_type = [field.get_internal_type() for field in db_head_row_all_rw]
 
-#                     # db_head_row_emlId_rw = email_ids._meta.get_fields()
-#                     # db_head_row_emlId = [field.name for field in db_head_row_emlId_rw]
+                    # db_head_row_phNum_rw = Contact_number._meta.get_fields()
+                    # db_head_row_phNum = [field.name for field in db_head_row_phNum_rw]
 
-#                     list_of_csv = [list(row) for row in df.values]
-#                     output_data = []
+                    # db_head_row_emlId_rw = email_ids._meta.get_fields()
+                    # db_head_row_emlId = [field.name for field in db_head_row_emlId_rw]
 
-#                     ref_id = ''
+                    list_of_csv = [list(row) for row in df.values]
+                    output_data = []
 
-#                     for ls in list_of_csv:
-#                         dup = False
-#                         break_out = True
-#                         dup_data = None
+                    ref_id = ''
 
-#                         ind_contact_number = h_row.index('contact_number')
-#                         ind_email_id = h_row.index('email_id')
+                    for ls in list_of_csv:
+                        dup = False
+                        break_out = True
+                        dup_data = None
 
-
-#                         dup_contact = str(int(ls[ind_contact_number]) if ls[ind_contact_number] != '' else '')
-#                         dup_email = str(ls[ind_email_id] if ls[ind_email_id] != '' else '')
+                        ind_contact_number = h_row.index('contact_number')
+                        ind_email_id = h_row.index('email_id')
 
 
-#                         dup_contact_number = Leads.objects.filter(Q(contact_number = dup_contact) | Q(alternate_contact_number = dup_contact))
-#                         duplicate_contacts = []
-#                         if dup_contact_number.exists():
-#                             for d in dup_contact_number:
-#                                 duplicate_remarks = Remark_history.objects.filter(lead_id = d.id)
-#                                 duplicate_remarks = [str(d.remark) for d in duplicate_remarks]
-#                                 duplicate_contacts.append({'lead_id': str(d.lead_id), 'remarks': duplicate_remarks})
+                        dup_contact = str(int(ls[ind_contact_number]) if ls[ind_contact_number] != '' else '')
+                        dup_email = str(ls[ind_email_id] if ls[ind_email_id] != '' else '')
 
-#                         dup_email_id = Leads.objects.filter(Q(email_id = dup_email) | Q(alternate_email_id = dup_email))
-#                         duplicate_email = []
-#                         if dup_email_id:
-#                             for d in dup_email_id:
-#                                 if len(duplicate_contacts) > 0:
-#                                     for dt in duplicate_contacts:
-#                                         if dt['lead_id'] == d.lead_id:
-#                                             break
-#                                 else:
-#                                     duplicate_remarks = Remark_history.objects.filter(lead_id = d.id)
-#                                     duplicate_remarks = [str(d.remark) for d in duplicate_remarks]
-#                                     duplicate_email.append({'lead_id': str(d.lead_id) , 'remarks': duplicate_remarks})
 
-#                         if len(duplicate_contacts) > 0 or len(duplicate_email) > 0:
-#                             dup = True
-#                             break_out = False
-#                             dup_data =  duplicate_contacts + duplicate_email
+                        dup_contact_number = Leads.objects.filter(Q(contact_number = dup_contact) | Q(alternate_contact_number = dup_contact))
+                        duplicate_contacts = []
+                        if dup_contact_number.exists():
+                            for d in dup_contact_number:
+                                duplicate_remarks = Remark_history.objects.filter(lead_id = d.id)
+                                duplicate_remarks = [str(d.remark) for d in duplicate_remarks]
+                                duplicate_contacts.append({'lead_id': str(d.lead_id), 'remarks': duplicate_remarks})
 
-#                         if dup == False:
-#                             dt = {}
-#                             lead_id = getLeadId()
-#                             leads_instance = Leads()
-#                             for i in range (len(db_head_row_all)):
-#                                 # service_category = ''
-#                                 if not (db_head_row_all[i] == 'id' or db_head_row_all[i] == 'lead_id') and db_head_row_all[i] in h_row:
-#                                     ind = h_row.index(db_head_row_all[i])
+                        dup_email_id = Leads.objects.filter(Q(email_id = dup_email) | Q(alternate_email_id = dup_email))
+                        duplicate_email = []
+                        if dup_email_id:
+                            for d in dup_email_id:
+                                if len(duplicate_contacts) > 0:
+                                    for dt in duplicate_contacts:
+                                        if dt['lead_id'] == d.lead_id:
+                                            break
+                                else:
+                                    duplicate_remarks = Remark_history.objects.filter(lead_id = d.id)
+                                    duplicate_remarks = [str(d.remark) for d in duplicate_remarks]
+                                    duplicate_email.append({'lead_id': str(d.lead_id) , 'remarks': duplicate_remarks})
 
-#                                     if db_head_row_all[i] == 'service_category':
-#                                         dt[db_head_row_all[i]] = Services.objects.filter(service_name = ls[ind].lower()).first()
+                        if len(duplicate_contacts) > 0 or len(duplicate_email) > 0:
+                            dup = True
+                            break_out = False
+                            dup_data =  duplicate_contacts + duplicate_email
 
-#                                     elif db_head_row_all[i] == 'request_id':
-#                                         if ls[ind] != '':
-#                                             if len(str(ls[ind])) > 0:
-#                                                 dt[db_head_row_all[i]] = ls[ind]
-#                                         else:
-#                                             break_out = False
-#                                             break
+                        if dup == False:
+                            dt = {}
+                            lead_id = getLeadId()
+                            leads_instance = Leads()
+                            for i in range (len(db_head_row_all)):
+                                # service_category = ''
+                                if not (db_head_row_all[i] == 'id' or db_head_row_all[i] == 'lead_id') and db_head_row_all[i] in h_row:
+                                    ind = h_row.index(db_head_row_all[i])
 
-#                                     elif db_head_row_all[i] == 'status':
-#                                         dt[db_head_row_all[i]] = 'yet to contact'
+                                    if db_head_row_all[i] == 'service_category':
+                                        dt[db_head_row_all[i]] = Services.objects.filter(service_name = ls[ind].lower()).first()
 
-#                                     else:
-#                                         if isinstance(ls[ind], str):
-#                                                dt[db_head_row_all[i]] = ls[ind].lower()
-#                                         elif isinstance(ls[ind], float):
-#                                             if ls[ind] != '':
-#                                                 dt[db_head_row_all[i]] = str(ls[ind])
-#                                             else:
-#                                                 dt[db_head_row_all[i]] = ''
-#                                         elif isinstance(ls[ind], int):
-#                                             if ls[ind] != '':
-#                                                 dt[db_head_row_all[i]] = str(ls[ind])
-#                                             else:
-#                                                 dt[db_head_row_all[i]] = ''
-#                                         else: 
-#                                             dt[db_head_row_all[i]] = ls[ind]
+                                    elif db_head_row_all[i] == 'request_id':
+                                        if ls[ind] != '':
+                                            if len(str(ls[ind])) > 0:
+                                                dt[db_head_row_all[i]] = ls[ind]
+                                        else:
+                                            break_out = False
+                                            break
 
-#                         if break_out:
-#                             # Status_history.objects.create({'service'})
-#                             d = [lead_id]
-#                             head_rows = [h for h in h_row]
-#                             head_rows.insert(0, 'lead_id')
-#                             d = d + ls
-#                             head_rows.insert(0, 'status')
-#                             d = [str(drp_lead_status.objects.filter(title = 'yet to contact').first().title)] + d
-#                             output_data.append(dict(zip(head_rows ,d)))
+                                    elif db_head_row_all[i] == 'status':
+                                        dt[db_head_row_all[i]] = 'yet to contact'
 
-#                             dt['lead_id'] = str(lead_id)
-#                             dt['status'] = drp_lead_status.objects.filter(title = 'yet to contact').first()
-#                             for field_name, value in dt.items():
-#                                 if field_name != 'city':
-#                                     setattr(leads_instance, field_name, value)
-#                             leads_instance.save()
+                                    else:
+                                        if isinstance(ls[ind], str):
+                                               dt[db_head_row_all[i]] = ls[ind].lower()
+                                        elif isinstance(ls[ind], float):
+                                            if ls[ind] != '':
+                                                dt[db_head_row_all[i]] = str(ls[ind])
+                                            else:
+                                                dt[db_head_row_all[i]] = ''
+                                        elif isinstance(ls[ind], int):
+                                            if ls[ind] != '':
+                                                dt[db_head_row_all[i]] = str(ls[ind])
+                                            else:
+                                                dt[db_head_row_all[i]] = ''
+                                        else: 
+                                            dt[db_head_row_all[i]] = ls[ind]
 
-#                             # ref_id = Leads.objects.filter(lead_id = lead_id).values('id').first()
-#                             # ref_id = ref_id['id']
+                        if break_out:
+                            # Status_history.objects.create({'service'})
+                            d = [lead_id]
+                            head_rows = [h for h in h_row]
+                            head_rows.insert(0, 'lead_id')
+                            d = d + ls
+                            head_rows.insert(0, 'status')
+                            d = [str(drp_lead_status.objects.filter(title = 'yet to contact').first().title)] + d
+                            output_data.append(dict(zip(head_rows ,d)))
 
-#                             # contact_instance = Contact_number()
-#                             # dt = {}
-#                             # for i in range (len(db_head_row_phNum)):
-#                             #     if not (db_head_row_phNum[i] == 'id' or db_head_row_phNum[i] == 'lead_id'):
-#                             #         ind = h_row.index(db_head_row_phNum[i])
-#                             #         dt[db_head_row_phNum[i]] = str(int(ls[ind]))
+                            dt['lead_id'] = str(lead_id)
+                            dt['status'] = drp_lead_status.objects.filter(title = 'yet to contact').first()
+                            for field_name, value in dt.items():
+                                if field_name != 'city':
+                                    setattr(leads_instance, field_name, value)
+                            leads_instance.save()
 
-#                             # dt['lead_id'] = leads_instance
-#                             # for field_name, value in dt.items():
-#                             #     setattr(contact_instance, field_name, value)
-#                             # contact_instance.save()
+                            # ref_id = Leads.objects.filter(lead_id = lead_id).values('id').first()
+                            # ref_id = ref_id['id']
 
-#                             # email_instance = email_ids()
-#                             # dt = {}
-#                             # for i in range (len(db_head_row_emlId)):
-#                             #     if not (db_head_row_emlId[i] == 'id' or db_head_row_emlId[i] == 'lead_id'):
-#                             #         ind = h_row.index(db_head_row_emlId[i])
-#                             #         dt[db_head_row_emlId[i]] = str(ls[ind])
+                            # contact_instance = Contact_number()
+                            # dt = {}
+                            # for i in range (len(db_head_row_phNum)):
+                            #     if not (db_head_row_phNum[i] == 'id' or db_head_row_phNum[i] == 'lead_id'):
+                            #         ind = h_row.index(db_head_row_phNum[i])
+                            #         dt[db_head_row_phNum[i]] = str(int(ls[ind]))
 
-#                             # dt['lead_id'] = leads_instance
-#                             # for field_name, value in dt.items():
-#                             #     setattr(email_instance, field_name, value)
-#                             # email_instance.save()
+                            # dt['lead_id'] = leads_instance
+                            # for field_name, value in dt.items():
+                            #     setattr(contact_instance, field_name, value)
+                            # contact_instance.save()
 
-#                             Status_history.objects.create(**{'status': drp_lead_status.objects.filter(title = 'yet to contact').first(), "lead_id": leads_instance, 'status_date': date.today() ,'updated_by': request.user })
+                            # email_instance = email_ids()
+                            # dt = {}
+                            # for i in range (len(db_head_row_emlId)):
+                            #     if not (db_head_row_emlId[i] == 'id' or db_head_row_emlId[i] == 'lead_id'):
+                            #         ind = h_row.index(db_head_row_emlId[i])
+                            #         dt[db_head_row_emlId[i]] = str(ls[ind])
 
-#                             # service_instance = Service_category() 
-#                             # dt = {'service': service_category if service_category else None  ,'lead_id': leads_instance, 'status': drp_lead_status.objects.filter(title = 'yet to contact').first() }
-#                             # for i in range (len(db_head_row_emlId)):
-#                             #     if not (db_head_row_emlId[i] == 'id' or db_head_row_emlId[i] == 'lead_id'):
-#                             #         ind = h_row.index(db_head_row_emlId[i])
-#                             #         dt[db_head_row_emlId[i]] = str(ls[ind])
+                            # dt['lead_id'] = leads_instance
+                            # for field_name, value in dt.items():
+                            #     setattr(email_instance, field_name, value)
+                            # email_instance.save()
 
-#                             # dt['lead_id'] = leads_instance
-#                             # for field_name, value in dt.items():
-#                             #     setattr(service_instance, field_name, value)
-#                             # service_instance.save()
+                            Status_history.objects.create(**{'status': drp_lead_status.objects.filter(title = 'yet to contact').first(), "lead_id": leads_instance, 'status_date': date.today() ,'updated_by': request.user })
 
-#                         else:
-#                             d = ['not generated']
-#                             head_rows = [h for h in h_row]
-#                             if dup_data:
-#                                 head_rows.insert(0, 'duplicate_leads')
-#                                 data = [dup_data] + ls
-#                             else:
-#                                 data = ls
-#                             head_rows.insert(0, 'lead_id')
-#                             d = d + data
-#                             output_data.append(dict(zip(head_rows ,d)))
+                            # service_instance = Service_category() 
+                            # dt = {'service': service_category if service_category else None  ,'lead_id': leads_instance, 'status': drp_lead_status.objects.filter(title = 'yet to contact').first() }
+                            # for i in range (len(db_head_row_emlId)):
+                            #     if not (db_head_row_emlId[i] == 'id' or db_head_row_emlId[i] == 'lead_id'):
+                            #         ind = h_row.index(db_head_row_emlId[i])
+                            #         dt[db_head_row_emlId[i]] = str(ls[ind])
 
-#                     res =  Response()
-#                     res.status_code = status.HTTP_201_CREATED
-#                     # res['Access-Control-Allow-Origin'] = '*'
-#                     # res['Access-Control-Allow-Credentials'] = True
-#                     res.data = {
-#                         "status": status.HTTP_201_CREATED,
-#                         "message": 'all records saved successfully', 
-#                         "data": output_data
-#                         }
-#                 else :
-#                     res =  Response()
-#                     res.status_code = status.HTTP_400_BAD_REQUEST
-#                     res.data = {
-#                         'status': status.HTTP_400_BAD_REQUEST,
-#                         'message': 'file object not provided with key "file"',
-#                         'data': []
-#                     }
-#                 return res
-#             else:
-#                 res = Response()
-#                 res.status_code = status.HTTP_400_BAD_REQUEST
-#                 res.data = {
-#                     "status" : status.HTTP_400_BAD_REQUEST,
-#                     "message": "unsuccessful",
-#                     "data": []
-#                 }
+                            # dt['lead_id'] = leads_instance
+                            # for field_name, value in dt.items():
+                            #     setattr(service_instance, field_name, value)
+                            # service_instance.save()
+
+                        else:
+                            d = ['not generated']
+                            head_rows = [h for h in h_row]
+                            if dup_data:
+                                head_rows.insert(0, 'duplicate_leads')
+                                data = [dup_data] + ls
+                            else:
+                                data = ls
+                            head_rows.insert(0, 'lead_id')
+                            d = d + data
+                            output_data.append(dict(zip(head_rows ,d)))
+
+                    res =  Response()
+                    res.status_code = status.HTTP_201_CREATED
+                    # res['Access-Control-Allow-Origin'] = '*'
+                    # res['Access-Control-Allow-Credentials'] = True
+                    res.data = {
+                        "status": status.HTTP_201_CREATED,
+                        "message": 'all records saved successfully', 
+                        "data": output_data
+                        }
+                else :
+                    res =  Response()
+                    res.status_code = status.HTTP_400_BAD_REQUEST
+                    res.data = {
+                        'status': status.HTTP_400_BAD_REQUEST,
+                        'message': 'file object not provided with key "file"',
+                        'data': []
+                    }
+                return res
+            else:
+                res = Response()
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    "status" : status.HTTP_400_BAD_REQUEST,
+                    "message": "unsuccessful",
+                    "data": []
+                }
         
-#         else:
-#                 res = Response()
-#                 res.status_code = status.HTTP_400_BAD_REQUEST
-#                 res.data = {
-#                     "status" : status.HTTP_400_BAD_REQUEST,
-#                     "message": "you are not authorized for this action",
-#                     "data": []
-#                 }
+        else:
+                res = Response()
+                res.status_code = status.HTTP_400_BAD_REQUEST
+                res.data = {
+                    "status" : status.HTTP_400_BAD_REQUEST,
+                    "message": "you are not authorized for this action",
+                    "data": []
+                }
 
-#         return res
+        return res
     
 
 

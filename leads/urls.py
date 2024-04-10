@@ -7,7 +7,7 @@ urlpatterns = [
 
         # lead_manager:
 
-            # path('upload', uploadBusinessLeads.as_view()), #file upload
+            path('upload', uploadBusinessLeads.as_view()), #file upload
             # path('update', updateBusinessLeads.as_view()), #file upload
             # path('create_lead_manual', createLeadManual.as_view()), #file upload
 

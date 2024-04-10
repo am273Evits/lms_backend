@@ -21,7 +21,7 @@ from account.models import *
 
 
 class dropdown_department(GenericAPIView):
-    serializer_class = dropdown_departmentSerializer
+    serializer_class = CommonDropdownSerializer
     permission_classes = [IsAuthenticated]
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
@@ -33,9 +33,9 @@ class dropdown_department(GenericAPIView):
             if department.exists():
                 data =[]
                 for d in department:
-                    data.append({'department_id': d.get('department'), 'department_name': Department.objects.get(id=d.get('department')).title})
+                    data.append({'id': d.get('department'), 'value': Department.objects.get(id=d.get('department')).title})
 
-                serializer = dropdown_departmentSerializer(data=data, many=True)
+                serializer = CommonDropdownSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
                 res = resFun(status.HTTP_200_OK, 'request successful', serializer.data )
             else:
@@ -52,7 +52,7 @@ class dropdown_department(GenericAPIView):
 
 
 class dropdown_designation(GenericAPIView):
-    serializer_class = dropdown_designationSerializer
+    serializer_class = CommonDropdownSerializer
     permission_classes = [IsAuthenticated]
     def get(self, request, id, format=None, *args, **kwargs):
         user = request.user
@@ -65,8 +65,8 @@ class dropdown_designation(GenericAPIView):
                 print('designation',designation)
                 data = []
                 for d in designation:
-                    data.append({'designation_id': d.get('designation'), 'designation_name': Designation.objects.get(id=d.get('designation')).title})
-                serializer = dropdown_designationSerializer(data=data, many=True)
+                    data.append({'id': d.get('designation'), 'value': Designation.objects.get(id=d.get('designation')).title})
+                serializer = CommonDropdownSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
                 res = resFun(status.HTTP_200_OK, 'request successful', serializer.data )
             except:
@@ -121,7 +121,7 @@ class dropdown_designation(GenericAPIView):
 
 
 class dropdown_employee_status(GenericAPIView):
-    serializer_class = dropdown_employee_statusSerializer
+    serializer_class = CommonDropdownSerializer
     permission_classes = [IsAuthenticated]
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
@@ -133,9 +133,9 @@ class dropdown_employee_status(GenericAPIView):
             if employee_status.exists():
                 data =[]
                 for d in employee_status:
-                    data.append({'employee_status_id': d.get('id'), 'employee_status_name': d.get('title')})
+                    data.append({'id': d.get('id'), 'value': d.get('title')})
 
-                serializer = dropdown_employee_statusSerializer(data=data, many=True)
+                serializer = CommonDropdownSerializer(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
                 res = resFun(status.HTTP_200_OK,'request successful',serializer.data)
             else:
@@ -148,7 +148,7 @@ class dropdown_employee_status(GenericAPIView):
 
 
 class employee_list(GenericAPIView):
-    serializer_class = employee_List_Serializer
+    serializer_class = CommonDropdownSerializer
     permission_classes = [IsAuthenticated]
     def get(self, request, searchAtr, format=None, *args, **kwargs):
         user = request.user
@@ -171,10 +171,10 @@ class employee_list(GenericAPIView):
                 if searchData.exists():
                     data =[]
                     for d in searchData:
-                        data.append({'employee_id': d.id, 'employee_name': d.name})
+                        data.append({'id': d.id, 'value': d.name})
 
 
-                    serializer = employee_List_Serializer(data=data, many=True)
+                    serializer = CommonDropdownSerializer(data=data, many=True)
                     serializer.is_valid(raise_exception=True)
                     res = resFun(status.HTTP_200_OK,'request successful',serializer.data)
 

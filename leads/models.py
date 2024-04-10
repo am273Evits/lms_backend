@@ -280,14 +280,12 @@ class Remark_history(models.Model):
 #   email_id = models.CharField(max_length=100, blank=True, default='')
 
 
-
-# class Service_category(models.Model):
-#   lead_id = models.ForeignKey(Leads, on_delete=models.CASCADE, null=True, blank=True)
-#   service = models.ForeignKey(Services, on_delete=models.CASCADE, null=True, blank=True)
-#   pricing = models.ForeignKey(Commercials, on_delete=models.CASCADE, null=True, blank=True)
-#   followup = models.ForeignKey(Followup_history, on_delete=models.CASCADE, null=True, blank=True)
-#   status = models.ForeignKey(drp_lead_status, on_delete=models.CASCADE, null=True, blank=True)
-
+class Service_category(models.Model):
+  lead_id = models.ForeignKey(Leads, on_delete=models.CASCADE, null=True, blank=True)
+  service = models.ForeignKey(Services_and_Commercials, on_delete=models.CASCADE, null=True, blank=True)
+  pricing = models.ForeignKey(Commercials, on_delete=models.CASCADE, null=True, blank=True)
+  followup = models.ForeignKey(Followup_history, on_delete=models.CASCADE, null=True, blank=True)
+  status = models.ForeignKey(drp_lead_status, on_delete=models.CASCADE, null=True, blank=True)
 
 
 class Email_history(models.Model):

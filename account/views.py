@@ -12,6 +12,7 @@ from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
+from leads.views import resFun
 from datetime import datetime
 import random
 import math
@@ -24,7 +25,6 @@ from django.core.mail import EmailMultiAlternatives
 
 from account.models import UserAccount
 from leads.models import Program
-from leads.views import resFun
 
 
 
@@ -69,12 +69,12 @@ def getUserDesignation(id):
 #     # print(data)
 #     return data
 
-def getLeadId():
-    date = datetime.now()
-    date = date.strftime('%Y%m%d%H%M%S%f')
-    random_int = random.randint(100,499) + random.randint(100,499)
-    lead_id = f'L{str(date) + str(random_int)}'
-    return lead_id
+# def getLeadId():
+#     date = datetime.now()
+#     date = date.strftime('%Y%m%d%H%M%S%f')
+#     random_int = random.randint(100,499) + random.randint(100,499)
+#     lead_id = f'L{str(date) + str(random_int)}'
+#     return lead_id
 
 # def getServiceId():
 #     date = datetime.now()
