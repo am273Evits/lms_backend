@@ -176,7 +176,7 @@ class employee_list(GenericAPIView):
 
                     serializer = CommonDropdownSerializer(data=data, many=True)
                     serializer.is_valid(raise_exception=True)
-                    res = resFun(status.HTTP_200_OK,'request successful',serializer.data)
+                    res = resFun(status.HTTP_200_OK,'request successful',{'data': serializer.data, 'search_attribute': searchAtr})
 
             except:
                 res = resFun(status.HTTP_400_BAD_REQUEST,'no employee_status list found',[])

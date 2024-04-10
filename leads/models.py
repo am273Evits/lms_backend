@@ -193,7 +193,7 @@ class drp_lead_status(models.Model):
   title = models.CharField(max_length=100, blank=True, default='')
 
 class Status_history(models.Model):
-  lead_id = models.ForeignKey("leads.Leads", on_delete=models.CASCADE, null=True, blank=None)
+  # lead_id = models.ForeignKey("leads.Leads", on_delete=models.CASCADE, null=True, blank=None)
   status = models.ForeignKey(drp_lead_status, on_delete=models.CASCADE)
   status_date = models.DateField(auto_now=False, auto_now_add=False)
   updated_by = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, blank=True)
@@ -215,11 +215,12 @@ class Leads(models.Model):
     alternate_contact_number = models.CharField(max_length=100, blank=True, default='')
     email_id = models.EmailField(max_length=254, blank=True, default='')
     alternate_email_id = models.EmailField(max_length=254, blank=True, default='')
-    created_date = models.CharField(max_length=100, blank=True, default='') 
-    # service_category = models.ForeignKey(Services, on_delete=models.CASCADE, null=True, blank=True)
+    created_date = models.CharField(max_length=100, blank=True, default='')
+    service_category_all = models.ManyToManyField("leads.Service_category")
     # service = models.ForeignKey(Services, on_delete=models.CASCADE, null=True, blank=True)
     # commercials = models.ForeignKey(Commercials, on_delete=models.CASCADE, null=True, blank=True)
     status = models.ForeignKey(drp_lead_status, on_delete=models.CASCADE, null=True, blank=True)
+    status_history_all = models.ManyToManyField("leads.Status_history")
 
     requester_location = models.CharField(max_length=100, blank=True, default='') 
     requester_sell_in_country = models.CharField(max_length=100, blank=True, default='') 
@@ -236,7 +237,7 @@ class Leads(models.Model):
     # turnover = models.ForeignKey(Turnover_slab, on_delete=models.CASCADE, null=True, blank=True) 
     # monthly_sales = models.CharField(max_length=100, blank=True, default='') 
     gst = models.CharField(max_length=100, blank=True, default='') 
-    # remark = models.ForeignKey(Remark_history, on_delete=models.CASCADE, null=True, blank=True)
+    remark = models.ManyToManyField("leads.Remark_history")
     contact_preferences = models.ForeignKey(Contact_preference, on_delete=models.CASCADE, null=True, blank=True)
     followup = models.ForeignKey(Followup_history, on_delete=models.CASCADE, null=True, blank=True)
     address_line1 = models.CharField(max_length=100, blank=True, default='') 
@@ -249,7 +250,7 @@ class Leads(models.Model):
     # deadline = models.CharField(max_length=100, blank=True, default='')
     seller_website = models.CharField(max_length=100, blank=True, default='') 
     amazon_store_link = models.CharField(max_length=100, blank=True, default='') 
-    facebook_store_link = models.CharField(max_length=100, blank=True, default='') 
+    facebook_store_link = models.CharField(max_length=100, blank=True, default='')
     instagram_store_link = models.CharField(max_length=100, blank=True, default='')
     upload_date = models.DateTimeField(auto_now_add=True, null=True)
     visibility = models.BooleanField(default=True)
@@ -270,7 +271,8 @@ class Turn_Arround_Time(models.Model):
     
 class Remark_history(models.Model):
   remark = models.CharField(max_length=100, blank=True, default='')
-  lead_id = models.ForeignKey(Leads, on_delete=models.CASCADE, null=True, blank=True)
+  def __str__(self): return str(self.remark)
+  # lead_id = models.ForeignKey(Leads, on_delete=models.CASCADE, null=True,blank=True)
   # remark_date = models.DateField(auto_now=False, auto_now_add=False)
 
 

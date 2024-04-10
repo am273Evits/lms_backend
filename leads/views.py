@@ -11,6 +11,7 @@ from rest_framework import status
 
 
 import pandas as pd
+import numpy as np
 import random
 
 from .serializers import *
@@ -98,7 +99,9 @@ class uploadBusinessLeads(CreateAPIView):
                     file = request.FILES['file']
                     df = pd.read_csv(file, delimiter=',',   header=0)
                     df = pd.DataFrame(df)
+                    df = df.astype(object)
                     df.fillna('', inplace=True)
+                    print(df)
                     head_row = df.columns.values
                     h_row = [f.replace(' ', '_').replace('(', '').replace(')', '').replace('/', '_').replace('__', '_').replace('__', '_').lower() for f in head_row]
                     h_row[h_row.index('requester_name')] = 'client_name'
@@ -139,9 +142,11 @@ class uploadBusinessLeads(CreateAPIView):
                         duplicate_contacts = []
                         if dup_contact_number.exists():
                             for d in dup_contact_number:
-                                duplicate_remarks = Remark_history.objects.filter(lead_id = d.id)
-                                duplicate_remarks = [str(d.remark) for d in duplicate_remarks]
-                                duplicate_contacts.append({'lead_id': str(d.lead_id), 'remarks': duplicate_remarks})
+                                # duplicate_remarks = Remark_history.objects.filter(lead_id = d.id)
+                                # duplicate_remarks = [str(d.remark) for d in duplicate_remarks]
+                                # duplicate_contacts.append({'lead_id': str(d.lead_id), 'remarks': duplicate_remarks})
+                                
+                                duplicate_contacts.append({'lead_id': str(d.lead_id), 'remarks': [r.remark for r in d.remark.all()]})
 
                         dup_email_id = Leads.objects.filter(Q(email_id = dup_email) | Q(alternate_email_id = dup_email))
                         duplicate_email = []
@@ -152,13 +157,18 @@ class uploadBusinessLeads(CreateAPIView):
                                         if dt['lead_id'] == d.lead_id:
                                             break
                                 else:
-                                    duplicate_remarks = Remark_history.objects.filter(lead_id = d.id)
-                                    duplicate_remarks = [str(d.remark) for d in duplicate_remarks]
-                                    duplicate_email.append({'lead_id': str(d.lead_id) , 'remarks': duplicate_remarks})
+                                    print(d.remark.all())
+                                    # duplicate_remarks = Remark_history.objects.filter(lead_id = d.id)
+                                    # duplicate_remarks = [str(d.remark) for d in duplicate_remarks]
+                                    # duplicate_email.append({'lead_id': str(d.lead_id) , 'remarks': duplicate_remarks})
+
+                                    duplicate_contacts.append({'lead_id': str(d.lead_id), 'remarks': [r.remark for r in d.remark.all()]})
+
 
                         if len(duplicate_contacts) > 0 or len(duplicate_email) > 0:
                             dup = True
                             break_out = False
+                            error_message = ['already exists']
                             dup_data =  duplicate_contacts + duplicate_email
 
                         if dup == False:
@@ -170,8 +180,46 @@ class uploadBusinessLeads(CreateAPIView):
                                 if not (db_head_row_all[i] == 'id' or db_head_row_all[i] == 'lead_id') and db_head_row_all[i] in h_row:
                                     ind = h_row.index(db_head_row_all[i])
 
+                                    # print('lsdsd',ls)
+                                    # print('lsdsd',h_row)
+
+                                    # if db_head_row_all[i] == 'marketplace':
+                                    #     dt[db_head_row_all[i]] = Services_and_Commercials.objects.filter(marketplace__marketplace = ls[ind].lower()).first()
+
                                     if db_head_row_all[i] == 'service_category':
-                                        dt[db_head_row_all[i]] = Services.objects.filter(service_name = ls[ind].lower()).first()
+                                        # if ls[h_row.index('sub_program')] == '':
+                                        #     print('ls[h_row.index(sub_program)]',ls[h_row.index('sub_program')])
+
+                                        if ls[h_row.index('service_category')] == '':
+                                            # print(ls[h_row.index('service_category')])
+                                            break_out = False
+                                            error_message = ['service category can not be blank']
+                                            break
+                                        elif ls[h_row.index('marketplace')] == '':
+                                            break_out = False
+                                            error_message = ['marketplace can not be blank']
+                                            break
+                                        elif ls[h_row.index('program')] == '':
+                                            break_out = False
+                                            error_message = ['program can not be blank']
+                                            break
+                                        else:
+
+                                        # dt[db_head_row_all[i]] = 
+
+                                            if ls[h_row.index('sub_program')] != '':
+                                                service_commercial = Services_and_Commercials.objects.filter( segment__segment=ls[h_row.index('segment')].lower(), service__service = ls[ind].lower(), marketplace__marketplace=ls[h_row.index('marketplace')].lower(), program__program = ls[h_row.index('program')].lower(), sub_program__sub_program = ls[h_row.index('sub_program')].lower() )
+                                                print('service_commercial',service_commercial)
+                                            else:
+                                                service_commercial = Services_and_Commercials.objects.filter( segment__segment=ls[h_row.index('segment')].lower(), service__service = ls[ind].lower(), marketplace__marketplace=ls[h_row.index('marketplace')].lower(), program__program = ls[h_row.index('program')].lower())
+                                                pass
+
+
+                                            if not service_commercial.exists():
+                                                break_out=False
+                                                error_message = ['service & commercials not found']
+                                                break
+
 
                                     elif db_head_row_all[i] == 'request_id':
                                         if ls[ind] != '':
@@ -179,6 +227,7 @@ class uploadBusinessLeads(CreateAPIView):
                                                 dt[db_head_row_all[i]] = ls[ind]
                                         else:
                                             break_out = False
+                                            error_message = ['request id can not be blank']
                                             break
 
                                     elif db_head_row_all[i] == 'status':
@@ -212,10 +261,21 @@ class uploadBusinessLeads(CreateAPIView):
 
                             dt['lead_id'] = str(lead_id)
                             dt['status'] = drp_lead_status.objects.filter(title = 'yet to contact').first()
+                            
+                            Status_history_instance = Status_history.objects.create(**{'status': drp_lead_status.objects.filter(title = 'yet to contact').first(), 'status_date': date.today() ,'updated_by': request.user })
+
+                            # dt['status_history'] = Status_history_instance.id
                             for field_name, value in dt.items():
                                 if field_name != 'city':
                                     setattr(leads_instance, field_name, value)
                             leads_instance.save()
+
+                            service_category_instance = Service_category.objects.create(**{'service':service_commercial.first(), 'status': drp_lead_status.objects.filter(title = 'yet to contact').first()})
+
+                            
+
+                            leads_instance.status_history_all.add(Status_history_instance.id)
+                            leads_instance.service_category_all.add(service_category_instance.id)
 
                             # ref_id = Leads.objects.filter(lead_id = lead_id).values('id').first()
                             # ref_id = ref_id['id']
@@ -244,7 +304,7 @@ class uploadBusinessLeads(CreateAPIView):
                             #     setattr(email_instance, field_name, value)
                             # email_instance.save()
 
-                            Status_history.objects.create(**{'status': drp_lead_status.objects.filter(title = 'yet to contact').first(), "lead_id": leads_instance, 'status_date': date.today() ,'updated_by': request.user })
+                            
 
                             # service_instance = Service_category() 
                             # dt = {'service': service_category if service_category else None  ,'lead_id': leads_instance, 'status': drp_lead_status.objects.filter(title = 'yet to contact').first() }
@@ -268,6 +328,9 @@ class uploadBusinessLeads(CreateAPIView):
                                 data = ls
                             head_rows.insert(0, 'lead_id')
                             d = d + data
+                            head_rows.insert(0, 'error message')
+                            d = error_message + d
+                            
                             output_data.append(dict(zip(head_rows ,d)))
 
                     res =  Response()
@@ -354,7 +417,7 @@ class viewAllLeads(GenericAPIView):
                 'data': [],
             })
 
-        if str(user.department) == 'director' or (str(user.department) == 'admin' and str(user.designation) == 'administrator'):
+        if str(user.department) == 'director' or (str(user.department) == 'admin' and str(user.designation) == 'lead_manager'):
             data = []
             leadsData = Leads.objects.select_related().filter(visibility = True).all()[offset : offset + limit]
 
@@ -377,8 +440,8 @@ class viewAllLeads(GenericAPIView):
                     'upload_date': upload_date , 
                     'deadline': deadline,
                     "associate" : sd.associate.name if sd.associate else '-',
-                    "service_category" : sd.service_category.service_name if sd.service_category else '-',
-                    "commercials" : sd.commercials.price_for_mou if sd.commercials else '-',
+                    "service_category" : [s.service.service.service for s in sd.service_category_all.all()] if sd.service_category_all else [],
+                    # "commercials" : sd.commercials.price_for_mou if sd.commercials else '-',
                     "status" : sd.status.title if sd.status else '-',
                     "client_turnover" : sd.client_turnover.title if sd.client_turnover else '-',
                     "business_type" : sd.business_type.title if sd.business_type else '-',
@@ -386,9 +449,10 @@ class viewAllLeads(GenericAPIView):
                     "firm_type" : sd.firm_type.title if sd.firm_type else '-',
                     "contact_preferences" : sd.contact_preferences.title if sd.contact_preferences else '-',
                     "followup" : sd.followup.followup_date if sd.followup else '-',
-                    "country" : sd.country.title if sd.country else '-',
-                    "state" : sd.state.title if sd.state else '-',
-                    "city" : sd.city.title if sd.city else '-'
+                    # "country" : sd.country.title if sd.country else '-',
+                    # "state" : sd.state.title if sd.state else '-',
+                    # "city" : sd.city.title if sd.city else '-'
+                    "hot_lead" : sd.hot_lead
                     
                     })
             
