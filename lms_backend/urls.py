@@ -31,7 +31,7 @@ urlpatterns = [
 
 
    #  path('login',loginpage),
-   #  path('dropdown/',include('dropdown.urls')),
+    path('dropdown/',include('dropdown.urls')),
    #  path('employees/',include('employees.urls')),
     path('evitamin/',include('evitamin.urls')),
    #  path('records/',include('records.urls')),

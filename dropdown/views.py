@@ -7,239 +7,411 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from .serializers import *
-from dropdown.models import ev_department, ev_designation, user_role_list
-from dropdown.models import list_employee
-from business_leads.serializers import allIdentifiersSerializer 
+from leads.views import resFun
+# from dropdown.models import ev_department, ev_designation, user_role_list
+# from dropdown.models import list_employee
+# from business_leads.serializers import allIdentifiersSerializer 
 # from dropdown.serializers import dynamic_serializer
 from account.models import *
-from dropdown.models import dropdown_fields
+# from dropdown.models import dropdown_fields
 
-from account.views import getLeadId, getProduct, getUserRole, getTeamLeader, getClientId, get_tokens_for_user , getAssociates as getAssociate, getModelFields
+# from account.views import getLeadId, getProduct, getUserRole, getTeamLeader, getClientId, get_tokens_for_user , getAssociates as getAssociate, getModelFields
+
+
+
+
+class dropdown_department(GenericAPIView):
+    serializer_class = dropdown_departmentSerializer
+    permission_classes = [IsAuthenticated]
+    def get(self, request, format=None, *args, **kwargs):
+        user = request.user
+        res = Response()
+        if (str(user.department) == 'director') or (str(user.department) == 'admin' and str(user.designation) == 'user_manager') :
+
+            department = Drp_Program.objects.values('department').distinct()
+            print('department',department)
+            if department.exists():
+                data =[]
+                for d in department:
+                    data.append({'department_id': d.get('department'), 'department_name': Department.objects.get(id=d.get('department')).title})
+
+                serializer = dropdown_departmentSerializer(data=data, many=True)
+                serializer.is_valid(raise_exception=True)
+                res = resFun(status.HTTP_200_OK, 'request successful', serializer.data )
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'no department list found', [] )
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [] )
+        return res
+
+
+
+
+
+
+
+
+class dropdown_designation(GenericAPIView):
+    serializer_class = dropdown_designationSerializer
+    permission_classes = [IsAuthenticated]
+    def get(self, request, id, format=None, *args, **kwargs):
+        user = request.user
+        res = Response()
+        if (str(user.department) == 'director') or (str(user.department) == 'admin' and str(user.designation) == 'user_manager'):
+            # print(user.designation)
+
+            try:
+                designation = Drp_Program.objects.filter(department = id).values('designation').distinct()
+                print('designation',designation)
+                data = []
+                for d in designation:
+                    data.append({'designation_id': d.get('designation'), 'designation_name': Designation.objects.get(id=d.get('designation')).title})
+                serializer = dropdown_designationSerializer(data=data, many=True)
+                serializer.is_valid(raise_exception=True)
+                res = resFun(status.HTTP_200_OK, 'request successful', serializer.data )
+            except:
+                res = resFun(status.HTTP_204_NO_CONTENT, 'no designation list found', [] )
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action', [] )
+
+        return res
+    
+
+
+
+# class dropdown_program(GenericAPIView):
+#     serializer_class = dropdown_programSerializer
+#     permission_classes = [IsAuthenticated]
+#     def get(self, request, id, format=None, *args, **kwargs):
+#         user = request.user
+#         res = Response()
+#         if (str(user.department) == 'director'):
+#             program = Drp_Program.objects.filter(designation = id).values('program').distinct()
+#             print(program)
+#             if program.exists():
+#                 data = []
+#                 for d in program:
+#                     if d.get('program') == None:
+#                         res.status_code = status.HTTP_400_BAD_REQUEST
+#                         res.data = {
+#                             'data': [],
+#                             'status': status.HTTP_400_BAD_REQUEST,
+#                             'message': 'invalid designation id',
+#                         }
+#                         res = resFun(status.HTTP_200_OK,'invalid designation id',[])
+
+#                         return res                           
+#                     else:
+#                         data.append({'program_id': d.get('program'), 'program_name': Program.objects.get(id = d.get('program')).title})
+
+
+#                 serializer = dropdown_programSerializer(data=data, many=True)
+#                 serializer.is_valid(raise_exception=True)
+
+#                 res = resFun(status.HTTP_200_OK,'request successful',serializer.data)
+#             else:
+#                 res = resFun(status.HTTP_400_BAD_REQUEST,'no program list found',[])
+#         else:
+#             res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
+#         return res
+
+# class ()
+
+
+
+
+class dropdown_employee_status(GenericAPIView):
+    serializer_class = dropdown_employee_statusSerializer
+    permission_classes = [IsAuthenticated]
+    def get(self, request, format=None, *args, **kwargs):
+        user = request.user
+        # res = Response()
+        if (str(user.department) == 'director') or (str(user.department) == 'admin' and str(user.designation) == 'user_manager'):
+
+            employee_status = Employee_status.objects.values('title','id').distinct()
+            # print('employee_status',employee_status)
+            if employee_status.exists():
+                data =[]
+                for d in employee_status:
+                    data.append({'employee_status_id': d.get('id'), 'employee_status_name': d.get('title')})
+
+                serializer = dropdown_employee_statusSerializer(data=data, many=True)
+                serializer.is_valid(raise_exception=True)
+                res = resFun(status.HTTP_200_OK,'request successful',serializer.data)
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST,'no employee_status list found',[])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
+        return res
+
+
+
+
+class employee_list(GenericAPIView):
+    serializer_class = employee_List_Serializer
+    permission_classes = [IsAuthenticated]
+    def get(self, request, searchAtr, format=None, *args, **kwargs):
+        user = request.user
+        # res = Response()
+        if (str(user.department) == 'director') or (str(user.department) == 'admin' and str(user.designation) == 'user_manager'):
+
+            try:
+                if searchAtr == 'director':
+                    searchData = UserAccount.objects.filter(department__title = searchAtr).distinct()
+                elif searchAtr == 'user_manager':
+                    searchData = UserAccount.objects.filter(designation__title = searchAtr).distinct()
+                elif searchAtr == 'lead_manager':
+                    searchData = UserAccount.objects.filter(designation__title = searchAtr).distinct()
+                elif searchAtr == 'team_leader':
+                    searchData = UserAccount.objects.filter(designation__title = searchAtr).distinct()
+
+
+                print(searchData)
+
+                if searchData.exists():
+                    data =[]
+                    for d in searchData:
+                        data.append({'employee_id': d.id, 'employee_name': d.name})
+
+
+                    serializer = employee_List_Serializer(data=data, many=True)
+                    serializer.is_valid(raise_exception=True)
+                    res = resFun(status.HTTP_200_OK,'request successful',serializer.data)
+
+            except:
+                res = resFun(status.HTTP_400_BAD_REQUEST,'no employee_status list found',[])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
+        return res
+
+
+
+
 
 
 # Create your views here.
 
-class dropdownOption(GenericAPIView):
-    serializer_class = dropdownOptionSerializers
-    permissions_classes = [IsAuthenticated]
-    def get(self, request, table, format=None, *args, **kwargs):
+# class dropdownOption(GenericAPIView):
+#     serializer_class = dropdownOptionSerializers
+#     permissions_classes = [IsAuthenticated]
+#     def get(self, request, table, format=None, *args, **kwargs):
 
-        model = apps.get_model('dropdown', table)
-        data = list(model.objects.values_list('title', flat=True).order_by('title'))
+#         model = apps.get_model('dropdown', table)
+#         data = list(model.objects.values_list('title', flat=True).order_by('title'))
         
-        serializer = dropdownOptionSerializers(data=[{'title': data}], many=True)
-        res = Response()
-        if serializer.is_valid(raise_exception=True):
-            print(serializer.data)
-            DR_LIST = set()
-            for s in serializer.data:
-                for key in s:
-                    for d in s[key]:
-                        DR_LIST.add(d)
+#         serializer = dropdownOptionSerializers(data=[{'title': data}], many=True)
+#         res = Response()
+#         if serializer.is_valid(raise_exception=True):
+#             print(serializer.data)
+#             DR_LIST = set()
+#             for s in serializer.data:
+#                 for key in s:
+#                     for d in s[key]:
+#                         DR_LIST.add(d)
             
-            print(DR_LIST)
+#             print(DR_LIST)
                     
-            res.status_code = status.HTTP_200_OK
-            res.data = {
-                'status': status.HTTP_200_OK,
-                "message": 'successful',
-                "data": {'title': DR_LIST, 'dropdown_name': table}
-                }
-        else :
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'status': status.HTTP_400_BAD_REQUEST,
-                "message": 'request failed',
-                "data": []
-                }
-        return res
+#             res.status_code = status.HTTP_200_OK
+#             res.data = {
+#                 'status': status.HTTP_200_OK,
+#                 "message": 'successful',
+#                 "data": {'title': DR_LIST, 'dropdown_name': table}
+#                 }
+#         else :
+#             res.status_code = status.HTTP_400_BAD_REQUEST
+#             res.data = {
+#                 'status': status.HTTP_400_BAD_REQUEST,
+#                 "message": 'request failed',
+#                 "data": []
+#                 }
+#         return res
     
 
-class dropdownOptionData1(GenericAPIView):
-    serializer_class = dropdownOptionSerializers
-    permissions_classes = [IsAuthenticated]
-    def get(self, request, table, data1,  format=None, *args, **kwargs):
-        # print(table)
+# class dropdownOptionData1(GenericAPIView):
+#     serializer_class = dropdownOptionSerializers
+#     permissions_classes = [IsAuthenticated]
+#     def get(self, request, table, data1,  format=None, *args, **kwargs):
+#         # print(table)
 
-        model = apps.get_model('dropdown', table)
-        if table == 'ev_designation':
-            data = list(model.objects.filter(department__title = data1).values_list('title', flat=True).order_by('title'))
-            # print(data)
-            serializer = dropdownOptionSerializers(data=[{'title': data}], many=True)
-            res = Response()
-            if serializer.is_valid(raise_exception=True):
+#         model = apps.get_model('dropdown', table)
+#         if table == 'ev_designation':
+#             data = list(model.objects.filter(department__title = data1).values_list('title', flat=True).order_by('title'))
+#             # print(data)
+#             serializer = dropdownOptionSerializers(data=[{'title': data}], many=True)
+#             res = Response()
+#             if serializer.is_valid(raise_exception=True):
 
-                DS_LIST = []
-                for s in serializer.data:
-                    for key in s["title"]:
-                        d = ev_designation.objects.filter(title = key).first()
-                        DS_LIST.append(d.title.title)
+#                 DS_LIST = []
+#                 for s in serializer.data:
+#                     for key in s["title"]:
+#                         d = ev_designation.objects.filter(title = key).first()
+#                         DS_LIST.append(d.title.title)
                         
-                if len(DS_LIST) > 0:
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'status': status.HTTP_200_OK,
-                        "message": 'successful',
-                        "data": {"title": DS_LIST, 'dropdown_name': table}
-                        }
-                else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'status': status.HTTP_400_BAD_REQUEST,
-                        "message": 'no data found',
-                        "data": ''
-                        }
+#                 if len(DS_LIST) > 0:
+#                     res.status_code = status.HTTP_200_OK
+#                     res.data = {
+#                         'status': status.HTTP_200_OK,
+#                         "message": 'successful',
+#                         "data": {"title": DS_LIST, 'dropdown_name': table}
+#                         }
+#                 else:
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         "message": 'no data found',
+#                         "data": ''
+#                         }
 
-            else :
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    "message": 'request failed',
-                    "data": []
-                    }
-        elif table == 'country_state_city':
-            # print('working')
-            data = list(model.objects.filter(title = data1).values_list('state', flat=True).distinct().order_by('state'))
-            print('data', data)
-            if data:
-                serializer = dropdownOptionSerializers(data=[{'title': data}], many=True)
-                res = Response()
-                if serializer.is_valid(raise_exception=True):
-                    # print(serializer.data)
+#             else :
+#                 res.status_code = status.HTTP_400_BAD_REQUEST
+#                 res.data = {
+#                     'status': status.HTTP_400_BAD_REQUEST,
+#                     "message": 'request failed',
+#                     "data": []
+#                     }
+#         elif table == 'country_state_city':
+#             # print('working')
+#             data = list(model.objects.filter(title = data1).values_list('state', flat=True).distinct().order_by('state'))
+#             print('data', data)
+#             if data:
+#                 serializer = dropdownOptionSerializers(data=[{'title': data}], many=True)
+#                 res = Response()
+#                 if serializer.is_valid(raise_exception=True):
+#                     # print(serializer.data)
 
-                    DS_LIST = []
-                    for s in serializer.data:
-                        for d in s['title']:
-                            DS_LIST.append(d)
-                    print(DS_LIST)
+#                     DS_LIST = []
+#                     for s in serializer.data:
+#                         for d in s['title']:
+#                             DS_LIST.append(d)
+#                     print(DS_LIST)
                 
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'status': status.HTTP_200_OK,
-                        "message": 'successful',
-                        "data": {'title': DS_LIST, 'dropdown_name': table}
-                        }
-                else :
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'status': status.HTTP_400_BAD_REQUEST,
-                        "message": 'request failed',
-                        "data": []
-                        }
-                return res
+#                     res.status_code = status.HTTP_200_OK
+#                     res.data = {
+#                         'status': status.HTTP_200_OK,
+#                         "message": 'successful',
+#                         "data": {'title': DS_LIST, 'dropdown_name': table}
+#                         }
+#                 else :
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         "message": 'request failed',
+#                         "data": []
+#                         }
+#                 return res
 
-        return res
+#         return res
 
 
 
-class dropdownOptionData2(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = dropdownOptionSerializers
-    def get(self, request, table, data1, data2, format=None, *args, **kwargs):
+# class dropdownOptionData2(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = dropdownOptionSerializers
+#     def get(self, request, table, data1, data2, format=None, *args, **kwargs):
 
-        model = apps.get_model('dropdown', table)
-        if table == 'user_role_list':
-            data = list(model.objects.filter(department__title = data1, designation__title__title = data2).values_list('title', flat=True).order_by('title'))
-            # print('data', data)
-            serializer = dropdownOptionSerializers(data=[{'title': data}], many=True)
-            res = Response()
-            if serializer.is_valid(raise_exception=True):
+#         model = apps.get_model('dropdown', table)
+#         if table == 'user_role_list':
+#             data = list(model.objects.filter(department__title = data1, designation__title__title = data2).values_list('title', flat=True).order_by('title'))
+#             # print('data', data)
+#             serializer = dropdownOptionSerializers(data=[{'title': data}], many=True)
+#             res = Response()
+#             if serializer.is_valid(raise_exception=True):
 
-                DS_LIST = []
-                for s in serializer.data:
-                    DS_LIST.append(*s['title'])
-                    # for key in s["title"]:
-                    #     print(key)
-                        # d = ev_designation.objects.filter(title = key).first()
-                        # DS_LIST.append(d.title.title)
+#                 DS_LIST = []
+#                 for s in serializer.data:
+#                     DS_LIST.append(*s['title'])
+#                     # for key in s["title"]:
+#                     #     print(key)
+#                         # d = ev_designation.objects.filter(title = key).first()
+#                         # DS_LIST.append(d.title.title)
                         
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'status': status.HTTP_200_OK,
-                    "message": 'successful',
-                    "data": {'title': DS_LIST, 'dropdown_name': table}
-                    }
-            else :
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    "message": 'request failed',
-                    "data": []
-                    }
-        elif table == 'country_state_city':
-            data = list(model.objects.filter(title = data1, state = data2).values_list('city', flat=True).distinct().order_by('city'))
-            if data:
-                serializer = dropdownOptionSerializers(data=[{'title': data}], many=True)
-                res = Response()
-                if serializer.is_valid(raise_exception=True):
+#                 res.status_code = status.HTTP_200_OK
+#                 res.data = {
+#                     'status': status.HTTP_200_OK,
+#                     "message": 'successful',
+#                     "data": {'title': DS_LIST, 'dropdown_name': table}
+#                     }
+#             else :
+#                 res.status_code = status.HTTP_400_BAD_REQUEST
+#                 res.data = {
+#                     'status': status.HTTP_400_BAD_REQUEST,
+#                     "message": 'request failed',
+#                     "data": []
+#                     }
+#         elif table == 'country_state_city':
+#             data = list(model.objects.filter(title = data1, state = data2).values_list('city', flat=True).distinct().order_by('city'))
+#             if data:
+#                 serializer = dropdownOptionSerializers(data=[{'title': data}], many=True)
+#                 res = Response()
+#                 if serializer.is_valid(raise_exception=True):
                     
-                    DS_LIST = []
-                    for s in serializer.data:
-                        for d in s['title']:
-                            DS_LIST.append(d)
-                    # print(DS_LIST)
+#                     DS_LIST = []
+#                     for s in serializer.data:
+#                         for d in s['title']:
+#                             DS_LIST.append(d)
+#                     # print(DS_LIST)
 
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'status': status.HTTP_200_OK,
-                        "message": 'successful',
-                        "data": {'title': DS_LIST, 'dropdown_name': table}
-                        }
-                else :
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'status': status.HTTP_400_BAD_REQUEST,
-                        "message": 'request failed',
-                        "data": []
-                        }
-                return res
-        return res
+#                     res.status_code = status.HTTP_200_OK
+#                     res.data = {
+#                         'status': status.HTTP_200_OK,
+#                         "message": 'successful',
+#                         "data": {'title': DS_LIST, 'dropdown_name': table}
+#                         }
+#                 else :
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         "message": 'request failed',
+#                         "data": []
+#                         }
+#                 return res
+#         return res
 
 
-class employeesAllTables(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = employeesAllTablesSerializer
-    def get(self, request, format=None, *args, **kwargs):
-        user_role = getUserRole(request.user.id)
-        res = Response()
-        if user_role == 'admin' or user_role == 'lead_manager' or user_role == 'bd_tl' or user_role == 'bd_t_member':
+# class employeesAllTables(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = employeesAllTablesSerializer
+#     def get(self, request, format=None, *args, **kwargs):
+#         user_role = getUserRole(request.user.id)
+#         res = Response()
+#         if user_role == 'admin' or user_role == 'lead_manager' or user_role == 'bd_tl' or user_role == 'bd_t_member':
 
-            tables = list_employee.objects.all()
-            # print(tables)
-            tablesList = [tb.table_name for tb in tables]
-            # print('tablesList',tablesList)
-            tables = {'tables': tablesList}
-            print(tables)
+#             tables = list_employee.objects.all()
+#             # print(tables)
+#             tablesList = [tb.table_name for tb in tables]
+#             # print('tablesList',tablesList)
+#             tables = {'tables': tablesList}
+#             print(tables)
                     
-            serializer = employeesAllTablesSerializer(data=tables)
-            if serializer.is_valid(raise_exception=True):
+#             serializer = employeesAllTablesSerializer(data=tables)
+#             if serializer.is_valid(raise_exception=True):
                 
-                tables = serializer.data['tables']
-                table_data = []
-                for t in tables:
-                    table_data.append({'table_name': t if t != 'useraccount' else 'user account', 'table_reference': t})
+#                 tables = serializer.data['tables']
+#                 table_data = []
+#                 for t in tables:
+#                     table_data.append({'table_name': t if t != 'useraccount' else 'user account', 'table_reference': t})
 
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'status': status.HTTP_200_OK,
-                    'message': 'successful',
-                    'data': table_data
-                }
-            else :
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'unsuccessful',
-                    'data': serializer.data
-                }
-        else :
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'status': status.HTTP_400_BAD_REQUEST,
-                'message': 'you are not authorized',
-                'data': []
-            }
-        return res
+#                 res.status_code = status.HTTP_200_OK
+#                 res.data = {
+#                     'status': status.HTTP_200_OK,
+#                     'message': 'successful',
+#                     'data': table_data
+#                 }
+#             else :
+#                 res.status_code = status.HTTP_400_BAD_REQUEST
+#                 res.data = {
+#                     'status': status.HTTP_400_BAD_REQUEST,
+#                     'message': 'unsuccessful',
+#                     'data': serializer.data
+#                 }
+#         else :
+#             res.status_code = status.HTTP_400_BAD_REQUEST
+#             res.data = {
+#                 'status': status.HTTP_400_BAD_REQUEST,
+#                 'message': 'you are not authorized',
+#                 'data': []
+#             }
+#         return res
     
 
 
