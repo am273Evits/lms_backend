@@ -317,7 +317,6 @@ class ViewArchivedServiceAndCommercials(GenericAPIView):
             
             service_commercials = Services_and_Commercials.objects.filter(segment__visibility=True, service__visibility=True, marketplace__visibility=True, program__visibility=True, visibility=False)[offset : offset + limit]
 
-        
             print('service_commercials',service_commercials)
 
             if service_commercials.exists():

@@ -15,16 +15,9 @@ urlpatterns = [
       path('user_update/<str:employee_id>',views.user_update.as_view()),
       path('user_delete/<str:employee_id>',views.delete_user.as_view()),
 
-
-      path('generate_password/<int:id>/<str:token>', views.GeneratePassword),
-
-
-
-      
-
-
       path('view_user_archive/<int:page>',views.view_users_archive.as_view()),
-      path('view_user_archive_search/<int:page>',views.view_users_archive_search.as_view()),
+      path('view_user_archive_search/<str:searchAtr>/<str:id>',views.view_users_archive_search.as_view()),
       path('unarchive_user/<str:employee_id>',views.unarchive_user.as_view()),
 
+      path('generate_password/<int:id>/<str:token>', views.GeneratePassword),
 ]

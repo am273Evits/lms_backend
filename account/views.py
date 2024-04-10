@@ -184,16 +184,20 @@ class registration_VF(GenericAPIView):
         userDesignation = getUserDesignation(request.user.id)
         serializer = ''
 
+
         userDepartment = str(userDepartment.title)
         # userDesignation = str(userDesignation.title)
         res = Response()
 
-        existing_user  = UserAccount.objects.filter(employee_id = request.data.get('employee_id').lower())
+        
+        existing_user  = UserAccount.objects.filter(employee_id = request.data.get('employee_id').lower() if request.data.get('employee_id') else '' )
         if existing_user.exists():
             res = resFun(status.HTTP_400_BAD_REQUEST, 'user already registered with this employee id, please contact admin', [])
             return res
 
 
+        print('working ', (userDepartment), userDesignation)
+        
         if userDepartment == None:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'User Department not set, please contact admin', [])
             return res
@@ -201,13 +205,16 @@ class registration_VF(GenericAPIView):
         elif userDepartment == 'director':
             serializer = AdminRegistrationSerializer(data = request.data)
         
-        elif userDepartment == 'admin' and userDesignation == 'user_manager':
+        elif str(userDepartment) == 'admin' and str(userDesignation) == 'user_manager':
             # print('request.user', request.data)
             serializer = LeadManagerRegistrationSerializer(data = request.data)
+    
 
         if not serializer == '':
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
+            if serializer.is_valid():
+                instance = serializer.save()
+                instance.created_by = request.user
+                instance.save()
 
                 # data = {}
                 # data['name'] = request.POST['name']
@@ -243,7 +250,8 @@ class registration_VF(GenericAPIView):
 
                 res = resFun(status.HTTP_200_OK,'registration successful',serializer.data)
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST,'registration failed',serializer.data)
+                print(serializer.errors)
+                res = resFun(status.HTTP_400_BAD_REQUEST,serializer.errors,[])
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST,[ f'{k} - ' + f'{v[0]}' for k, v in serializer.errors.items()] if not serializer=='' else 'registration failed',[])
         return res
@@ -257,6 +265,9 @@ class view_users(GenericAPIView):
     def get(self, request, page, format=None, *args, **kwargs):
         limit = 10
         offset = int((page - 1) * limit)
+
+        print(request.user.department)
+        print(request.user.designation)
         
         res = Response()
         if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'user_manager':
@@ -271,10 +282,20 @@ class view_users(GenericAPIView):
                         'employee_id': u.employee_id, 
                         'name': u.name if u.name else '-', 
                         'email_id': u.email if u.email else '-', 
-                        'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
-                        'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'department_id':'','department': ''},
+                        'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':0,'designation':''}, 
+                        'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'department_id':0,'department': ''},
                         # 'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'program_id':'','program': ''},
-                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''}
+                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''},
+                        'director': {'director_id': u.director.id, 'director': u.director.name} if u.director else {'director_id': 0,'director': ''},
+                        'user_manager': {'user_manager_id': u.user_manager.id, 'user_manager': u.user_manager.name} if u.user_manager else {'user_manager_id': 0,'user_manager': ''},
+                        'lead_manager': {'lead_manager_id': u.lead_manager.id, 'lead_manager': u.lead_manager.name} if u.lead_manager else {'lead_manager_id': 0,'lead_manager': ''},
+                        'team_leader': {'team_leader_id': u.team_leader.id, 'team_leader': u.team_leader.name} if u.team_leader else {'team_leader_id': 0,'team_leader': ''},
+                        'segment': {'segment_id': u.segment.id, 'segment': u.segment.segment} if u.segment else {'segment_id': 0,'segment': ''},
+                        'service': [{'service_id': s.id, 'service': s.service} for s in u.service.all() if u.service],
+                        'marketplace': [{'marketplace_id': s.id, 'marketplace': s.marketplace} for s in u.marketplace.all() if u.marketplace],
+                        'program': [{'program_id': s.id, 'program': s.program} for s in u.program.all() if u.program],
+                        'sub_program': [{'sub_program_id': s.id, 'sub_program': s.sub_program} for s in u.sub_program.all() if u.sub_program],
+
                         # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
                         })
                     
@@ -317,7 +338,16 @@ class view_users_archive(GenericAPIView):
                         'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
                         'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'department_id':'','department': ''},
                         # 'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'program_id':'','program': ''},
-                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''}
+                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''},
+                        'director': {'director_id': u.director.id, 'director': u.director.name} if u.director else {'director_id': 0,'director': ''},
+                        'user_manager': {'user_manager_id': u.user_manager.id, 'user_manager': u.user_manager.name} if u.user_manager else {'user_manager_id': 0,'user_manager': ''},
+                        'lead_manager': {'lead_manager_id': u.lead_manager.id, 'lead_manager': u.lead_manager.name} if u.lead_manager else {'lead_manager_id': 0,'lead_manager': ''},
+                        'team_leader': {'team_leader_id': u.team_leader.id, 'team_leader': u.team_leader.name} if u.team_leader else {'team_leader_id': 0,'team_leader': ''},
+                        'segment': {'segment_id': u.segment.id, 'segment': u.segment.segment} if u.segment else {'segment_id': 0,'segment': ''},
+                        'service': [{'service_id': s.id, 'service': s.service} for s in u.service.all() if u.service],
+                        'marketplace': [{'marketplace_id': s.id, 'marketplace': s.marketplace} for s in u.marketplace.all() if u.marketplace],
+                        'program': [{'program_id': s.id, 'program': s.program} for s in u.program.all() if u.program],
+                        'sub_program': [{'sub_program_id': s.id, 'sub_program': s.sub_program} for s in u.sub_program.all() if u.sub_program],
                         # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
                         })
                     
@@ -327,7 +357,7 @@ class view_users_archive(GenericAPIView):
                 else:
                     res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',serializer.errors)
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST,'no data found',[])
+                res = resFun(status.HTTP_204_NO_CONTENT,'no data found',[])
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized to view this data',[])
         return res
@@ -339,7 +369,7 @@ class view_users_search(GenericAPIView):
     serializer_class = viewUserSerializer
     def get(self, request, searchAtr ,id, format=None, *args, **kwargs):
         res = Response()
-        if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'lead_management':
+        if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'user_manager':
             if searchAtr == 'name':
                 name = id.replace('_',' ')
                 user = UserAccount.objects.filter(name__contains = name, visibility=True)
@@ -370,9 +400,17 @@ class view_users_search(GenericAPIView):
                         'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
                         'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'designation_id':'','designation': ''},
                         # 'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'designation_id':'','designation': ''},
-                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''}
+                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''},
+                        'director': {'director_id': u.director.id, 'director': u.director.name} if u.director else {'director_id': 0,'director': ''},
+                        'user_manager': {'user_manager_id': u.user_manager.id, 'user_manager': u.user_manager.name} if u.user_manager else {'user_manager_id': 0,'user_manager': ''},
+                        'lead_manager': {'lead_manager_id': u.lead_manager.id, 'lead_manager': u.lead_manager.name} if u.lead_manager else {'lead_manager_id': 0,'lead_manager': ''},
+                        'team_leader': {'team_leader_id': u.team_leader.id, 'team_leader': u.team_leader.name} if u.team_leader else {'team_leader_id': 0,'team_leader': ''},
+                        'segment': {'segment_id': u.segment.id, 'segment': u.segment.segment} if u.segment else {'segment_id': 0,'segment': ''},
+                        'service': [{'service_id': s.id, 'service': s.service} for s in u.service.all() if u.service],
+                        'marketplace': [{'marketplace_id': s.id, 'marketplace': s.marketplace} for s in u.marketplace.all() if u.marketplace],
+                        'program': [{'program_id': s.id, 'program': s.program} for s in u.program.all() if u.program],
+                        'sub_program': [{'sub_program_id': s.id, 'sub_program': s.sub_program} for s in u.sub_program.all() if u.sub_program],
                         # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
-
                         })
 
                 serializer = viewUserSerializer(data=data, many=True)
@@ -393,7 +431,7 @@ class view_users_archive_search(GenericAPIView):
     serializer_class = viewUserSerializer
     def get(self, request, searchAtr ,id, format=None, *args, **kwargs):
         res = Response()
-        if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'lead_management':
+        if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'user_manager':
             if searchAtr == 'name':
                 name = id.replace('_',' ')
                 user = UserAccount.objects.filter(name__contains = name, visibility=False)
@@ -418,7 +456,16 @@ class view_users_archive_search(GenericAPIView):
                         'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
                         'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'designation_id':'','designation': ''},
                         # 'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'designation_id':'','designation': ''},
-                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''}
+                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''},
+                        'director': {'director_id': u.director.id, 'director': u.director.name} if u.director else {'director_id': 0,'director': ''},
+                        'user_manager': {'user_manager_id': u.user_manager.id, 'user_manager': u.user_manager.name} if u.user_manager else {'user_manager_id': 0,'user_manager': ''},
+                        'lead_manager': {'lead_manager_id': u.lead_manager.id, 'lead_manager': u.lead_manager.name} if u.lead_manager else {'lead_manager_id': 0,'lead_manager': ''},
+                        'team_leader': {'team_leader_id': u.team_leader.id, 'team_leader': u.team_leader.name} if u.team_leader else {'team_leader_id': 0,'team_leader': ''},
+                        'segment': {'segment_id': u.segment.id, 'segment': u.segment.segment} if u.segment else {'segment_id': 0,'segment': ''},
+                        'service': [{'service_id': s.id, 'service': s.service} for s in u.service.all() if u.service],
+                        'marketplace': [{'marketplace_id': s.id, 'marketplace': s.marketplace} for s in u.marketplace.all() if u.marketplace],
+                        'program': [{'program_id': s.id, 'program': s.program} for s in u.program.all() if u.program],
+                        'sub_program': [{'sub_program_id': s.id, 'sub_program': s.sub_program} for s in u.sub_program.all() if u.sub_program],
                         # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
 
                         })
@@ -427,10 +474,10 @@ class view_users_archive_search(GenericAPIView):
                 if serializer.is_valid(raise_exception=True):
                     res = resFun(status.HTTP_200_OK,'request successful',serializer.data)
                 else:
-                    res = resFun(status.HTTP_400_BAD_REQUEST,'no user found',[])
+                    res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
 
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST,'no user found',[])
+                res = resFun(status.HTTP_204_NO_CONTENT,'no user found',[])
   
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized to view this data',[])
@@ -543,7 +590,7 @@ class delete_user(GenericAPIView):
                 serializer = userDeleteSerializer(user.first(), data={'visibility': False}, partial=True)
                 if serializer.is_valid(raise_exception=True):
                     serializer.save()
-                    res = resFun(status.HTTP_200_OK, 'user deleted successfully', [] )
+                    res = resFun(status.HTTP_200_OK, 'user archived successfully', [])
                 else:
                     res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
             else:
@@ -551,7 +598,7 @@ class delete_user(GenericAPIView):
         
         elif request.user.department.title == 'admin' or request.user.designation.title == 'user_manager':
 
-            user = UserAccount.objects.get(employee_id = employee_id)            
+            user = UserAccount.objects.get(employee_id = employee_id)
             if user:
                 user_del_ch = user_delete.objects.filter(user=user.id)
                 if user_del_ch:
@@ -568,7 +615,7 @@ class delete_user(GenericAPIView):
                         res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
 
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid employee id', [] )
+                res = resFun(status.HTTP_204_NO_CONTENT, 'no data found', [] )
 
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', [] )
@@ -707,10 +754,29 @@ class unarchive_user(GenericAPIView):
                 else:
                     res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
             else:     
-                res = resFun(status.HTTP_400_BAD_REQUEST,'invalid employee id',[])
+                res = resFun(status.HTTP_204_NO_CONTENT,'no data found',[])
 
         
-        # elif request.user.department.title == 'lead_management' or request.user.designation.title == 'user_manager':
+        elif request.user.department.title == 'admin' and request.user.designation.title == 'user_manager':
+
+            user = UserAccount.objects.get(employee_id = employee_id)
+            if user:
+                user_del_ch = user_restore.objects.filter(user=user.id)
+                if user_del_ch:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'already submitted', [] )
+                    return res
+                else:
+                    serializer = userDeleteSerializer(user, data={'visibility': False}, partial=True)
+                    if serializer.is_valid(raise_exception=True):
+                        serializer.save()
+                        user_restore.objects.create(user = user)
+                        res = resFun(status.HTTP_200_OK, 'sent for approval, user will be restored after admin approval', [] )
+
+                    else:
+                        res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
+
+            else:
+                res = resFun(status.HTTP_204_NO_CONTENT, 'no data found', [] )
 
         #     user = UserAccount.objects.get(employee_id = employee_id)            
         #     if user:

@@ -118,9 +118,9 @@ class UserAccount(AbstractBaseUser):
     is_staff = models.BooleanField(default = True)
     # employee_status = models.BooleanField(default = True)
     employee_status = models.ForeignKey(Employee_status , on_delete=models.CASCADE, default=1)
-    # director = models.ForeignKey('self', related_name = 'director_of', on_delete=models.CASCADE, null=True, blank=True)
-    # user_manager = models.ForeignKey('self', related_name = 'user_manager_of', on_delete=models.CASCADE, null=True, blank=True)
-    # lead_manager = models.ForeignKey('self', related_name = 'lead_manager_of', on_delete=models.CASCADE, null=True, blank=True)
+    director = models.ForeignKey('self', related_name = 'director_of', on_delete=models.CASCADE, null=True, blank=True)
+    user_manager = models.ForeignKey('self', related_name = 'user_manager_of', on_delete=models.CASCADE, null=True, blank=True)
+    lead_manager = models.ForeignKey('self', related_name = 'lead_manager_of', on_delete=models.CASCADE, null=True, blank=True)
     team_leader = models.ForeignKey("self", related_name = 'team_leaders_of' , on_delete=models.CASCADE, null=True, blank=True)
     segment = models.ForeignKey("leads.Segment", on_delete=models.CASCADE, null=True, blank=True)
     service = models.ManyToManyField("leads.Service")
@@ -155,6 +155,12 @@ class user_delete(models.Model):
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, blank=True)
     status = models.BooleanField(default=False)
     def __str__(self): return str(self.user.name)
+
+class user_restore(models.Model):
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, blank=True)
+    status = models.BooleanField(default=False)
+    def __str__(self): return str(self.user.name)
+
 
 class File(models.Model):
     file = models.FileField(upload_to='files')
