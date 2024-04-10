@@ -432,8 +432,13 @@ class viewAllLeads(GenericAPIView):
                 # print('deadline', deadline)
 
                 data.append({
+                    'id' : sd.id , 
                     'lead_id' : sd.lead_id , 
                     'client_name': sd.client_name, 
+                    'contact_number': sd.contact_number,
+                    'alternate_contact_number': sd.alternate_contact_number if sd.alternate_contact_number else '-',
+                    'email_id': sd.email_id,
+                    'alternate_email_id': sd.alternate_email_id if sd.alternate_email_id else '-',
                     # 'service_category': sd.service_category.service_name, 
                     'assigned_to': sd.associate.name if sd.associate else '-', 
                     # 'status': sd.status.title if sd.status else '-', 
@@ -444,6 +449,7 @@ class viewAllLeads(GenericAPIView):
                     # "commercials" : sd.commercials.price_for_mou if sd.commercials else '-',
                     "status" : sd.status.title if sd.status else '-',
                     "client_turnover" : sd.client_turnover.title if sd.client_turnover else '-',
+                    "business_name" : sd.business_name if sd.business_name else '-',
                     "business_type" : sd.business_type.title if sd.business_type else '-',
                     "business_category" : sd.business_category.title if sd.business_category else '-',
                     "firm_type" : sd.firm_type.title if sd.firm_type else '-',
@@ -453,7 +459,6 @@ class viewAllLeads(GenericAPIView):
                     # "state" : sd.state.title if sd.state else '-',
                     # "city" : sd.city.title if sd.city else '-'
                     "hot_lead" : sd.hot_lead
-                    
                     })
             
             if len(data) > 0:
@@ -535,72 +540,78 @@ class viewAllLeads(GenericAPIView):
 
         
 
-
-
-
-class viewLeadsAllIdentifiers(GenericAPIView):
+class archive_lead(GenericAPIView):
+    serializer_class = lead_managerBlSerializer
     permission_classes = [IsAuthenticated]
-    serializer_class = View_All_Leads
-    def get(self, request, lead_id ,format=None, *args, **kwargs):
-        user = request.user
-        res = Response()
-        if (str(user.department) == 'director'):
+    def delete(self, request, id, format=None, *args, **kwargs):
+        pass
 
-            leads = Leads.objects.select_related().filter(lead_id=lead_id, visibility =True)
-            if leads.exists():
-                # print('leads', leads)
-                leads_val = leads.values().first()
-                leads = leads.first()
 
-                leads_val["associate"] = leads.associate.name if leads.associate else '-'
-                leads_val["service_category"] = leads.service_category.service_name if leads.service_category else '-'
-                leads_val["commercials"] = leads.commercials.price_for_mou if leads.commercials else '-'
-                leads_val["status"] = leads.status.title if leads.status else '-'
-                leads_val["client_turnover"] = leads.client_turnover.title if leads.client_turnover else '-'
-                leads_val["business_type"] = leads.business_type.title if leads.business_type else '-'
-                leads_val["business_category"] = leads.business_category.title if leads.business_category else '-'
-                leads_val["firm_type"] = leads.firm_type.title if leads.firm_type else '-'
-                leads_val["contact_preferences"] = leads.contact_preferences.title if leads.contact_preferences else '-'
-                leads_val["followup"] = leads.followup.followup_date if leads.followup else '-'
-                leads_val["country"] = leads.country.title if leads.country else '-'
-                leads_val["state"] = leads.state.title if leads.state else '-'
-                leads_val["city"] = leads.city.title if leads.city else '-'
 
-                # print(leads_val)
 
-                serializer = View_All_Leads(data=leads_val)
+# class viewLeadsAllIdentifiers(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = View_All_Leads
+#     def get(self, request, lead_id ,format=None, *args, **kwargs):
+#         user = request.user
+#         res = Response()
+#         if (str(user.department) == 'director'):
 
-                if serializer.is_valid(raise_exception=True):
+#             leads = Leads.objects.select_related().filter(lead_id=lead_id, visibility =True)
+#             if leads.exists():
+#                 # print('leads', leads)
+#                 leads_val = leads.values().first()
+#                 leads = leads.first()
 
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        "status": status.HTTP_200_OK,
-                        'data': serializer.data,
-                        'message': 'request successful'
-                    }
-                else:
-                    res.status_code = status.HTTP_404_NOT_FOUND
-                    res.data = {
-                        "status": status.HTTP_404_NOT_FOUND,
-                        'data': [],
-                        'message': 'request failed'
-                    }
-            else:
-                res.status_code = status.HTTP_404_NOT_FOUND
-                res.data = {
-                    "status": status.HTTP_404_NOT_FOUND,
-                    'data': [],
-                    'message': 'invalid lead_id'
-                }
+#                 leads_val["associate"] = leads.associate.name if leads.associate else '-'
+#                 leads_val["service_category"] = leads.service_category.service_name if leads.service_category else '-'
+#                 leads_val["commercials"] = leads.commercials.price_for_mou if leads.commercials else '-'
+#                 leads_val["status"] = leads.status.title if leads.status else '-'
+#                 leads_val["client_turnover"] = leads.client_turnover.title if leads.client_turnover else '-'
+#                 leads_val["business_type"] = leads.business_type.title if leads.business_type else '-'
+#                 leads_val["business_category"] = leads.business_category.title if leads.business_category else '-'
+#                 leads_val["firm_type"] = leads.firm_type.title if leads.firm_type else '-'
+#                 leads_val["contact_preferences"] = leads.contact_preferences.title if leads.contact_preferences else '-'
+#                 leads_val["followup"] = leads.followup.followup_date if leads.followup else '-'
+#                 leads_val["country"] = leads.country.title if leads.country else '-'
+#                 leads_val["state"] = leads.state.title if leads.state else '-'
+#                 leads_val["city"] = leads.city.title if leads.city else '-'
 
-        else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                "status": status.HTTP_404_NOT_FOUND,
-                'data': [],
-                'message': 'you are not authorized for this actions'
-            }
-        return res
+#                 # print(leads_val)
+
+#                 serializer = View_All_Leads(data=leads_val)
+
+#                 if serializer.is_valid(raise_exception=True):
+
+#                     res.status_code = status.HTTP_200_OK
+#                     res.data = {
+#                         "status": status.HTTP_200_OK,
+#                         'data': serializer.data,
+#                         'message': 'request successful'
+#                     }
+#                 else:
+#                     res.status_code = status.HTTP_404_NOT_FOUND
+#                     res.data = {
+#                         "status": status.HTTP_404_NOT_FOUND,
+#                         'data': [],
+#                         'message': 'request failed'
+#                     }
+#             else:
+#                 res.status_code = status.HTTP_404_NOT_FOUND
+#                 res.data = {
+#                     "status": status.HTTP_404_NOT_FOUND,
+#                     'data': [],
+#                     'message': 'invalid lead_id'
+#                 }
+
+#         else:
+#             res.status_code = status.HTTP_400_BAD_REQUEST
+#             res.data = {
+#                 "status": status.HTTP_404_NOT_FOUND,
+#                 'data': [],
+#                 'message': 'you are not authorized for this actions'
+#             }
+#         return res
     
 
 
@@ -611,7 +622,7 @@ class viewAllLeadsSearch(GenericAPIView):
     def get(self, request, lead_id, format=None, *args, **kwargs):
         user = request.user
         res =  Response()
-        if (str(user.department) == 'director'):
+        if (str(user.department) == 'director') or (str(user.department) == 'admin' and str(user.designation) == 'lead_manager'):
 
             # user_role = getUserRole(user.id)
             # data = []
@@ -631,7 +642,36 @@ class viewAllLeadsSearch(GenericAPIView):
                     deadline = (math.ceil((int(tat.duration_in_hrs) - math.floor(int(deadline // (3600)))) / 24) -1 )
                     print('deadline', deadline)
 
-                    data.append({'lead_id' : sd.lead_id , 'client_name': sd.client_name, 'service_category': sd.service_category.service_name, 'assigned_to': sd.associate.name if sd.associate else '-', 'status': sd.status.title if sd.status else '-', 'upload_date': upload_date , 'deadline': deadline })
+                    data.append({      
+                    'id' : sd.id , 
+                    'lead_id' : sd.lead_id , 
+                    'client_name': sd.client_name, 
+                    'contact_number': sd.contact_number,
+                    'alternate_contact_number': sd.alternate_contact_number if sd.alternate_contact_number else '-',
+                    'email_id': sd.email_id,
+                    'alternate_email_id': sd.alternate_email_id if sd.alternate_email_id else '-',
+                    # 'service_category': sd.service_category.service_name, 
+                    'assigned_to': sd.associate.name if sd.associate else '-', 
+                    # 'status': sd.status.title if sd.status else '-', 
+                    'upload_date': upload_date , 
+                    'deadline': deadline,
+                    "associate" : sd.associate.name if sd.associate else '-',
+                    "service_category" : [s.service.service.service for s in sd.service_category_all.all()] if sd.service_category_all else [],
+                    # "commercials" : sd.commercials.price_for_mou if sd.commercials else '-',
+                    "status" : sd.status.title if sd.status else '-',
+                    "client_turnover" : sd.client_turnover.title if sd.client_turnover else '-',
+                    "business_name" : sd.business_name if sd.business_name else '-',
+                    "business_type" : sd.business_type.title if sd.business_type else '-',
+                    "business_category" : sd.business_category.title if sd.business_category else '-',
+                    "firm_type" : sd.firm_type.title if sd.firm_type else '-',
+                    "contact_preferences" : sd.contact_preferences.title if sd.contact_preferences else '-',
+                    "followup" : sd.followup.followup_date if sd.followup else '-',
+                    # "country" : sd.country.title if sd.country else '-',
+                    # "state" : sd.state.title if sd.state else '-',
+                    # "city" : sd.city.title if sd.city else '-'
+                    "hot_lead" : sd.hot_lead
+                    })
+
                     # for sd in serviceData:
                 #     data.append({'lead_id' : sd.lead_id.lead_id , 'requester_name': sd.lead_id.requester_name, 'service_category': sd.service_category, 'upload_date': sd.lead_id.upload_date, 'lead_status': getLeadStatusInst(sd.lead_status) }) 
                 #     print('data', data)

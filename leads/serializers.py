@@ -14,8 +14,13 @@ import re
 
 
 class lead_managerBlSerializer(serializers.Serializer):
+    id = serializers.CharField()
     lead_id = serializers.CharField()
     client_name = serializers.CharField()
+    contact_number = serializers.CharField()
+    alternate_contact_number = serializers.CharField()
+    email_id = serializers.EmailField()
+    alternate_email_id = serializers.CharField()
     service_category = serializers.CharField()
     assigned_to = serializers.CharField()
     status = serializers.CharField()
@@ -26,6 +31,7 @@ class lead_managerBlSerializer(serializers.Serializer):
     # commercials = serializers.CharField()
     status = serializers.CharField()
     client_turnover = serializers.CharField()
+    business_name = serializers.CharField()
     business_type = serializers.CharField()
     business_category = serializers.CharField()
     firm_type = serializers.CharField()
