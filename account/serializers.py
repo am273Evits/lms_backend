@@ -23,10 +23,115 @@ class loginSerializer(serializers.ModelSerializer):
 
 
 
+def registrationValidation(self):
+    if self.validated_data.get('employee_id') == None:
+        raise serializers.ValidationError("employee_id field id is required")
+    if self.validated_data.get('name') == None:
+        raise serializers.ValidationError("name field is required")
+    if self.validated_data.get('mobile_number') == None:
+        raise serializers.ValidationError("mobile number field is required")
+
+    if len(self.validated_data.get('mobile_number')) > 10 or len(self.validated_data.get('mobile_number')) < 10 :
+        raise serializers.ValidationError("mobile number should be of 10 digits")
+    if self.validated_data.get('department') == None:
+        raise serializers.ValidationError("department field is required")
+    elif not Department.objects.filter(id = self.validated_data.get('department')):
+        raise serializers.ValidationError("invalid field department")
+    if self.validated_data.get('designation') == None:
+        pass
+        # raise serializers.ValidationError("designation is required")
+    elif not Designation.objects.filter(id = self.validated_data.get('designation')).exists():
+        raise serializers.ValidationError("invalid field designation")
+        # raise serializers.ValidationError("segment is required")
+    
+    if self.validated_data.get('segment') == None:
+        pass
+    elif not Segment.objects.filter(id=self.validated_data.get('segment')).exists():
+        raise serializers.ValidationError("invalid field segment")
+    if self.validated_data.get('user_manager') == None:
+        pass
+    elif not UserAccount.objects.filter(id=self.validated_data.get('user_manager')).exists():
+        raise serializers.ValidationError("invalid field user manager id")
+    
+    if self.validated_data.get('lead_manager') == None:
+        pass
+    elif not UserAccount.objects.filter(id=self.validated_data.get('lead_manager')).exists():
+        raise serializers.ValidationError("invalid field lead manager id")
+    
+    if not UserAccount.objects.filter(id=self.validated_data.get('team_leader')).exists():
+        raise serializers.ValidationError("invalid field team manager id")
+    
+    if not UserAccount.objects.filter(id=self.validated_data.get('director')).exists():
+        raise serializers.ValidationError("invalid field director id")
+    
+    
+    # print(self.validated_data.get('service'))
+    if len(self.validated_data.get('service')) > 0:
+        for s in self.validated_data.get('service'):
+            if not Service.objects.filter(id=s).exists():
+                raise serializers.ValidationError('invalid service id')
+            
+    if len(self.validated_data.get('marketplace')) > 0:
+        for s in self.validated_data.get('marketplace'):
+            if not Marketplace.objects.filter(id=s).exists():
+                raise serializers.ValidationError('invalid marketplace id')
+            
+    if len(self.validated_data.get('program')) > 0:
+        for s in self.validated_data.get('program'):
+            if not Program.objects.filter(id=s).exists():
+                raise serializers.ValidationError('invalid program id')
+            
+    if len(self.validated_data.get('sub_program')) > 0:
+        for s in self.validated_data.get('sub_program'):
+            if not Sub_Program.objects.filter(id=s).exists():
+                raise serializers.ValidationError('invalid sub_program id')
+    
+
+
+def registrationSave(self):
+    user = UserAccount(
+        email = self.validated_data['email'].lower(),
+        name = self.validated_data['name'].lower(),
+        mobile_number = self.validated_data['mobile_number'],
+        employee_id = self.validated_data['employee_id'].lower(),
+        segment = Segment.objects.get(id=self.validated_data['segment']) if self.validated_data['segment'] != None else self.validated_data['segment'],
+        designation = Designation.objects.get(id=self.validated_data['designation']) if self.validated_data['designation'] != None else self.validated_data['designation'],
+        department = Department.objects.get(id=self.validated_data['department']),
+        user_manager = UserAccount.objects.get(id=self.validated_data['user_manager']) if self.validated_data['user_manager'] != None else self.validated_data['user_manager'],
+        lead_manager = UserAccount.objects.get(id=self.validated_data['lead_manager']) if self.validated_data['lead_manager'] != None else self.validated_data['lead_manager'],
+        team_leader = UserAccount.objects.get(id=self.validated_data['team_leader']),
+        director = UserAccount.objects.get(id=self.validated_data['director']),
+        user_pwd_token = generate_random_code(),
+        # employee_status = Employee_status.objects.get(title = 'active'),
+        visibility = True,
+    )
+    # password = 'admin#manager@123'
+    # user.set_password(password)
+    user.save()
+    if len(self.validated_data['service']) > 0:
+        for s in self.validated_data['service']:
+            user.service.add(s)
+
+    if len(self.validated_data['marketplace']) > 0:
+        for s in self.validated_data['marketplace']:
+            user.marketplace.add(s)
+
+    if len(self.validated_data['program']) > 0:
+        for s in self.validated_data['program']:
+            user.program.add(s)
+    
+    if len(self.validated_data['sub_program']) > 0:
+        for s in self.validated_data['sub_program']:
+            user.sub_program.add(s)
+    
+    return user
 
 
 
 class AdminRegistrationSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    email = serializers.EmailField()
+    employee_id = serializers.CharField()
     service = serializers.ListField()
     marketplace = serializers.ListField()
     program = serializers.ListField()
@@ -38,132 +143,26 @@ class AdminRegistrationSerializer(serializers.ModelSerializer):
     lead_manager = serializers.IntegerField(allow_null=True)
     team_leader = serializers.IntegerField()
     director = serializers.IntegerField()
-    # department = serializers.CharField()
-    # user_role = serializers.CharField(read_only=True)
-    # password2 = serializers.CharField(style={'input_type': 'password'}, write_only = True)
+    mobile_number = serializers.CharField()
+
     class Meta:
         model = UserAccount
-        fields = ['email', 'name', 'employee_id', 'designation', 'department', 'director', 'user_manager', 'lead_manager', 'team_leader', 'segment', 'service', 'marketplace', 'program', 'sub_program']
+        fields = ['email', 'name', 'mobile_number', 'employee_id', 'designation', 'department', 'director', 'user_manager', 'lead_manager', 'team_leader', 'segment', 'service', 'marketplace', 'program', 'sub_program']
         # extra_kwargs = {
         #     'password': {'write_only': True},
         #     'password2': {'write_only': True}
         # }
-
     def save(self):
-        # print(self.validated_data.get('designation'))
-  
-        if self.validated_data.get('employee_id') == None:
-            raise serializers.ValidationError("employee_id field id is required")
-        if self.validated_data.get('name') == None:
-            raise serializers.ValidationError("name field is required")
-        if self.validated_data.get('department') == None:
-            raise serializers.ValidationError("department field is required")
-        elif not Department.objects.filter(id = self.validated_data.get('department')):
-            raise serializers.ValidationError("invalid field department")
-        if self.validated_data.get('designation') == None:
-            pass
-            # raise serializers.ValidationError("designation is required")
-        elif not Designation.objects.filter(id = self.validated_data.get('designation')).exists():
-            raise serializers.ValidationError("invalid field designation")
-            # raise serializers.ValidationError("segment is required")
-        
-        if self.validated_data.get('segment') == None:
-            pass
-        elif not Segment.objects.filter(id=self.validated_data.get('segment')).exists():
-            raise serializers.ValidationError("invalid field segment")
-        if self.validated_data.get('user_manager') == None:
-            pass
-        elif not UserAccount.objects.filter(id=self.validated_data.get('user_manager')).exists():
-            raise serializers.ValidationError("invalid field user manager id")
-        
-        if self.validated_data.get('lead_manager') == None:
-            pass
-        elif not UserAccount.objects.filter(id=self.validated_data.get('lead_manager')).exists():
-            raise serializers.ValidationError("invalid field lead manager id")
-        
-        if not UserAccount.objects.filter(id=self.validated_data.get('team_leader')).exists():
-            raise serializers.ValidationError("invalid field team manager id")
-        
-        if not UserAccount.objects.filter(id=self.validated_data.get('director')).exists():
-            raise serializers.ValidationError("invalid field director id")
-        
-        
-        # print(self.validated_data.get('service'))
-        if len(self.validated_data.get('service')) > 0:
-            for s in self.validated_data.get('service'):
-                if not Service.objects.filter(id=s).exists():
-                    raise serializers.ValidationError('invalid service id')
-                
-        if len(self.validated_data.get('marketplace')) > 0:
-            for s in self.validated_data.get('marketplace'):
-                if not Marketplace.objects.filter(id=s).exists():
-                    raise serializers.ValidationError('invalid marketplace id')
-                
-        if len(self.validated_data.get('program')) > 0:
-            for s in self.validated_data.get('program'):
-                if not Program.objects.filter(id=s).exists():
-                    raise serializers.ValidationError('invalid program id')
-                
-        if len(self.validated_data.get('sub_program')) > 0:
-            for s in self.validated_data.get('sub_program'):
-                if not Sub_Program.objects.filter(id=s).exists():
-                    raise serializers.ValidationError('invalid sub_program id')
-
-        
-
-        data = self.validated_data
-        # print('data', data['designation'])
-        # data['designation'] = Designation.objects.filter(title = self.validated_data.get('designation')).first()
-        # print('designation',self)
-
-        # self.validated_data['designation'] = 
-
-        user = UserAccount(
-            email = self.validated_data['email'].lower(),
-            name = self.validated_data['name'].lower(),
-            employee_id = self.validated_data['employee_id'].lower(),
-            segment = Segment.objects.get(id=self.validated_data['segment']) if self.validated_data['segment'] != None else self.validated_data['segment'],
-            designation = Designation.objects.get(id=self.validated_data['designation']) if self.validated_data['designation'] != None else self.validated_data['designation'],
-            department = Department.objects.get(id=self.validated_data['department']),
-            user_manager = UserAccount.objects.get(id=self.validated_data['user_manager']) if self.validated_data['user_manager'] != None else self.validated_data['user_manager'],
-            lead_manager = UserAccount.objects.get(id=self.validated_data['lead_manager']) if self.validated_data['lead_manager'] != None else self.validated_data['lead_manager'],
-            team_leader = UserAccount.objects.get(id=self.validated_data['team_leader']),
-            director = UserAccount.objects.get(id=self.validated_data['director']),
-            user_pwd_token = generate_random_code(),
-            # employee_status = Employee_status.objects.get(title = 'active'),
-            visibility = True,
-        )
-
-        print('working till here',self.validated_data)
-
-        password = 'admin#manager@123'
-
-        # password2 = 'admin#manager@123'
-        # if password != password2:
-        #     raise serializers.ValidationError('password and return password do not match')
-        user.set_password(password)
-        user.save()
-
-        if len(self.validated_data['service']) > 0:
-            for s in self.validated_data['service']:
-                user.service.add(s)
-
-        if len(self.validated_data['marketplace']) > 0:
-            for s in self.validated_data['marketplace']:
-                user.marketplace.add(s)
-
-        if len(self.validated_data['program']) > 0:
-            for s in self.validated_data['program']:
-                user.program.add(s)
-
-        if len(self.validated_data['sub_program']) > 0:
-            for s in self.validated_data['sub_program']:
-                user.sub_program.add(s)
-
+        registrationValidation(self)
+        user = registrationSave(self)
         return user
-    
+ 
+ 
 
 class LeadManagerRegistrationSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    email = serializers.EmailField()
+    employee_id = serializers.CharField()
     service = serializers.ListField()
     marketplace = serializers.ListField()
     program = serializers.ListField()
@@ -175,122 +174,20 @@ class LeadManagerRegistrationSerializer(serializers.ModelSerializer):
     lead_manager = serializers.IntegerField(allow_null=True)
     team_leader = serializers.IntegerField()
     director = serializers.IntegerField()
+    mobile_number = serializers.CharField()
+
     # password2 = serializers.CharField(style={'input_type': 'password'}, write_only = True)
     class Meta:
         model = UserAccount
-        fields = ['email', 'name', 'employee_id', 'designation', 'department', 'director', 'user_manager', 'lead_manager', 'team_leader', 'segment', 'service', 'marketplace', 'program', 'sub_program']
+        fields = ['email', 'name', 'employee_id', 'designation', 'department', 'director', 'user_manager', 'lead_manager', 'team_leader', 'segment', 'service', 'marketplace', 'program', 'sub_program','mobile_number']
         # extra_kwargs = {
         #     'password': {'write_only': True},
         #     'password2': {'write_only': True}
         # }
 
     def save(self):
-
-        # print('this working here',self.validated_data.get('program'))
-
-        if self.validated_data.get('employee_id') == None:
-            raise serializers.ValidationError("employee_id field id is required")
-        if self.validated_data.get('name') == None:
-            raise serializers.ValidationError("name field is required")
-        if self.validated_data.get('department') == None:
-            raise serializers.ValidationError("department field is required")
-        elif not Department.objects.filter(id = self.validated_data.get('department')):
-            raise serializers.ValidationError("invalid field department")
-        elif Department.objects.get(id=self.validated_data.get('department')).title == 'director':
-            raise serializers.ValidationError("you are not authorized for this action")
-        
-        if self.validated_data.get('designation') == None:
-            pass
-            # raise serializers.ValidationError("designation is required")
-        elif not Designation.objects.filter(id = self.validated_data.get('designation')).exists():
-            raise serializers.ValidationError("invalid field designation")
-            # raise serializers.ValidationError("segment is required")
-        
-        if self.validated_data.get('segment') == None:
-            pass
-        elif not Segment.objects.filter(id=self.validated_data.get('segment')).exists():
-            raise serializers.ValidationError("invalid field segment")
-        if self.validated_data.get('user_manager') == None:
-            pass
-        elif not UserAccount.objects.filter(id=self.validated_data.get('user_manager')).exists():
-            raise serializers.ValidationError("invalid field user manager id")
-        
-        if self.validated_data.get('lead_manager') == None:
-            pass
-        elif not UserAccount.objects.filter(id=self.validated_data.get('lead_manager')).exists():
-            raise serializers.ValidationError("invalid field lead manager id")
-        
-        if not UserAccount.objects.filter(id=self.validated_data.get('team_leader')).exists():
-            raise serializers.ValidationError("invalid field team manager id")
-        
-        if not UserAccount.objects.filter(id=self.validated_data.get('director')).exists():
-            raise serializers.ValidationError("invalid field director id")
-        
-        
-        # print(self.validated_data.get('service'))
-        if len(self.validated_data.get('service')) > 0:
-            for s in self.validated_data.get('service'):
-                if not Service.objects.filter(id=s).exists():
-                    raise serializers.ValidationError('invalid service id')
-                
-        if len(self.validated_data.get('marketplace')) > 0:
-            for s in self.validated_data.get('marketplace'):
-                if not Marketplace.objects.filter(id=s).exists():
-                    raise serializers.ValidationError('invalid marketplace id')
-                
-        if len(self.validated_data.get('program')) > 0:
-            for s in self.validated_data.get('program'):
-                if not Program.objects.filter(id=s).exists():
-                    raise serializers.ValidationError('invalid program id')
-                
-        if len(self.validated_data.get('sub_program')) > 0:
-            for s in self.validated_data.get('sub_program'):
-                if not Sub_Program.objects.filter(id=s).exists():
-                    raise serializers.ValidationError('invalid sub_program id')
-                
-
-        # if self.validated_data.get('program') == None:
-            # raise serializers.ValidationError("program is required")
-        # elif not Program.objects.filter(title = self.validated_data.get('program')).exists():
-            # raise serializers.ValidationError("invalid field program")
-
-        user = UserAccount(
-            email = self.validated_data['email'].lower(),
-            name = self.validated_data['name'].lower(),
-            employee_id = self.validated_data['employee_id'].lower(),
-            segment = Segment.objects.get(id=self.validated_data['segment']) if self.validated_data['segment'] != None else self.validated_data['segment'],
-            designation = Designation.objects.get(id=self.validated_data['designation']) if self.validated_data['designation'] != None else self.validated_data['designation'],
-            department = Department.objects.get(id=self.validated_data['department']),
-            user_manager = UserAccount.objects.get(id=self.validated_data['user_manager']) if self.validated_data['user_manager'] != None else self.validated_data['user_manager'],
-            lead_manager = UserAccount.objects.get(id=self.validated_data['lead_manager']) if self.validated_data['lead_manager'] != None else self.validated_data['lead_manager'],
-            team_leader = UserAccount.objects.get(id=self.validated_data['team_leader']),
-            director = UserAccount.objects.get(id=self.validated_data['director']),
-            user_pwd_token = generate_random_code(),
-            # employee_status = Employee_status.objects.get(title = 'active'),
-            visibility = True,
-        )
-        password = 'evitamin@123'
-        # password2 = self.validated_data['password2']
-        # if password != password2:
-        #     raise serializers.ValidationError('password and return password do not match')
-        user.set_password(password)
-        user.save()
-
-        if len(self.validated_data['service']) > 0:
-            for s in self.validated_data['service']:
-                user.service.add(s)
-
-        if len(self.validated_data['marketplace']) > 0:
-            for s in self.validated_data['marketplace']:
-                user.marketplace.add(s)
-
-        if len(self.validated_data['program']) > 0:
-            for s in self.validated_data['program']:
-                user.program.add(s)
-
-        if len(self.validated_data['sub_program']) > 0:
-            for s in self.validated_data['sub_program']:
-                user.sub_program.add(s)
+        registrationValidation(self)
+        user = registrationSave(self)
 
         return user
     
@@ -321,6 +218,7 @@ class userSerializer(serializers.Serializer):
 class viewUserSerializer(serializers.Serializer):
     employee_id = serializers.CharField()
     name = serializers.CharField() 
+    mobile_number = serializers.CharField()
     email_id = serializers.CharField() 
     designation = serializers.DictField() 
     department = serializers.DictField() 
@@ -329,6 +227,7 @@ class viewUserSerializer(serializers.Serializer):
     director = serializers.DictField()
     user_manager = serializers.DictField()
     lead_manager = serializers.DictField()
+    team_leader = serializers.DictField()
     segment = serializers.DictField()
     service = serializers.ListField()
     marketplace = serializers.ListField()

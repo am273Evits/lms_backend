@@ -211,7 +211,7 @@ class registration_VF(GenericAPIView):
     
 
         if not serializer == '':
-            if serializer.is_valid():
+            if serializer.is_valid(raise_exception=True):
                 instance = serializer.save()
                 instance.created_by = request.user
                 instance.save()
@@ -253,9 +253,59 @@ class registration_VF(GenericAPIView):
                 print(serializer.errors)
                 res = resFun(status.HTTP_400_BAD_REQUEST,serializer.errors,[])
         else:
-            res = resFun(status.HTTP_400_BAD_REQUEST,[ f'{k} - ' + f'{v[0]}' for k, v in serializer.errors.items()] if not serializer=='' else 'registration failed',[])
+            res = resFun(status.HTTP_400_BAD_REQUEST,'registration failed',[])
         return res
     
+
+
+
+
+def viewUserDictDataStructure(users):
+    data = []
+    for u in users:
+        data.append({
+            'id': u.id ,
+            'employee_id': u.employee_id, 
+            'name': u.name if u.name else '-', 
+            'mobile_number': u.mobile_number if u.mobile_number else '-', 
+            'email_id': u.email if u.email else '-', 
+            'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':0,'designation':''}, 
+            'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'department_id':0,'department': ''},
+            'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''},
+            'director': {'director_id': u.director.id, 'director': u.director.name} if u.director else {'director_id': 0,'director': ''},
+            'user_manager': {'user_manager_id': u.user_manager.id, 'user_manager': u.user_manager.name} if u.user_manager else {'user_manager_id': 0,'user_manager': ''},
+            'lead_manager': {'lead_manager_id': u.lead_manager.id, 'lead_manager': u.lead_manager.name} if u.lead_manager else {'lead_manager_id': 0,'lead_manager': ''},
+            'team_leader': {'team_leader_id': u.team_leader.id, 'team_leader': u.team_leader.name} if u.team_leader else {'team_leader_id': 0,'team_leader': ''},
+            'segment': {'segment_id': u.segment.id, 'segment': u.segment.segment} if u.segment else {'segment_id': 0,'segment': ''},
+            'service': [s.id for s in u.service.all() if u.service],
+            'marketplace': [s.id for s in u.marketplace.all() if u.marketplace],
+            'program': [s.id for s in u.program.all() if u.program],
+            'sub_program': [s.id for s in u.sub_program.all() if u.sub_program],
+            })
+    return data
+                    
+
+
+def viewUserDict(request, page, visibility):
+        limit = 10
+        offset = int((page - 1) * limit)
+        
+        if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'user_manager':
+            users = UserAccount.objects.filter(visibility=visibility)[offset: offset+limit]
+            count = math.ceil(UserAccount.objects.all().count() / 10)
+            if users.exists():
+                data = viewUserDictDataStructure(users)
+  
+                serializer = viewUserSerializer(data=data, many=True)
+                serializer.is_valid(raise_exception=True)
+                res = resFun(status.HTTP_200_OK, 'request successful', {"data": serializer.data, 'current_page': page, 'total_pages': count})
+
+            else:
+                res = resFun(status.HTTP_204_NO_CONTENT, 'no data found', {'data': [], 'current_page': page, 'total_pages': count} )
+                
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', [] )
+        return res
 
 
 
@@ -263,54 +313,7 @@ class view_users(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = viewUserSerializer
     def get(self, request, page, format=None, *args, **kwargs):
-        limit = 10
-        offset = int((page - 1) * limit)
-
-        print(request.user.department)
-        print(request.user.designation)
-        
-        res = Response()
-        if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'user_manager':
-            users = UserAccount.objects.filter(visibility=True)[offset: offset+limit]
-            count = math.ceil(UserAccount.objects.all().count() / 10)
-            if users.exists():
-                data = []
-                for u in users:
-                    # print(u.id)
-                    data.append({
-                        'id': u.id ,
-                        'employee_id': u.employee_id, 
-                        'name': u.name if u.name else '-', 
-                        'email_id': u.email if u.email else '-', 
-                        'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':0,'designation':''}, 
-                        'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'department_id':0,'department': ''},
-                        # 'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'program_id':'','program': ''},
-                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''},
-                        'director': {'director_id': u.director.id, 'director': u.director.name} if u.director else {'director_id': 0,'director': ''},
-                        'user_manager': {'user_manager_id': u.user_manager.id, 'user_manager': u.user_manager.name} if u.user_manager else {'user_manager_id': 0,'user_manager': ''},
-                        'lead_manager': {'lead_manager_id': u.lead_manager.id, 'lead_manager': u.lead_manager.name} if u.lead_manager else {'lead_manager_id': 0,'lead_manager': ''},
-                        'team_leader': {'team_leader_id': u.team_leader.id, 'team_leader': u.team_leader.name} if u.team_leader else {'team_leader_id': 0,'team_leader': ''},
-                        'segment': {'segment_id': u.segment.id, 'segment': u.segment.segment} if u.segment else {'segment_id': 0,'segment': ''},
-                        'service': [{'service_id': s.id, 'service': s.service} for s in u.service.all() if u.service],
-                        'marketplace': [{'marketplace_id': s.id, 'marketplace': s.marketplace} for s in u.marketplace.all() if u.marketplace],
-                        'program': [{'program_id': s.id, 'program': s.program} for s in u.program.all() if u.program],
-                        'sub_program': [{'sub_program_id': s.id, 'sub_program': s.sub_program} for s in u.sub_program.all() if u.sub_program],
-
-                        # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
-                        })
-                    
-                serializer = viewUserSerializer(data=data, many=True)
-                if serializer.is_valid():
-                    res = resFun(status.HTTP_200_OK, 'request successful', {"data": serializer.data, 'current_page': page, 'total_pages': count})
-                else:
-                    res = resFun(status.HTTP_400_BAD_REQUEST, [ f'{k} - ' + f'{v[0]}' for k, v in serializer.errors.items()] , [])
-            else:
-                res = resFun(status.HTTP_204_NO_CONTENT, 'no data found', {'data': [], 'current_page': page, 'total_pages': count} )
-
-        # elif :
-
-        else:
-            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', [] )
+        res = viewUserDict(request, page, True)
         return res
     
 
@@ -319,47 +322,7 @@ class view_users_archive(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = viewUserSerializer
     def get(self, request, page, format=None, *args, **kwargs):
-        limit = 10
-        offset = int((page - 1) * limit)
-        
-        res = Response()
-        if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'user_manager':
-            users = UserAccount.objects.filter(visibility=False)[offset: offset+limit]
-            count = math.ceil(UserAccount.objects.all().count() / 10)
-            if users.exists():
-                data = []
-                for u in users:
-                    # print(u.id)
-                    data.append({
-                        'id': u.id ,
-                        'employee_id': u.employee_id, 
-                        'name': u.name if u.name else '-', 
-                        'email_id': u.email if u.email else '-', 
-                        'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
-                        'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'department_id':'','department': ''},
-                        # 'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'program_id':'','program': ''},
-                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''},
-                        'director': {'director_id': u.director.id, 'director': u.director.name} if u.director else {'director_id': 0,'director': ''},
-                        'user_manager': {'user_manager_id': u.user_manager.id, 'user_manager': u.user_manager.name} if u.user_manager else {'user_manager_id': 0,'user_manager': ''},
-                        'lead_manager': {'lead_manager_id': u.lead_manager.id, 'lead_manager': u.lead_manager.name} if u.lead_manager else {'lead_manager_id': 0,'lead_manager': ''},
-                        'team_leader': {'team_leader_id': u.team_leader.id, 'team_leader': u.team_leader.name} if u.team_leader else {'team_leader_id': 0,'team_leader': ''},
-                        'segment': {'segment_id': u.segment.id, 'segment': u.segment.segment} if u.segment else {'segment_id': 0,'segment': ''},
-                        'service': [{'service_id': s.id, 'service': s.service} for s in u.service.all() if u.service],
-                        'marketplace': [{'marketplace_id': s.id, 'marketplace': s.marketplace} for s in u.marketplace.all() if u.marketplace],
-                        'program': [{'program_id': s.id, 'program': s.program} for s in u.program.all() if u.program],
-                        'sub_program': [{'sub_program_id': s.id, 'sub_program': s.sub_program} for s in u.sub_program.all() if u.sub_program],
-                        # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
-                        })
-                    
-                serializer = viewUserSerializer(data=data, many=True)
-                if serializer.is_valid():
-                    res = resFun(status.HTTP_200_OK,'request successful',{"data": serializer.data, 'current_page': page, 'total_pages': count})
-                else:
-                    res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',serializer.errors)
-            else:
-                res = resFun(status.HTTP_204_NO_CONTENT,'no data found',[])
-        else:
-            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized to view this data',[])
+        res = viewUserDict(request, page, False)
         return res
 
 
@@ -368,7 +331,8 @@ class view_users_search(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = viewUserSerializer
     def get(self, request, searchAtr ,id, format=None, *args, **kwargs):
-        res = Response()
+
+
         if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'user_manager':
             if searchAtr == 'name':
                 name = id.replace('_',' ')
@@ -376,42 +340,11 @@ class view_users_search(GenericAPIView):
             elif searchAtr == 'employee_id':
                 user = UserAccount.objects.filter(employee_id__contains = id, visibility=True)
             else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'data': [],
-                    'message': 'invalid search term',
-                    'status': status.HTTP_400_BAD_REQUEST
-                }
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid search term', [])
                 return res
 
             if user.exists():
-                data = []
-                for u in user:
-                    data.append({
-                        'id': u.id ,
-                        'employee_id': u.employee_id, 
-                        'name': u.name if u.name else '-', 
-                        'email_id': u.email if u.email else '-', 
-                        # 'designation': u.designation.title if u.designation else '-', 
-                        # 'department': u.department.title if u.department else '-',
-
-                        # 'employee_id': u.employee_id, 
-                        # 'name': u.name if u.name else '-', 
-                        'designation': {'designation_id':u.designation.id,'designation': u.designation.title} if u.designation else {'designation_id':'','designation':''}, 
-                        'department': {'department_id': u.department.id, 'department': u.department.title} if u.department else {'designation_id':'','designation': ''},
-                        # 'program': {'program_id': u.program.id, 'program': u.program.title} if u.program else {'designation_id':'','designation': ''},
-                        'employee_status': {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id': 0,'employee_status': ''},
-                        'director': {'director_id': u.director.id, 'director': u.director.name} if u.director else {'director_id': 0,'director': ''},
-                        'user_manager': {'user_manager_id': u.user_manager.id, 'user_manager': u.user_manager.name} if u.user_manager else {'user_manager_id': 0,'user_manager': ''},
-                        'lead_manager': {'lead_manager_id': u.lead_manager.id, 'lead_manager': u.lead_manager.name} if u.lead_manager else {'lead_manager_id': 0,'lead_manager': ''},
-                        'team_leader': {'team_leader_id': u.team_leader.id, 'team_leader': u.team_leader.name} if u.team_leader else {'team_leader_id': 0,'team_leader': ''},
-                        'segment': {'segment_id': u.segment.id, 'segment': u.segment.segment} if u.segment else {'segment_id': 0,'segment': ''},
-                        'service': [{'service_id': s.id, 'service': s.service} for s in u.service.all() if u.service],
-                        'marketplace': [{'marketplace_id': s.id, 'marketplace': s.marketplace} for s in u.marketplace.all() if u.marketplace],
-                        'program': [{'program_id': s.id, 'program': s.program} for s in u.program.all() if u.program],
-                        'sub_program': [{'sub_program_id': s.id, 'sub_program': s.sub_program} for s in u.sub_program.all() if u.sub_program],
-                        # {'employee_status_id': u.employee_status.id, 'employee_status': u.employee_status.title} if u.employee_status else {'employee_status_id':'','employee_status': ''}
-                        })
+                data = viewUserDictDataStructure(user)
 
                 serializer = viewUserSerializer(data=data, many=True)
                 if serializer.is_valid(raise_exception=True):

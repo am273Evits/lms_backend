@@ -399,7 +399,53 @@ class uploadBusinessLeads(CreateAPIView):
 #                     "data": []
 #                 }
 #         return res
-    
+
+
+
+
+def viewLeadFun(leadsData):
+    data = []
+    for sd in leadsData:
+        tat = Turn_Arround_Time.objects.all().first()
+        today = datetime.now()
+        upload_date = datetime.strptime(str(sd.upload_date),"%Y-%m-%d %H:%M:%S.%f%z")
+        upload_date = upload_date.replace(tzinfo=None)
+        # upload_date = upload_date.strftime("%Y-%m-%d %H:%M:%S.%f")
+        deadline = (today - upload_date).total_seconds()
+        deadline = (math.ceil((int(tat.duration_in_hrs) - math.floor(int(deadline // (3600)))) / 24) -1 )
+        # print('deadline', deadline)
+        data.append({
+            'id' : sd.id , 
+            'lead_id' : sd.lead_id , 
+            'client_name': sd.client_name, 
+            'contact_number': sd.contact_number,
+            'alternate_contact_number': sd.alternate_contact_number if sd.alternate_contact_number else '-',
+            'email_id': sd.email_id,
+            'alternate_email_id': sd.alternate_email_id if sd.alternate_email_id else '-',
+            # 'service_category': sd.service_category.service_name, 
+            'assigned_to': sd.associate.name if sd.associate else '-', 
+            # 'status': sd.status.title if sd.status else '-', 
+            'upload_date': upload_date , 
+            'deadline': deadline,
+            "associate" : sd.associate.name if sd.associate else '-',
+            "service_category" : [s.service.service.service for s in sd.service_category_all.all()] if sd.service_category_all else [],
+            # "commercials" : sd.commercials.price_for_mou if sd.commercials else '-',
+            "status" : sd.status.title if sd.status else '-',
+            "client_turnover" : sd.client_turnover.title if sd.client_turnover else '-',
+            "business_name" : sd.business_name if sd.business_name else '-',
+            "business_type" : sd.business_type.title if sd.business_type else '-',
+            "business_category" : sd.business_category.title if sd.business_category else '-',
+            "firm_type" : sd.firm_type.title if sd.firm_type else '-',
+            "contact_preferences" : sd.contact_preferences.title if sd.contact_preferences else '-',
+            "followup" : sd.followup.followup_date if sd.followup else '-',
+            # "country" : sd.country.title if sd.country else '-',
+            # "state" : sd.state.title if sd.state else '-',
+            # "city" : sd.city.title if sd.city else '-'
+            "hot_lead" : sd.hot_lead
+            })
+    return data
+
+
 
 
 class viewAllLeads(GenericAPIView):
@@ -411,55 +457,11 @@ class viewAllLeads(GenericAPIView):
         offset = int((page - 1) * limit)
         data = []
         pagecount = 1
-        res =  Response({
-                'status': status.HTTP_400_BAD_REQUEST,
-                'message': 'unauthorized access', 
-                'data': [],
-            })
 
         if str(user.department) == 'director' or (str(user.department) == 'admin' and str(user.designation) == 'lead_manager'):
-            data = []
             leadsData = Leads.objects.select_related().filter(visibility = True).all()[offset : offset + limit]
 
-            for sd in leadsData:
-                tat = Turn_Arround_Time.objects.all().first()
-                today = datetime.now()
-                upload_date = datetime.strptime(str(sd.upload_date),"%Y-%m-%d %H:%M:%S.%f%z")
-                upload_date = upload_date.replace(tzinfo=None)
-                # upload_date = upload_date.strftime("%Y-%m-%d %H:%M:%S.%f")
-                deadline = (today - upload_date).total_seconds()
-                deadline = (math.ceil((int(tat.duration_in_hrs) - math.floor(int(deadline // (3600)))) / 24) -1 )
-                # print('deadline', deadline)
-
-                data.append({
-                    'id' : sd.id , 
-                    'lead_id' : sd.lead_id , 
-                    'client_name': sd.client_name, 
-                    'contact_number': sd.contact_number,
-                    'alternate_contact_number': sd.alternate_contact_number if sd.alternate_contact_number else '-',
-                    'email_id': sd.email_id,
-                    'alternate_email_id': sd.alternate_email_id if sd.alternate_email_id else '-',
-                    # 'service_category': sd.service_category.service_name, 
-                    'assigned_to': sd.associate.name if sd.associate else '-', 
-                    # 'status': sd.status.title if sd.status else '-', 
-                    'upload_date': upload_date , 
-                    'deadline': deadline,
-                    "associate" : sd.associate.name if sd.associate else '-',
-                    "service_category" : [s.service.service.service for s in sd.service_category_all.all()] if sd.service_category_all else [],
-                    # "commercials" : sd.commercials.price_for_mou if sd.commercials else '-',
-                    "status" : sd.status.title if sd.status else '-',
-                    "client_turnover" : sd.client_turnover.title if sd.client_turnover else '-',
-                    "business_name" : sd.business_name if sd.business_name else '-',
-                    "business_type" : sd.business_type.title if sd.business_type else '-',
-                    "business_category" : sd.business_category.title if sd.business_category else '-',
-                    "firm_type" : sd.firm_type.title if sd.firm_type else '-',
-                    "contact_preferences" : sd.contact_preferences.title if sd.contact_preferences else '-',
-                    "followup" : sd.followup.followup_date if sd.followup else '-',
-                    # "country" : sd.country.title if sd.country else '-',
-                    # "state" : sd.state.title if sd.state else '-',
-                    # "city" : sd.city.title if sd.city else '-'
-                    "hot_lead" : sd.hot_lead
-                    })
+            data = viewLeadFun(leadsData)
             
             if len(data) > 0:
                 pagecount = math.ceil(Leads.objects.filter(visibility = True).count()/limit)
@@ -467,86 +469,172 @@ class viewAllLeads(GenericAPIView):
                 serializer.is_valid(raise_exception=True)
 
                 if int(page) <= pagecount:
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        "status": status.HTTP_200_OK,
-                        "message": 'successful',
-                        "data": {'data': serializer.data, 'total_pages': pagecount, "current_page": page}
-                        }
+                    res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'total_pages': pagecount, "current_page": page})
                 else :
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        "status": status.HTTP_400_BAD_REQUEST,
-                        "message": 'the page is unavailable',
-                        "data": {'data': [], 'total_pages': pagecount, "current_page": page}
-                        }
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'the page is unavailable', {'data': [], 'total_pages': pagecount, "current_page": page} )
             else:   
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    "status": status.HTTP_400_BAD_REQUEST,
-                    "message": 'no data found',
-                    "data": {'data': [], 'total_pages': [], "current_page": page}
-                    }
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
             return res
 
-        elif user_role == 'bd_tl':
-            product = getProduct(user.id)
-            # print(product)
-            data = []
-            serviceData = service.objects.select_related().filter(service_category = product, lead_id__visibility = True)[offset : limit]
-            for sd in serviceData:
-                associate = sd.associate_id.name if sd.associate_id != None else 'not assigned'
-                data.append({'lead_id': sd.lead_id.lead_id, 'requester_name': sd.lead_id.requester_name, 'phone_number':  sd.lead_id.phone_number, 'email_id': sd.lead_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
+        # elif user_role == 'bd_tl':
+        #     product = getProduct(user.id)
+        #     # print(product)
+        #     data = []
+        #     serviceData = service.objects.select_related().filter(service_category = product, lead_id__visibility = True)[offset : limit]
+        #     for sd in serviceData:
+        #         associate = sd.associate_id.name if sd.associate_id != None else 'not assigned'
+        #         data.append({'lead_id': sd.lead_id.lead_id, 'requester_name': sd.lead_id.requester_name, 'phone_number':  sd.lead_id.phone_number, 'email_id': sd.lead_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
 
-            if len(data) > 0:
-                pagecount = math.ceil(service.objects.filter(service_category = product ,lead_id__visibility = True).count()/limit)
-                print('pagecount',pagecount)
-                serializer = bd_teamLeaderSerializer(data=data, many=True)
-                serializer.is_valid(raise_exception=True)
-                if int(page) <= pagecount:
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'status': status.HTTP_200_OK,
-                        'message': 'successful',
-                        'data': {'data': serializer.data, 'total_pages': pagecount, "current_page": page}
-                        }
+        #     if len(data) > 0:
+        #         pagecount = math.ceil(service.objects.filter(service_category = product ,lead_id__visibility = True).count()/limit)
+        #         print('pagecount',pagecount)
+        #         serializer = bd_teamLeaderSerializer(data=data, many=True)
+        #         serializer.is_valid(raise_exception=True)
+        #         if int(page) <= pagecount:
+        #             res.status_code = status.HTTP_200_OK
+        #             res.data = {
+        #                 'status': status.HTTP_200_OK,
+        #                 'message': 'successful',
+        #                 'data': {'data': serializer.data, 'total_pages': pagecount, "current_page": page}
+        #                 }
 
-                else :
-                    pagecount = math.ceil(service.objects.filter(service_category = product ,lead_id__visibility = True).count()/limit)
+        #         else :
+        #             pagecount = math.ceil(service.objects.filter(service_category = product ,lead_id__visibility = True).count()/limit)
 
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        "status": status.HTTP_400_BAD_REQUEST,
-                        "message": 'the page is unavailable',
-                        "data": {'data': [], 'total_pages': pagecount, "current_page": page}
-                        }
+        #             res.status_code = status.HTTP_400_BAD_REQUEST
+        #             res.data = {
+        #                 "status": status.HTTP_400_BAD_REQUEST,
+        #                 "message": 'the page is unavailable',
+        #                 "data": {'data': [], 'total_pages': pagecount, "current_page": page}
+        #                 }
                     
-            else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    "status": status.HTTP_400_BAD_REQUEST,
-                    "message": 'no data found',
-                    "data": {'data': [], 'total_pages': pagecount, "current_page": page}
-                    }
+        #     else:
+        #         res.status_code = status.HTTP_400_BAD_REQUEST
+        #         res.data = {
+        #             "status": status.HTTP_400_BAD_REQUEST,
+        #             "message": 'no data found',
+        #             "data": {'data': [], 'total_pages': pagecount, "current_page": page}
+        #             }
         
         else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                "status": status.HTTP_400_BAD_REQUEST,
-                "message": 'you are not authorized to view this data',
-                "data": {'data': [], 'total_pages': pagecount, "current_page": page}
-                }
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', {'data': [], 'total_pages': pagecount, "current_page": page} )
+        return res
+    
+
+class viewAllLeadsArchive(GenericAPIView):
+    serializer_class = lead_managerBlSerializer
+    permission_classes = [IsAuthenticated]
+    def get(self, request, page, format=None, *args, **kwargs):
+        user = request.user
+        limit = 10
+        offset = int((page - 1) * limit)
+        data = []
+        pagecount = 1
+
+        if str(user.department) == 'director' or (str(user.department) == 'admin' and str(user.designation) == 'lead_manager'):
+            leadsData = Leads.objects.select_related().filter(visibility = False).all()[offset : offset + limit]
+
+            data = viewLeadFun(leadsData)
+            
+            if len(data) > 0:
+                pagecount = math.ceil(Leads.objects.filter(visibility = False).count()/limit)
+                serializer = lead_managerBlSerializer(data=data, many=True)
+                serializer.is_valid(raise_exception=True)
+
+                if int(page) <= pagecount:
+                    res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'total_pages': pagecount, "current_page": page})
+                else :
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'the page is unavailable', {'data': [], 'total_pages': pagecount, "current_page": page} )
+            else:   
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
+            return res
+
+        # elif user_role == 'bd_tl':
+        #     product = getProduct(user.id)
+        #     # print(product)
+        #     data = []
+        #     serviceData = service.objects.select_related().filter(service_category = product, lead_id__visibility = True)[offset : limit]
+        #     for sd in serviceData:
+        #         associate = sd.associate_id.name if sd.associate_id != None else 'not assigned'
+        #         data.append({'lead_id': sd.lead_id.lead_id, 'requester_name': sd.lead_id.requester_name, 'phone_number':  sd.lead_id.phone_number, 'email_id': sd.lead_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
+
+        #     if len(data) > 0:
+        #         pagecount = math.ceil(service.objects.filter(service_category = product ,lead_id__visibility = True).count()/limit)
+        #         print('pagecount',pagecount)
+        #         serializer = bd_teamLeaderSerializer(data=data, many=True)
+        #         serializer.is_valid(raise_exception=True)
+        #         if int(page) <= pagecount:
+        #             res.status_code = status.HTTP_200_OK
+        #             res.data = {
+        #                 'status': status.HTTP_200_OK,
+        #                 'message': 'successful',
+        #                 'data': {'data': serializer.data, 'total_pages': pagecount, "current_page": page}
+        #                 }
+
+        #         else :
+        #             pagecount = math.ceil(service.objects.filter(service_category = product ,lead_id__visibility = True).count()/limit)
+
+        #             res.status_code = status.HTTP_400_BAD_REQUEST
+        #             res.data = {
+        #                 "status": status.HTTP_400_BAD_REQUEST,
+        #                 "message": 'the page is unavailable',
+        #                 "data": {'data': [], 'total_pages': pagecount, "current_page": page}
+        #                 }
+                    
+        #     else:
+        #         res.status_code = status.HTTP_400_BAD_REQUEST
+        #         res.data = {
+        #             "status": status.HTTP_400_BAD_REQUEST,
+        #             "message": 'no data found',
+        #             "data": {'data': [], 'total_pages': pagecount, "current_page": page}
+        #             }
+        
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', {'data': [], 'total_pages': pagecount, "current_page": page} )
         return res
 
+
+class viewAllLeadsSearchArchive(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = lead_managerBlSerializer
+    def get(self, request, lead_id, format=None, *args, **kwargs):
+        res = viewLeadSeachFun(request, lead_id, False)
+        return res
+    
+
+def archiveRestoreFun(request, id, visibility):
+        user = request.user
+        data = []
+
+        try:
+            if str(user.department) == 'director' or (str(user.department) == 'admin' and str(user.designation) == 'lead_manager'):
+                lead = Leads.objects.get(id=id,visibility=visibility)
+                lead.visibility = False if visibility == True else True
+                lead.save()
+                res = resFun(status.HTTP_200_OK, 'lead archived successfully', [])
+                # pass
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action',[])
+        except:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed',[])
+        
+        return res
         
 
 class archive_lead(GenericAPIView):
     serializer_class = lead_managerBlSerializer
     permission_classes = [IsAuthenticated]
     def delete(self, request, id, format=None, *args, **kwargs):
-        pass
+        res = archiveRestoreFun(request, id, True)
+        return res
 
 
+class restore_lead(GenericAPIView):
+    serializer_class = lead_managerBlSerializer
+    permission_classes = [IsAuthenticated]
+    def put(self, request, id, format=None, *args, **kwargs):
+        res = archiveRestoreFun(request, id, False)
+        return res
 
 
 # class viewLeadsAllIdentifiers(GenericAPIView):
@@ -615,120 +703,49 @@ class archive_lead(GenericAPIView):
     
 
 
+def viewLeadSeachFun(request, lead_id, visibility):
+        user = request.user
+        if (str(user.department) == 'director') or (str(user.department) == 'admin' and str(user.designation) == 'lead_manager'):
+            data = []
+            leads = Leads.objects.select_related().filter(lead_id = lead_id, visibility = visibility)
+            if leads.exists():
+
+                data = viewLeadFun(leads)
+
+                serializer = lead_managerBlSerializer(data=data, many=True)
+                serializer.is_valid(raise_exception=True)
+
+                res = resFun(status.HTTP_200_OK,'successful',serializer.data)
+            else:
+                res = resFun(status.HTTP_403_FORBIDDEN,'invalid lead id',[])
+
+        # elif user_role == 'bd_tl':
+        #     product = getProduct(user.id)
+        #     data = []
+        #     serviceData = service.objects.select_related().filter(lead_id__lead_id = lead_id, service_category = product, lead_id__visibility=True)
+        #     if serviceData:
+        #         for sd in serviceData:
+        #             associate = sd.associate_id.name if sd.associate_id != None else '-'
+        #             data.append({'lead_id': sd.lead_id.lead_id, 'requester_name': sd.lead_id.requester_name, 'phone_number':  sd.lead_id.phone_number, 'email_id': sd.lead_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
+
+        #         serializer = BusinessDevelopmentLeadSerializer(data=data, many=True)
+        #         serializer.is_valid(raise_exception=True)
+                    # res = resFun(status.HTTP_200_OK, 'successful', serializer.data)
+        #     else: 
+                # res = resFun(status.HTTP_403_FORBIDDEN, 'invalid lead id', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized to view this data',[])
+        return res
+
+
+
 
 class viewAllLeadsSearch(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = lead_managerBlSerializer
     def get(self, request, lead_id, format=None, *args, **kwargs):
-        user = request.user
-        res =  Response()
-        if (str(user.department) == 'director') or (str(user.department) == 'admin' and str(user.designation) == 'lead_manager'):
-
-            # user_role = getUserRole(user.id)
-            # data = []
-
-            # if user_role == 'lead_manager' or user_role == 'admin':
-            data = []
-            leads = Leads.objects.select_related().filter(lead_id = lead_id, visibility = True)
-            if leads.exists():
-                data = []
-                for sd in leads:
-                    tat = Turn_Arround_Time.objects.all().first()
-                    today = datetime.now()
-                    upload_date = datetime.strptime(str(sd.upload_date),"%Y-%m-%d %H:%M:%S.%f%z")
-                    upload_date = upload_date.replace(tzinfo=None)
-                    # upload_date = upload_date.strftime("%Y-%m-%d %H:%M:%S.%f")
-                    deadline = (today - upload_date).total_seconds()
-                    deadline = (math.ceil((int(tat.duration_in_hrs) - math.floor(int(deadline // (3600)))) / 24) -1 )
-                    print('deadline', deadline)
-
-                    data.append({      
-                    'id' : sd.id , 
-                    'lead_id' : sd.lead_id , 
-                    'client_name': sd.client_name, 
-                    'contact_number': sd.contact_number,
-                    'alternate_contact_number': sd.alternate_contact_number if sd.alternate_contact_number else '-',
-                    'email_id': sd.email_id,
-                    'alternate_email_id': sd.alternate_email_id if sd.alternate_email_id else '-',
-                    # 'service_category': sd.service_category.service_name, 
-                    'assigned_to': sd.associate.name if sd.associate else '-', 
-                    # 'status': sd.status.title if sd.status else '-', 
-                    'upload_date': upload_date , 
-                    'deadline': deadline,
-                    "associate" : sd.associate.name if sd.associate else '-',
-                    "service_category" : [s.service.service.service for s in sd.service_category_all.all()] if sd.service_category_all else [],
-                    # "commercials" : sd.commercials.price_for_mou if sd.commercials else '-',
-                    "status" : sd.status.title if sd.status else '-',
-                    "client_turnover" : sd.client_turnover.title if sd.client_turnover else '-',
-                    "business_name" : sd.business_name if sd.business_name else '-',
-                    "business_type" : sd.business_type.title if sd.business_type else '-',
-                    "business_category" : sd.business_category.title if sd.business_category else '-',
-                    "firm_type" : sd.firm_type.title if sd.firm_type else '-',
-                    "contact_preferences" : sd.contact_preferences.title if sd.contact_preferences else '-',
-                    "followup" : sd.followup.followup_date if sd.followup else '-',
-                    # "country" : sd.country.title if sd.country else '-',
-                    # "state" : sd.state.title if sd.state else '-',
-                    # "city" : sd.city.title if sd.city else '-'
-                    "hot_lead" : sd.hot_lead
-                    })
-
-                    # for sd in serviceData:
-                #     data.append({'lead_id' : sd.lead_id.lead_id , 'requester_name': sd.lead_id.requester_name, 'service_category': sd.service_category, 'upload_date': sd.lead_id.upload_date, 'lead_status': getLeadStatusInst(sd.lead_status) }) 
-                #     print('data', data)
-                serializer = lead_managerBlSerializer(data=data, many=True)
-                serializer.is_valid(raise_exception=True)
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    "status": status.HTTP_200_OK,
-                    "message": 'successful',
-                    "data": serializer.data
-                    }
-            else:
-                res.status_code = status.HTTP_403_FORBIDDEN
-                res.data = {
-                    'status': status.HTTP_403_FORBIDDEN,
-                    'message': 'invalid lead id',
-                    'data' : []
-                }
-
-        elif user_role == 'bd_tl':
-            product = getProduct(user.id)
-            data = []
-            serviceData = service.objects.select_related().filter(lead_id__lead_id = lead_id, service_category = product, lead_id__visibility=True)
-            if serviceData:
-                for sd in serviceData:
-                    associate = sd.associate_id.name if sd.associate_id != None else '-'
-                    data.append({'lead_id': sd.lead_id.lead_id, 'requester_name': sd.lead_id.requester_name, 'phone_number':  sd.lead_id.phone_number, 'email_id': sd.lead_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
-
-                serializer = BusinessDevelopmentLeadSerializer(data=data, many=True)
-                serializer.is_valid(raise_exception=True)
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'status': status.HTTP_200_OK,
-                    'message': 'successful',
-                    'data': serializer.data
-                    }
-            else: 
-                res.status_code = status.HTTP_403_FORBIDDEN
-                res.data = {
-                    'status': status.HTTP_403_FORBIDDEN,
-                    'message': 'invalid lead id',
-                    'data' : []
-                }
-        else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                "status": status.HTTP_400_BAD_REQUEST,
-                "message": 'you are not authorized to view this data',
-                "data": []
-                }
+        res = viewLeadSeachFun(request, lead_id, True)
         return res
-    
-
-
-
-
-
 
 
 
