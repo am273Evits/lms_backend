@@ -602,16 +602,15 @@ class viewAllLeadsSearchArchive(GenericAPIView):
         return res
     
 
-def archiveRestoreFun(request, id, visibility):
+def archiveRestoreFun(request, id, visibility, message):
         user = request.user
         data = []
-
         try:
             if str(user.department) == 'director' or (str(user.department) == 'admin' and str(user.designation) == 'lead_manager'):
                 lead = Leads.objects.get(id=id,visibility=visibility)
                 lead.visibility = False if visibility == True else True
                 lead.save()
-                res = resFun(status.HTTP_200_OK, 'lead archived successfully', [])
+                res = resFun(status.HTTP_200_OK, message, [])
                 # pass
             else:
                 res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action',[])
@@ -625,7 +624,7 @@ class archive_lead(GenericAPIView):
     serializer_class = lead_managerBlSerializer
     permission_classes = [IsAuthenticated]
     def delete(self, request, id, format=None, *args, **kwargs):
-        res = archiveRestoreFun(request, id, True)
+        res = archiveRestoreFun(request, id, True, 'lead archived successfully')
         return res
 
 
@@ -633,7 +632,7 @@ class restore_lead(GenericAPIView):
     serializer_class = lead_managerBlSerializer
     permission_classes = [IsAuthenticated]
     def put(self, request, id, format=None, *args, **kwargs):
-        res = archiveRestoreFun(request, id, False)
+        res = archiveRestoreFun(request, id, False, 'lead restored successfully')
         return res
 
 

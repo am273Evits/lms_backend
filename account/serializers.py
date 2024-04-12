@@ -31,7 +31,7 @@ def registrationValidation(self):
     if self.validated_data.get('mobile_number') == None:
         raise serializers.ValidationError("mobile number field is required")
 
-    if len(self.validated_data.get('mobile_number')) > 10 or len(self.validated_data.get('mobile_number')) < 10 :
+    if len(self.validated_data.get('mobile_number')) > 15 or len(self.validated_data.get('mobile_number')) < 10 :
         raise serializers.ValidationError("mobile number should be of 10 digits")
     if self.validated_data.get('department') == None:
         raise serializers.ValidationError("department field is required")

@@ -292,7 +292,11 @@ def viewUserDict(request, page, visibility):
         
         if str(request.user.department) == 'director' or str(request.user.department) == 'admin' and str(request.user.designation) == 'user_manager':
             users = UserAccount.objects.filter(visibility=visibility)[offset: offset+limit]
-            count = math.ceil(UserAccount.objects.all().count() / 10)
+            # if method == 'all':
+                # count = math.ceil(UserAccount.objects.all().count() / 10)
+            # elif method == 'archived':
+            count = math.ceil(UserAccount.objects.filter(visibility=visibility).count() / 10)
+            
             if users.exists():
                 data = viewUserDictDataStructure(users)
   
