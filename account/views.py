@@ -305,7 +305,7 @@ def viewUserDict(request, page, visibility):
                 res = resFun(status.HTTP_200_OK, 'request successful', {"data": serializer.data, 'current_page': page, 'total_pages': count})
 
             else:
-                res = resFun(status.HTTP_204_NO_CONTENT, 'no data found', {'data': [], 'current_page': page, 'total_pages': count} )
+                res = resFun(status.HTTP_200_OK, 'no data found', {'data': [], 'current_page': page, 'total_pages': count} )
                 
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', [] )
