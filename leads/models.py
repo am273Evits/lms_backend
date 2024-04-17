@@ -203,7 +203,6 @@ class Status_history(models.Model):
 
 class Leads(models.Model):
     lead_id = models.CharField(max_length=100, blank=True, default='')
-    associate = models.ForeignKey(UserAccount , on_delete=models.CASCADE, null=True, blank=True)
     # service_country = models.CharField(max_length=100, blank=True, default='') 
     marketplace = models.CharField(max_length=100, blank=True, default='') 
     request_id = models.CharField(max_length=100, blank=True, default='') 

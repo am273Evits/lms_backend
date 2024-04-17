@@ -446,6 +446,98 @@ def viewLeadFun(leadsData):
     return data
 
 
+def viewLeadBd_tl(user, offset, limit, page, lead_id):
+    if user.segment == None:
+        return resFun(status.HTTP_400_BAD_REQUEST, 'contact user manager to assign you a segment', [])
+    
+    if len(user.service.all()) == 0:
+        return resFun(status.HTTP_400_BAD_REQUEST, 'contact user manager to assign you atleast one services', [])
+    
+    if len(user.marketplace.all()) == 0:
+        return resFun(status.HTTP_400_BAD_REQUEST, 'contact user manager to assign you atleast one marketplace', [])
+    
+    if len(user.program.all()) == 0:
+        return resFun(status.HTTP_400_BAD_REQUEST, 'contact user manager to assign you atleast one program', [])
+    
+    if offset!=None:
+        if len(user.sub_program.all()) == 0:
+            leadsData = Leads.objects.select_related().filter(
+                service_category_all__service__segment__segment= user.segment, 
+                service_category_all__service__service__in= user.service.all(), 
+                service_category_all__service__marketplace__in= user.marketplace.all(),  
+                service_category_all__service__program__in= user.program.all(),
+                visibility = True
+                ).all()[offset : offset + limit]
+        elif len(user.sub_program.all()) > 0:
+            leadsData = Leads.objects.select_related().filter(
+                service_category_all__service__segment__segment= user.segment, 
+                service_category_all__service__service__in= user.service.all(), 
+                service_category_all__service__marketplace__in= user.marketplace.all(),
+                service_category_all__service__program__in= user.program.all(),
+                service_category_all__service__sub_program__in= user.sub_program.all(),  
+                visibility = True
+                ).all()[offset : offset + limit]
+    else:
+        if len(user.sub_program.all()) == 0:
+            leadsData = Leads.objects.select_related().filter(lead_id=lead_id,
+                service_category_all__service__segment__segment= user.segment, 
+                service_category_all__service__service__in= user.service.all(), 
+                service_category_all__service__marketplace__in= user.marketplace.all(),  
+                service_category_all__service__program__in= user.program.all(),
+                visibility = True
+                ).all()
+        elif len(user.sub_program.all()) > 0:
+            leadsData = Leads.objects.select_related().filter(lead_id=lead_id,
+                service_category_all__service__segment__segment= user.segment, 
+                service_category_all__service__service__in= user.service.all(), 
+                service_category_all__service__marketplace__in= user.marketplace.all(),
+                service_category_all__service__program__in= user.program.all(),
+                service_category_all__service__sub_program__in= user.sub_program.all(),  
+                visibility = True
+                ).all()
+    
+    # print('leadsData',leadsData)
+    data = viewLeadFun(leadsData)
+    # print(data)
+    
+    if len(data) > 0:
+
+        if offset!=None:
+            if len(user.sub_program.all()) == 0:
+                pagecount = math.ceil(Leads.objects.filter(
+                    service_category_all__service__segment__segment= user.segment, 
+                    service_category_all__service__service__in= user.service.all(), 
+                    service_category_all__service__marketplace__in= user.marketplace.all(),  
+                    service_category_all__service__program__in= user.program.all(),
+                    visibility = True).count()/limit)
+            elif len(user.sub_program.all()) > 0:
+                pagecount = math.ceil(Leads.objects.filter(
+                    service_category_all__service__segment__segment= user.segment, 
+                    service_category_all__service__service__in= user.service.all(), 
+                    service_category_all__service__marketplace__in= user.marketplace.all(),  
+                    service_category_all__service__program__in= user.program.all(),
+                    service_category_all__service__sub_program__in= user.sub_program.all(),
+                    visibility = True).count()/limit)
+            
+        serializer = lead_managerBlSerializer(data=data, many=True)
+        serializer.is_valid(raise_exception=True)
+
+        if offset!=None:
+
+            if int(page) <= pagecount:
+                res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'total_pages': pagecount, "current_page": page})
+            else :
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'the page is unavailable', {'data': [], 'total_pages': pagecount, "current_page": page} )
+        else:
+            res = resFun(status.HTTP_200_OK,'successful',serializer.data)
+
+    else:
+        if offset!=None:
+            res = resFun(status.HTTP_204_NO_CONTENT, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
+        else:
+            res = resFun(status.HTTP_204_NO_CONTENT, 'no data found', [] )
+    return res
+
 
 
 class viewAllLeads(GenericAPIView):
@@ -479,69 +571,7 @@ class viewAllLeads(GenericAPIView):
         elif user.department.title == 'business_development' and user.designation.title == 'team_leader':
             # services_flatten = .values_list('service', flat=True)
 
-            if user.segment == None:
-                return resFun(status.HTTP_400_BAD_REQUEST, 'contact user manager to assign you a segment', [])
-            
-            if len(user.service.all()) == 0:
-                return resFun(status.HTTP_400_BAD_REQUEST, 'contact user manager to assign you atleast one services', [])
-            
-            if len(user.marketplace.all()) == 0:
-                return resFun(status.HTTP_400_BAD_REQUEST, 'contact user manager to assign you atleast one marketplace', [])
-            
-            if len(user.program.all()) == 0:
-                return resFun(status.HTTP_400_BAD_REQUEST, 'contact user manager to assign you atleast one program', [])
-            
-            if len(user.sub_program.all()) == 0:
-                leadsData = Leads.objects.select_related().filter(
-                    service_category_all__service__segment__segment= user.segment, 
-                    service_category_all__service__service__in= user.service.all(), 
-                    service_category_all__service__marketplace__in= user.marketplace.all(),  
-                    service_category_all__service__program__in= user.program.all(),
-                    visibility = True
-                    ).all()[offset : offset + limit]
-            elif len(user.sub_program.all()) > 0:
-                leadsData = Leads.objects.select_related().filter(
-                    service_category_all__service__segment__segment= user.segment, 
-                    service_category_all__service__service__in= user.service.all(), 
-                    service_category_all__service__marketplace__in= user.marketplace.all(),
-                    service_category_all__service__program__in= user.program.all(),
-                    service_category_all__service__sub_program__in= user.sub_program.all(),  
-                    visibility = True
-                    ).all()[offset : offset + limit]
-
-            
-            # print('leadsData',leadsData)
-
-            data = viewLeadFun(leadsData)
-            
-            if len(data) > 0:
-
-                if len(user.sub_program.all()) == 0:
-                    pagecount = math.ceil(Leads.objects.filter(
-                        service_category_all__service__segment__segment= user.segment, 
-                        service_category_all__service__service__in= user.service.all(), 
-                        service_category_all__service__marketplace__in= user.marketplace.all(),  
-                        service_category_all__service__program__in= user.program.all(),
-                        visibility = True).count()/limit)
-                elif len(user.sub_program.all()) > 0:
-                    pagecount = math.ceil(Leads.objects.filter(
-                        service_category_all__service__segment__segment= user.segment, 
-                        service_category_all__service__service__in= user.service.all(), 
-                        service_category_all__service__marketplace__in= user.marketplace.all(),  
-                        service_category_all__service__program__in= user.program.all(),
-                        service_category_all__service__sub_program__in= user.sub_program.all(),
-                        visibility = True).count()/limit)
-
-                serializer = lead_managerBlSerializer(data=data, many=True)
-                serializer.is_valid(raise_exception=True)
-
-                if int(page) <= pagecount:
-                    res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'total_pages': pagecount, "current_page": page})
-                else :
-                    res = resFun(status.HTTP_400_BAD_REQUEST, 'the page is unavailable', {'data': [], 'total_pages': pagecount, "current_page": page} )
-            else:   
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
-            return res
+            res = viewLeadBd_tl(user,offset,limit,page, None)
 
             
         #     product = getProduct(user.id)
@@ -583,7 +613,7 @@ class viewAllLeads(GenericAPIView):
         #             "data": {'data': [], 'total_pages': pagecount, "current_page": page}
         #             }
         
-            res = resFun(status.HTTP_200_OK, 'request successful', {'data': [], 'total_pages': pagecount, "current_page": page} )
+            # res = resFun(status.HTTP_200_OK, 'request successful', {'data': [], 'total_pages': pagecount, "current_page": page} )
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', {'data': [], 'total_pages': pagecount, "current_page": page} )
         return res
@@ -788,6 +818,11 @@ def viewLeadSeachFun(request, lead_id, visibility):
 
         elif user.department.title == 'business_development' and user.designation.title == 'team_leader':
             print('user',user)
+            leads = Leads.objects.select_related().filter(lead_id = lead_id, visibility = visibility)
+            
+            if leads.exists():
+                res = viewLeadBd_tl(user,None,None,None, lead_id)
+            
         #     product = getProduct(user.id)
         #     data = []
         #     serviceData = service.objects.select_related().filter(lead_id__lead_id = lead_id, service_category = product, lead_id__visibility=True)
@@ -1685,6 +1720,79 @@ class UnarchiveSubProgram(GenericAPIView):
 #     permission_classes = [IsAuthenticated]
 #     serializer_class = 
 
+
+class assignAssociate(GenericAPIView):
+    serializer_class = assignAssociateSerializer
+    permission_classes = [IsAuthenticated]
+    def put(self, request, format=None, *args, **kwargs):
+        print('request.data',request.data)
+
+        obj_user = Leads.objects.filter(emp__id = request.user.id, emp__visibility=True).first()
+        user_role = obj_user.user_role
+        print('user_role', user_role)
+
+        res = Response()
+        if user_role == 'admin' or user_role == 'lead_manager' or user_role == 'bd_tl':
+            lead_id = request.data.get('lead_id')
+            assoc_employee_id = request.data.get('employee_id')
+            empData = employee_official.objects.filter(emp__employee_id = assoc_employee_id, emp__visibility=True).first()
+            # print('empData',empData.emp.id)
+            team_leader_id = getTeamLeaderInst(empData.emp.employee_id)
+
+            req_data = {"team_leader": team_leader_id.emp.id, "associate_id": empData.emp.id}
+            print(req_data)
+
+            # with connection.cursor() as cursor:
+            if isinstance(lead_id, list):
+                for ld in lead_id:
+                    data = service.objects.filter(lead_id__lead_id = ld, lead_id__visibility=True).first()
+                    if data: 
+                        serializer = assignAssociateSerializer(data, data=req_data, partial=True)
+                        if serializer.is_valid(raise_exception=True):
+                            serializer.save()
+                            lead_status_instance = lead_status.objects.get(title = 'pitch in progress')
+                            lead_status_record.objects.create(**{'lead_id': data.lead_id, 'status': lead_status_instance})
+                            res.status_code = status.HTTP_201_CREATED
+                            res.data = {
+                                'status' : status.HTTP_201_CREATED,
+                                'message' : 'associate assigned',
+                                'data' : {'message': 'this lead has been updated'}
+                                }
+                            return res
+                        else:
+                            res.status_code = status.HTTP_400_BAD_REQUEST
+                            res.data = {
+                                'status' : status.HTTP_400_BAD_REQUEST,
+                                'message' : 'request failed',
+                                'data' : []
+                                }
+                            return res
+                    else:
+                        res.status_code = status.HTTP_400_BAD_REQUEST
+                        res.data = {
+                            'status' : status.HTTP_400_BAD_REQUEST,
+                            'message' : 'invalid lead id',
+                            'data' : []
+                            }
+                        return res
+                    # d = cursor.execute(f"UPDATE api_business_leads_service set associate_id = '{assoc_employee_id}', team_leader_id = '{team_leader_id}' WHERE lead_id = '{ld}'")
+            else: 
+                data = service.objects.filter(lead_id__lead_id = lead_id, lead_id__visibility=True).first()
+                if data:
+                    serialize = assignAssociateSerializer(data, data=req_data, partial=True)
+                    serialize.is_valid(raise_exception=True)
+                    serialize.save()
+                    lead_status_instance = lead_status.objects.get(title = 'pitch in progress')
+                    lead_status_record.objects.create(**{'lead_id': data.lead_id, 'status': lead_status_instance})
+
+                    res = resFun(status.HTTP_200_OK,'associate assigned',[])                    
+                else:
+                    res = resFun(status.HTTP_204_NO_CONTENT,'invalid lead id',[])
+        else: 
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized to assign leads',[])
+        
+        return res
+        
 
 
 

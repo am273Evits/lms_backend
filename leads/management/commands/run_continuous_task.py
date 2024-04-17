@@ -19,17 +19,23 @@ class Command(BaseCommand):
     def my_continuous_function(self):
         # Your continuous task logic here
         # leadsData = Leads.objects.all()
-        # users = UserAccount.objects.filter(department__title='business_development', designation__title='team_member')
-        # print('users',len(users))
+        users = UserAccount.objects.filter(department__title='business_development', designation__title='team_member')
+        print('users',len(users))
         # for u in users:
             # print('u',u.segment)
         leadsData = Leads.objects.select_related().filter(associate=None, visibility=True).all()
-        # print(Leads.objects.select_related().filter(associate=None, visibility=True).count())
-        for l in leadsData:
-            for s in l.service_category_all.all():
+        
+        print(Leads.objects.select_related().filter(associate=None, visibility=True).count())
 
-                user = UserAccount.objects.filter(designation__title='team_member', segment=s.service.segment.id, service__service=s.service.service, marketplace__marketplace=s.service.marketplace, program__program=s.service.program)
-                print('user', len(user))
+
+        # for l in leadsData:
+        #     for s in l.service_category_all.all():
+
+                # user = UserAccount.objects.filter(designation__title='team_member', segment=s.service.segment.id, service__service=s.service.service, marketplace__marketplace=s.service.marketplace, program__program=s.service.program)
+                # print('user', len(user))
+                # print('user', user[0])
+
+
                 # print('user', s.service.service)
                 # print('user', s.service.marketplace)
             # print([ s.service.segment.segment  for s in l.service_category_all.all()])

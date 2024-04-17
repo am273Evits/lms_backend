@@ -21,6 +21,8 @@ urlpatterns = [
             path('restore_lead/<int:id>', restore_lead.as_view()), #view_all_leads
             # path('view_lead/<str:lead_id>', viewLeadsAllIdentifiers.as_view()), #view_all_leads
 
+
+
             #services   
             path('create_country', Createcountry.as_view()),
             path('update_country/<int:id>', Updatecountry.as_view()),
@@ -106,7 +108,7 @@ urlpatterns = [
 
             # path('business_leads_all_tables', businessLeadsAllTables.as_view()), #all tables submit
 
-            # path('assign_associate', assignAssociate.as_view()), #all tables submit
+            path('assign_associate', assignAssociate.as_view()), #all tables submit
             # path('email_ask_for_details/<str:lead_id>', apiSubmitEmailAskForDetails.as_view()),
             # path('generate_mou/<str:lead_id>', mouFun.as_view()),
             # path('email_mou/<str:lead_id>', emailMouFun.as_view()), 
