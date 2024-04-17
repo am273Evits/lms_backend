@@ -476,7 +476,74 @@ class viewAllLeads(GenericAPIView):
                 res = resFun(status.HTTP_400_BAD_REQUEST, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
             return res
 
-        # elif user_role == 'bd_tl':
+        elif user.department.title == 'business_development' and user.designation.title == 'team_leader':
+            # services_flatten = .values_list('service', flat=True)
+
+            if user.segment == None:
+                return resFun(status.HTTP_400_BAD_REQUEST, 'contact user manager to assign you a segment', [])
+            
+            if len(user.service.all()) == 0:
+                return resFun(status.HTTP_400_BAD_REQUEST, 'contact user manager to assign you atleast one services', [])
+            
+            if len(user.marketplace.all()) == 0:
+                return resFun(status.HTTP_400_BAD_REQUEST, 'contact user manager to assign you atleast one marketplace', [])
+            
+            if len(user.program.all()) == 0:
+                return resFun(status.HTTP_400_BAD_REQUEST, 'contact user manager to assign you atleast one program', [])
+            
+            if len(user.sub_program.all()) == 0:
+                leadsData = Leads.objects.select_related().filter(
+                    service_category_all__service__segment__segment= user.segment, 
+                    service_category_all__service__service__in= user.service.all(), 
+                    service_category_all__service__marketplace__in= user.marketplace.all(),  
+                    service_category_all__service__program__in= user.program.all(),
+                    visibility = True
+                    ).all()[offset : offset + limit]
+            elif len(user.sub_program.all()) > 0:
+                leadsData = Leads.objects.select_related().filter(
+                    service_category_all__service__segment__segment= user.segment, 
+                    service_category_all__service__service__in= user.service.all(), 
+                    service_category_all__service__marketplace__in= user.marketplace.all(),
+                    service_category_all__service__program__in= user.program.all(),
+                    service_category_all__service__sub_program__in= user.sub_program.all(),  
+                    visibility = True
+                    ).all()[offset : offset + limit]
+
+            
+            # print('leadsData',leadsData)
+
+            data = viewLeadFun(leadsData)
+            
+            if len(data) > 0:
+
+                if len(user.sub_program.all()) == 0:
+                    pagecount = math.ceil(Leads.objects.filter(
+                        service_category_all__service__segment__segment= user.segment, 
+                        service_category_all__service__service__in= user.service.all(), 
+                        service_category_all__service__marketplace__in= user.marketplace.all(),  
+                        service_category_all__service__program__in= user.program.all(),
+                        visibility = True).count()/limit)
+                elif len(user.sub_program.all()) > 0:
+                    pagecount = math.ceil(Leads.objects.filter(
+                        service_category_all__service__segment__segment= user.segment, 
+                        service_category_all__service__service__in= user.service.all(), 
+                        service_category_all__service__marketplace__in= user.marketplace.all(),  
+                        service_category_all__service__program__in= user.program.all(),
+                        service_category_all__service__sub_program__in= user.sub_program.all(),
+                        visibility = True).count()/limit)
+
+                serializer = lead_managerBlSerializer(data=data, many=True)
+                serializer.is_valid(raise_exception=True)
+
+                if int(page) <= pagecount:
+                    res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'total_pages': pagecount, "current_page": page})
+                else :
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'the page is unavailable', {'data': [], 'total_pages': pagecount, "current_page": page} )
+            else:   
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
+            return res
+
+            
         #     product = getProduct(user.id)
         #     # print(product)
         #     data = []
@@ -516,6 +583,7 @@ class viewAllLeads(GenericAPIView):
         #             "data": {'data': [], 'total_pages': pagecount, "current_page": page}
         #             }
         
+            res = resFun(status.HTTP_200_OK, 'request successful', {'data': [], 'total_pages': pagecount, "current_page": page} )
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', {'data': [], 'total_pages': pagecount, "current_page": page} )
         return res
@@ -718,7 +786,8 @@ def viewLeadSeachFun(request, lead_id, visibility):
             else:
                 res = resFun(status.HTTP_403_FORBIDDEN,'invalid lead id',[])
 
-        # elif user_role == 'bd_tl':
+        elif user.department.title == 'business_development' and user.designation.title == 'team_leader':
+            print('user',user)
         #     product = getProduct(user.id)
         #     data = []
         #     serviceData = service.objects.select_related().filter(lead_id__lead_id = lead_id, service_category = product, lead_id__visibility=True)
@@ -916,7 +985,7 @@ class ViewSegment(GenericAPIView):
     serializer_class = ViewSegmentSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'director'):
+        if (str(user.department) == 'director') or user.department.title == 'business_development':
             try:
                 segment = Segment.objects.filter(visibility=True)
             except:
@@ -1065,7 +1134,7 @@ class ViewService(GenericAPIView):
     serializer_class = ViewServiceSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'director'):
+        if (str(user.department) == 'director') or user.department.title == 'business_development':
             try:
                 service = Service.objects.filter(visibility=True)
             except:
@@ -1206,7 +1275,7 @@ class ViewMarketplace(GenericAPIView):
     serializer_class = MarketplaceSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'director'):
+        if (str(user.department) == 'director') or user.department.title == 'business_development':
             try:
                 marketplace = Marketplace.objects.filter(visibility=True)
             except:
@@ -1347,7 +1416,7 @@ class ViewProgram(GenericAPIView):
     serializer_class = ProgramSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'director'):
+        if (str(user.department) == 'director') or user.department.title == 'business_development':
             try:
                 marketplace = Program.objects.filter(visibility=True)
             except:
@@ -1503,7 +1572,7 @@ class ViewSubProgram(GenericAPIView):
     serializer_class = SubProgramSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'director'):
+        if (str(user.department) == 'director') or user.department.title == 'business_development':
             try:
                 sub_program = Sub_Program.objects.filter(visibility=True)
             except:

@@ -288,6 +288,7 @@ class Service_category(models.Model):
   pricing = models.ForeignKey(Commercials, on_delete=models.CASCADE, null=True, blank=True)
   followup = models.ForeignKey(Followup_history, on_delete=models.CASCADE, null=True, blank=True)
   status = models.ForeignKey(drp_lead_status, on_delete=models.CASCADE, null=True, blank=True)
+  def __str__(self): return str(self.lead_id)
 
 
 class Email_history(models.Model):
