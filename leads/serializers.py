@@ -13,7 +13,7 @@ import re
 # from account.views import getLeadId
 
 
-class lead_managerBlSerializer(serializers.Serializer):
+class lead_managerBlSerializer_bd(serializers.Serializer):
     id = serializers.CharField()
     lead_id = serializers.CharField()
     client_name = serializers.CharField()
@@ -21,7 +21,47 @@ class lead_managerBlSerializer(serializers.Serializer):
     alternate_contact_number = serializers.CharField()
     email_id = serializers.EmailField()
     alternate_email_id = serializers.CharField()
-    service_category = serializers.CharField()
+    # service_category = serializers.CharField()
+    # assigned_to = serializers.CharField()
+    # status = serializers.CharField()
+    upload_date = serializers.DateTimeField()
+    deadline = serializers.CharField()
+    # associate = serializers.CharField()
+    # service_category = serializers.ListField()
+    # commercials = serializers.CharField()
+    # status = serializers.CharField()
+    client_turnover = serializers.CharField()
+    business_name = serializers.CharField()
+    business_type = serializers.CharField()
+    business_category = serializers.CharField()
+    firm_type = serializers.CharField()
+    contact_preferences = serializers.CharField()
+    followup = serializers.CharField()
+    hot_lead = serializers.BooleanField()
+    # country = serializers.CharField()
+    # state = serializers.CharField()
+    # city = serializers.CharField()
+    service = serializers.CharField()
+    # associate = serializers.CharField()
+    assigned_status = serializers.CharField()
+    payment_approval = serializers.CharField()
+    mou_approval = serializers.CharField()
+    commercial_approval = serializers.CharField()
+    commercial = serializers.CharField()
+    status = serializers.CharField()
+    follow_up = serializers.ListField()
+
+
+
+class lead_managerBlSerializer_admin(serializers.Serializer):
+    id = serializers.CharField()
+    lead_id = serializers.CharField()
+    client_name = serializers.CharField()
+    contact_number = serializers.CharField()
+    alternate_contact_number = serializers.CharField()
+    email_id = serializers.EmailField()
+    alternate_email_id = serializers.CharField()
+    # service_category = serializers.CharField()
     # assigned_to = serializers.CharField()
     # status = serializers.CharField()
     upload_date = serializers.DateTimeField()
@@ -38,9 +78,9 @@ class lead_managerBlSerializer(serializers.Serializer):
     contact_preferences = serializers.CharField()
     followup = serializers.CharField()
     hot_lead = serializers.BooleanField()
-    # country = serializers.CharField()
-    # state = serializers.CharField()
-    # city = serializers.CharField()
+
+
+
 
 
 class View_All_Leads(serializers.ModelSerializer):

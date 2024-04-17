@@ -403,7 +403,7 @@ class uploadBusinessLeads(CreateAPIView):
 
 
 
-def viewLeadFun(leadsData):
+def viewLeadFun(leadsData, department):
     data = []
     for sd in leadsData:
         tat = Turn_Arround_Time.objects.all().first()
@@ -414,55 +414,108 @@ def viewLeadFun(leadsData):
         deadline = (today - upload_date).total_seconds()
         deadline = (math.ceil((int(tat.duration_in_hrs) - math.floor(int(deadline // (3600)))) / 24) -1 )
         # print('deadline', deadline)
-        data.append({
-            'id' : sd.id , 
-            'lead_id' : sd.lead_id , 
-            'client_name': sd.client_name, 
-            'contact_number': sd.contact_number,
-            'alternate_contact_number': sd.alternate_contact_number if sd.alternate_contact_number else '-',
-            'email_id': sd.email_id,
-            'alternate_email_id': sd.alternate_email_id if sd.alternate_email_id else '-',
-            # 'service_category': sd.service_category.service_name, 
-            # 'assigned_to': sd.service_category_all(), 
-            # 'status': sd.status.title if sd.status else '-', 
-            'upload_date': upload_date , 
-            'deadline': deadline,
-            # "assigned_status": ,
-            # "associate" : sd.associate.name if sd.associate else '-',
-            "service_category" : [
-                { 
-                    'service': s.service.service.service, 
-                    "associate": s.associate if s.associate else "-", 
-                    "assigned_status": 'assigned' if s.associate != None else "not assigned", 
-                    "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
-                    "mou_approval": s.mou_approval if s.mou_approval != None else "-",
-                    "commercial_approval": s.commercial_approval if s.commercial_approval != None else "-",
-                    "commercial": s.pricing if s.pricing else "-",
-                    "status": s.status.title if s.status else "-",
-                    "follow_up": [ {
-                        'date':f.followup_date if f.followup_date else '-', 
-                        'time': f.followup_time if f.followup_time else '-', 
-                        'notes': f.followup_notes if f.followup_notes else '-', 
-                        'created_by': f.created_by.name if f.created_by else '-' } for f in s.followup.all()],
-                    } for s in sd.service_category_all.all()] if sd.service_category_all else [],
-            # "commercials" : sd.commercials.price_for_mou if sd.commercials else '-',
-            # "status" : sd.status.title if sd.status else '-',
-            "client_turnover" : sd.client_turnover.title if sd.client_turnover else '-',
-            "business_name" : sd.business_name if sd.business_name else '-',
-            "business_type" : sd.business_type.title if sd.business_type else '-',
-            "business_category" : sd.business_category.title if sd.business_category else '-',
-            "firm_type" : sd.firm_type.title if sd.firm_type else '-',
-            "contact_preferences" : sd.contact_preferences.title if sd.contact_preferences else '-',
-            "followup" : sd.followup.followup_date if sd.followup else '-',
-            # "country" : sd.country.title if sd.country else '-',
-            # "state" : sd.state.title if sd.state else '-',
-            # "city" : sd.city.title if sd.city else '-'
-            "hot_lead" : sd.hot_lead
-            })
+
+        if department == 'admin':
+            data.append({
+                'id' : sd.id , 
+                'lead_id' : sd.lead_id , 
+                'client_name': sd.client_name, 
+                'contact_number': sd.contact_number,
+                'alternate_contact_number': sd.alternate_contact_number if sd.alternate_contact_number else '-',
+                'email_id': sd.email_id,
+                'alternate_email_id': sd.alternate_email_id if sd.alternate_email_id else '-',
+                # 'service_category': sd.service_category.service_name, 
+                # 'assigned_to': sd.service_category_all(), 
+                # 'status': sd.status.title if sd.status else '-', 
+                'upload_date': upload_date , 
+                'deadline': deadline,
+                # "assigned_status": ,
+                # "associate" : sd.associate.name if sd.associate else '-',
+                "service_category" : [
+                    { 
+                        'service': s.service.service.service, 
+                        "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
+                        "assigned_status": 'assigned' if s.associate != None else "not assigned", 
+                        "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
+                        "mou_approval": s.mou_approval if s.mou_approval != None else "-",
+                        "commercial_approval": s.commercial_approval if s.commercial_approval != None else "-",
+                        "commercial": s.pricing if s.pricing else "-",
+                        "status": s.status.title if s.status else "-",
+                        "follow_up": [ {
+                            'date':f.followup_date if f.followup_date else '-', 
+                            'time': f.followup_time if f.followup_time else '-', 
+                            'notes': f.followup_notes if f.followup_notes else '-', 
+                            'created_by': f.created_by.name if f.created_by else '-' } for f in s.followup.all()],
+                        } for s in sd.service_category_all.all()] if sd.service_category_all else [],
+                # "commercials" : sd.commercials.price_for_mou if sd.commercials else '-',
+                # "status" : sd.status.title if sd.status else '-',
+                "client_turnover" : sd.client_turnover.title if sd.client_turnover else '-',
+                "business_name" : sd.business_name if sd.business_name else '-',
+                "business_type" : sd.business_type.title if sd.business_type else '-',
+                "business_category" : sd.business_category.title if sd.business_category else '-',
+                "firm_type" : sd.firm_type.title if sd.firm_type else '-',
+                "contact_preferences" : sd.contact_preferences.title if sd.contact_preferences else '-',
+                "followup" : sd.followup.followup_date if sd.followup else '-',
+                # "country" : sd.country.title if sd.country else '-',
+                # "state" : sd.state.title if sd.state else '-',
+                # "city" : sd.city.title if sd.city else '-'
+                "hot_lead" : sd.hot_lead
+                })
+
+        elif department == 'business_development':
+            for s in sd.service_category_all.all():
+                data.append({
+                    'id' : sd.id , 
+                    'lead_id' : sd.lead_id , 
+                    'client_name': sd.client_name, 
+                    'contact_number': sd.contact_number,
+                    'alternate_contact_number': sd.alternate_contact_number if sd.alternate_contact_number else '-',
+                    'email_id': sd.email_id,
+                    'alternate_email_id': sd.alternate_email_id if sd.alternate_email_id else '-',
+                    # 'service_category': sd.service_category.service_name, 
+                    # 'assigned_to': sd.service_category_all(), 
+                    # 'status': sd.status.title if sd.status else '-', 
+                    'upload_date': upload_date , 
+                    'deadline': deadline,
+                    # "assigned_status": ,
+                    # "associate" : sd.associate.name if sd.associate else '-',
+                    # "service_category" : [
+                        # { 
+                            'service': s.service.service.service, 
+                            "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
+                            "assigned_status": 'assigned' if s.associate != None else "not assigned", 
+                            "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
+                            "mou_approval": s.mou_approval if s.mou_approval != None else "-",
+                            "commercial_approval": s.commercial_approval if s.commercial_approval != None else "-",
+                            "commercial": s.pricing if s.pricing else "-",
+                            "status": s.status.title if s.status else "-",
+                            "follow_up": [ {
+                                'date':f.followup_date if f.followup_date else '-', 
+                                'time': f.followup_time if f.followup_time else '-', 
+                                'notes': f.followup_notes if f.followup_notes else '-', 
+                                'created_by': f.created_by.name if f.created_by else '-' } for f in s.followup.all()],
+                            # } for s in sd.service_category_all.all()] if sd.service_category_all else [],
+                    # "commercials" : sd.commercials.price_for_mou if sd.commercials else '-',
+                    # "status" : sd.status.title if sd.status else '-',
+                    "client_turnover" : sd.client_turnover.title if sd.client_turnover else '-',
+                    "business_name" : sd.business_name if sd.business_name else '-',
+                    "business_type" : sd.business_type.title if sd.business_type else '-',
+                    "business_category" : sd.business_category.title if sd.business_category else '-',
+                    "firm_type" : sd.firm_type.title if sd.firm_type else '-',
+                    "contact_preferences" : sd.contact_preferences.title if sd.contact_preferences else '-',
+                    "followup" : sd.followup.followup_date if sd.followup else '-',
+                    # "country" : sd.country.title if sd.country else '-',
+                    # "state" : sd.state.title if sd.state else '-',
+                    # "city" : sd.city.title if sd.city else '-'
+                    "hot_lead" : sd.hot_lead
+                    })
+        
+        # print([[f.followup_time for f in s.followup.all()] for s in sd.service_category_all.all()][0])
+
     return data
 
 
-def viewLeadBd_tl(user, offset, limit, page, lead_id):
+def viewLeadBd_tl(user, offset, limit, page, lead_id, department):
     if user.segment == None:
         return resFun(status.HTTP_400_BAD_REQUEST, 'contact user manager to assign you a segment', [])
     
@@ -513,7 +566,7 @@ def viewLeadBd_tl(user, offset, limit, page, lead_id):
                 ).all()
     
     # print('leadsData',leadsData)
-    data = viewLeadFun(leadsData)
+    data = viewLeadFun(leadsData, department)
     # print(data)
     
     if len(data) > 0:
@@ -534,8 +587,69 @@ def viewLeadBd_tl(user, offset, limit, page, lead_id):
                     service_category_all__service__program__in= user.program.all(),
                     service_category_all__service__sub_program__in= user.sub_program.all(),
                     visibility = True).count()/limit)
-            
-        serializer = lead_managerBlSerializer(data=data, many=True)
+                
+        # FLATTEN_DATA = []
+        
+
+        # for d in data:
+        #     ser_len = len(d['service_category'])
+        #     if ser_len == 0:
+        #         ser_len = 1
+        #     for i in range(ser_len):
+        #         FLATTEN_DATA.append({
+
+        #             'id' : d['id'],
+        #             'lead_id' : d['lead_id'] , 
+        #             'client_name': d['client_name'], 
+        #             'contact_number': d['contact_number'],
+        #             'alternate_contact_number': d['alternate_contact_number'] if d["alternate_contact_number else '-'"],
+        #             'email_id': d['email_id'],
+        #             'alternate_email_id': d['alternate_email_id if d['alternate_email_id else '-',
+        #             # 'service_category': d['service_category.service_name, 
+        #             # 'assigned_to': d['service_category_all(), 
+        #             # 'status': d['status.title if d['status else '-', 
+        #             'upload_date': upload_date , 
+        #             'deadline': deadline,
+        #             # "assigned_status": ,
+        #             # "associate" : d['associate.name if d['associate else '-',
+        #             "service_category" : [
+        #                 { 
+        #                     'service': s.service.service.service, 
+        #                     "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
+        #                     "assigned_status": 'assigned' if s.associate != None else "not assigned", 
+        #                     "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
+        #                     "mou_approval": s.mou_approval if s.mou_approval != None else "-",
+        #                     "commercial_approval": s.commercial_approval if s.commercial_approval != None else "-",
+        #                     "commercial": s.pricing if s.pricing else "-",
+        #                     "status": s.status.title if s.status else "-",
+        #                     "follow_up": [ {
+        #                         'date':f.followup_date if f.followup_date else '-', 
+        #                         'time': f.followup_time if f.followup_time else '-', 
+        #                         'notes': f.followup_notes if f.followup_notes else '-', 
+        #                         'created_by': f.created_by.name if f.created_by else '-' } for f in s.followup.all()],
+        #                     } for s in d['service_category_all.all()] if d['service_category_all else [],
+        #             # "commercials" : d['commercials.price_for_mou if d['commercials else '-',
+        #             # "status" : d['status.title if d['status else '-',
+        #             "client_turnover" : d['client_turnover.title if d['client_turnover else '-',
+        #             "business_name" : d['business_name if d['business_name else '-',
+        #             "business_type" : d['business_type.title if d['business_type else '-',
+        #             "business_category" : d['business_category.title if d['business_category else '-',
+        #             "firm_type" : d['firm_type.title if d['firm_type else '-',
+        #             "contact_preferences" : d['contact_preferences.title if d['contact_preferences else '-',
+        #             "followup" : d['followup.followup_date if d['followup else '-',
+        #             # "country" : d['country.title if d['country else '-',
+        #             # "state" : d['state.title if d['state else '-',
+        #             # "city" : d['city.title if d['city else '-'
+        #             "hot_lead" : d['hot_lead
+
+        #         })
+
+                
+        if department == 'admin':
+            serializer = lead_managerBlSerializer_admin(data=data, many=True)
+        elif department == 'business_development':
+            serializer = lead_managerBlSerializer_bd(data=data, many=True)
+    
         serializer.is_valid(raise_exception=True)
 
         if offset!=None:
@@ -557,7 +671,7 @@ def viewLeadBd_tl(user, offset, limit, page, lead_id):
 
 
 class viewAllLeads(GenericAPIView):
-    serializer_class = lead_managerBlSerializer
+    serializer_class = lead_managerBlSerializer_admin
     permission_classes = [IsAuthenticated]
     def get(self, request, page, format=None, *args, **kwargs):
         user = request.user
@@ -569,11 +683,11 @@ class viewAllLeads(GenericAPIView):
         if str(user.department) == 'director' or (str(user.department) == 'admin' and str(user.designation) == 'lead_manager'):
             leadsData = Leads.objects.select_related().filter(visibility = True).all()[offset : offset + limit]
 
-            data = viewLeadFun(leadsData)
+            data = viewLeadFun(leadsData, user.department.title)
             
             if len(data) > 0:
                 pagecount = math.ceil(Leads.objects.filter(visibility = True).count()/limit)
-                serializer = lead_managerBlSerializer(data=data, many=True)
+                serializer = lead_managerBlSerializer_admin(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
 
                 if int(page) <= pagecount:
@@ -584,11 +698,13 @@ class viewAllLeads(GenericAPIView):
                 res = resFun(status.HTTP_400_BAD_REQUEST, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
             return res
 
-        elif user.department.title == 'business_development' and user.designation.title == 'team_leader':
+        elif user.department.title == 'business_development':
+            if user.designation.title == 'team_leader':
             # services_flatten = .values_list('service', flat=True)
+                res = viewLeadBd_tl(user,offset,limit,page, None,user.department.title)
 
-            res = viewLeadBd_tl(user,offset,limit,page, None)
-
+            elif user.designation.title == 'team_member':
+                res = resFun(status.HTTP_204_NO_CONTENT, 'no data', [])
             
         #     product = getProduct(user.id)
         #     # print(product)
@@ -636,7 +752,7 @@ class viewAllLeads(GenericAPIView):
     
 
 class viewAllLeadsArchive(GenericAPIView):
-    serializer_class = lead_managerBlSerializer
+    serializer_class = lead_managerBlSerializer_admin
     permission_classes = [IsAuthenticated]
     def get(self, request, page, format=None, *args, **kwargs):
         user = request.user
@@ -648,11 +764,11 @@ class viewAllLeadsArchive(GenericAPIView):
         if str(user.department) == 'director' or (str(user.department) == 'admin' and str(user.designation) == 'lead_manager'):
             leadsData = Leads.objects.select_related().filter(visibility = False).all()[offset : offset + limit]
 
-            data = viewLeadFun(leadsData)
+            data = viewLeadFun(leadsData, user.department.title)
             
             if len(data) > 0:
                 pagecount = math.ceil(Leads.objects.filter(visibility = False).count()/limit)
-                serializer = lead_managerBlSerializer(data=data, many=True)
+                serializer = lead_managerBlSerializer_admin(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
 
                 if int(page) <= pagecount:
@@ -710,7 +826,7 @@ class viewAllLeadsArchive(GenericAPIView):
 
 class viewAllLeadsSearchArchive(GenericAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = lead_managerBlSerializer
+    serializer_class = lead_managerBlSerializer_admin
     def get(self, request, lead_id, format=None, *args, **kwargs):
         res = viewLeadSeachFun(request, lead_id, False)
         return res
@@ -735,7 +851,7 @@ def archiveRestoreFun(request, id, visibility, message):
         
 
 class archive_lead(GenericAPIView):
-    serializer_class = lead_managerBlSerializer
+    serializer_class = lead_managerBlSerializer_admin
     permission_classes = [IsAuthenticated]
     def delete(self, request, id, format=None, *args, **kwargs):
         res = archiveRestoreFun(request, id, True, 'lead archived successfully')
@@ -743,7 +859,7 @@ class archive_lead(GenericAPIView):
 
 
 class restore_lead(GenericAPIView):
-    serializer_class = lead_managerBlSerializer
+    serializer_class = lead_managerBlSerializer_admin
     permission_classes = [IsAuthenticated]
     def put(self, request, id, format=None, *args, **kwargs):
         res = archiveRestoreFun(request, id, False, 'lead restored successfully')
@@ -823,9 +939,9 @@ def viewLeadSeachFun(request, lead_id, visibility):
             leads = Leads.objects.select_related().filter(lead_id = lead_id, visibility = visibility)
             if leads.exists():
 
-                data = viewLeadFun(leads)
+                data = viewLeadFun(leads, user.department.title)
 
-                serializer = lead_managerBlSerializer(data=data, many=True)
+                serializer = lead_managerBlSerializer_admin(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
 
                 res = resFun(status.HTTP_200_OK,'successful',serializer.data)
@@ -837,7 +953,7 @@ def viewLeadSeachFun(request, lead_id, visibility):
             leads = Leads.objects.select_related().filter(lead_id = lead_id, visibility = visibility)
             
             if leads.exists():
-                res = viewLeadBd_tl(user,None,None,None, lead_id)
+                res = viewLeadBd_tl(user,None,None,None, lead_id, user.department.title)
             
         #     product = getProduct(user.id)
         #     data = []
@@ -861,7 +977,7 @@ def viewLeadSeachFun(request, lead_id, visibility):
 
 class viewAllLeadsSearch(GenericAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = lead_managerBlSerializer
+    serializer_class = lead_managerBlSerializer_admin
     def get(self, request, lead_id, format=None, *args, **kwargs):
         res = viewLeadSeachFun(request, lead_id, True)
         return res
