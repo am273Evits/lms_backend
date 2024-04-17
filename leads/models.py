@@ -29,7 +29,7 @@ class Contact_preference(models.Model):
 
 class Followup_history(models.Model):
   followup_date = models.DateTimeField(auto_now=False, auto_now_add=False, default='0001/01/01')
-  # followup_time = models.TimeField(auto_now=False, auto_now_add=False)
+  followup_time = models.TimeField(auto_now=False, auto_now_add=False)
   followup_notes = models.TextField()
   created_by = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, blank=True)
 
@@ -283,10 +283,14 @@ class Remark_history(models.Model):
 
 class Service_category(models.Model):
   lead_id = models.ForeignKey(Leads, on_delete=models.CASCADE, null=True, blank=True)
+  associate = models.ForeignKey(UserAccount , on_delete=models.CASCADE, null=True, blank=True)
   service = models.ForeignKey(Services_and_Commercials, on_delete=models.CASCADE, null=True, blank=True)
   pricing = models.ForeignKey(Commercials, on_delete=models.CASCADE, null=True, blank=True)
-  followup = models.ForeignKey(Followup_history, on_delete=models.CASCADE, null=True, blank=True)
+  followup = models.ManyToManyField(Followup_history) # ForeignKey(Followup_history, on_delete=models.CASCADE, null=True, blank=True)
   status = models.ForeignKey(drp_lead_status, on_delete=models.CASCADE, null=True, blank=True)
+  payment_approval = models.BooleanField(null=True, blank=True, default='')
+  mou_approval = models.BooleanField(null=True, blank=True, default='')
+  commercial_approval = models.BooleanField(null=True, blank=True, default='')
   def __str__(self): return str(self.lead_id)
 
 

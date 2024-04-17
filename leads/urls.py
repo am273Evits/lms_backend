@@ -109,6 +109,8 @@ urlpatterns = [
             # path('business_leads_all_tables', businessLeadsAllTables.as_view()), #all tables submit
 
             path('assign_associate', assignAssociate.as_view()), #all tables submit
+
+            
             # path('email_ask_for_details/<str:lead_id>', apiSubmitEmailAskForDetails.as_view()),
             # path('generate_mou/<str:lead_id>', mouFun.as_view()),
             # path('email_mou/<str:lead_id>', emailMouFun.as_view()), 

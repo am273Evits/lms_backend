@@ -423,14 +423,30 @@ def viewLeadFun(leadsData):
             'email_id': sd.email_id,
             'alternate_email_id': sd.alternate_email_id if sd.alternate_email_id else '-',
             # 'service_category': sd.service_category.service_name, 
-            'assigned_to': sd.associate.name if sd.associate else '-', 
+            # 'assigned_to': sd.service_category_all(), 
             # 'status': sd.status.title if sd.status else '-', 
             'upload_date': upload_date , 
             'deadline': deadline,
-            "associate" : sd.associate.name if sd.associate else '-',
-            "service_category" : [s.service.service.service for s in sd.service_category_all.all()] if sd.service_category_all else [],
+            # "assigned_status": ,
+            # "associate" : sd.associate.name if sd.associate else '-',
+            "service_category" : [
+                { 
+                    'service': s.service.service.service, 
+                    "associate": s.associate if s.associate else "-", 
+                    "assigned_status": 'assigned' if s.associate != None else "not assigned", 
+                    "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
+                    "mou_approval": s.mou_approval if s.mou_approval != None else "-",
+                    "commercial_approval": s.commercial_approval if s.commercial_approval != None else "-",
+                    "commercial": s.pricing if s.pricing else "-",
+                    "status": s.status.title if s.status else "-",
+                    "follow_up": [ {
+                        'date':f.followup_date if f.followup_date else '-', 
+                        'time': f.followup_time if f.followup_time else '-', 
+                        'notes': f.followup_notes if f.followup_notes else '-', 
+                        'created_by': f.created_by.name if f.created_by else '-' } for f in s.followup.all()],
+                    } for s in sd.service_category_all.all()] if sd.service_category_all else [],
             # "commercials" : sd.commercials.price_for_mou if sd.commercials else '-',
-            "status" : sd.status.title if sd.status else '-',
+            # "status" : sd.status.title if sd.status else '-',
             "client_turnover" : sd.client_turnover.title if sd.client_turnover else '-',
             "business_name" : sd.business_name if sd.business_name else '-',
             "business_type" : sd.business_type.title if sd.business_type else '-',
@@ -1727,12 +1743,14 @@ class assignAssociate(GenericAPIView):
     def put(self, request, format=None, *args, **kwargs):
         print('request.data',request.data)
 
-        obj_user = Leads.objects.filter(emp__id = request.user.id, emp__visibility=True).first()
-        user_role = obj_user.user_role
-        print('user_role', user_role)
+        # obj_user = Leads.objects.filter(emp__id = request.user.id, visibility=True).first()
+        # user_role = obj_user.user_role
+        # print('user_role', user_role)
+        user = request.user
 
         res = Response()
-        if user_role == 'admin' or user_role == 'lead_manager' or user_role == 'bd_tl':
+        if user.department.title == 'director' or (user.department.title == 'admin' and user.designation.title == 'lead_manager') or (user.department.title == 'business_development' and user.designation.title == 'team_leader'):
+
             lead_id = request.data.get('lead_id')
             assoc_employee_id = request.data.get('employee_id')
             empData = employee_official.objects.filter(emp__employee_id = assoc_employee_id, emp__visibility=True).first()
