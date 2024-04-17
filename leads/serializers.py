@@ -26,7 +26,7 @@ class lead_managerBlSerializer_bd(serializers.Serializer):
     # status = serializers.CharField()
     upload_date = serializers.DateTimeField()
     deadline = serializers.CharField()
-    # associate = serializers.CharField()
+    associate = serializers.DictField()
     # service_category = serializers.ListField()
     # commercials = serializers.CharField()
     # status = serializers.CharField()
@@ -36,7 +36,7 @@ class lead_managerBlSerializer_bd(serializers.Serializer):
     business_category = serializers.CharField()
     firm_type = serializers.CharField()
     contact_preferences = serializers.CharField()
-    followup = serializers.CharField()
+    # followup = serializers.CharField()
     hot_lead = serializers.BooleanField()
     # country = serializers.CharField()
     # state = serializers.CharField()
@@ -76,7 +76,7 @@ class lead_managerBlSerializer_admin(serializers.Serializer):
     business_category = serializers.CharField()
     firm_type = serializers.CharField()
     contact_preferences = serializers.CharField()
-    followup = serializers.CharField()
+    # followup = serializers.CharField()
     hot_lead = serializers.BooleanField()
 
 

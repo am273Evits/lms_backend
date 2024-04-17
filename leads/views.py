@@ -455,7 +455,7 @@ def viewLeadFun(leadsData, department):
                 "business_category" : sd.business_category.title if sd.business_category else '-',
                 "firm_type" : sd.firm_type.title if sd.firm_type else '-',
                 "contact_preferences" : sd.contact_preferences.title if sd.contact_preferences else '-',
-                "followup" : sd.followup.followup_date if sd.followup else '-',
+                # "followup" : sd.followup.followup_date if sd.followup else '-',
                 # "country" : sd.country.title if sd.country else '-',
                 # "state" : sd.state.title if sd.state else '-',
                 # "city" : sd.city.title if sd.city else '-'
@@ -503,7 +503,7 @@ def viewLeadFun(leadsData, department):
                     "business_category" : sd.business_category.title if sd.business_category else '-',
                     "firm_type" : sd.firm_type.title if sd.firm_type else '-',
                     "contact_preferences" : sd.contact_preferences.title if sd.contact_preferences else '-',
-                    "followup" : sd.followup.followup_date if sd.followup else '-',
+                    # "followup" : sd.followup.followup_date if sd.followup else '-',
                     # "country" : sd.country.title if sd.country else '-',
                     # "state" : sd.state.title if sd.state else '-',
                     # "city" : sd.city.title if sd.city else '-'
