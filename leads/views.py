@@ -776,7 +776,7 @@ class viewAllLeadsArchive(GenericAPIView):
                 else :
                     res = resFun(status.HTTP_400_BAD_REQUEST, 'the page is unavailable', {'data': [], 'total_pages': pagecount, "current_page": page} )
             else:   
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
+                res = resFun(status.HTTP_204_NO_CONTENT, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
             return res
 
         # elif user_role == 'bd_tl':
