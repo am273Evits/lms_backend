@@ -1853,79 +1853,79 @@ class UnarchiveSubProgram(GenericAPIView):
 #     serializer_class = 
 
 
-class assignAssociate(GenericAPIView):
-    serializer_class = assignAssociateSerializer
-    permission_classes = [IsAuthenticated]
-    def put(self, request, format=None, *args, **kwargs):
-        print('request.data',request.data)
+# class assignAssociate(GenericAPIView):
+#     serializer_class = assignAssociateSerializer
+#     permission_classes = [IsAuthenticated]
+#     def put(self, request, format=None, *args, **kwargs):
+#         print('request.data',request.data)
 
-        # obj_user = Leads.objects.filter(emp__id = request.user.id, visibility=True).first()
-        # user_role = obj_user.user_role
-        # print('user_role', user_role)
-        user = request.user
+#         # obj_user = Leads.objects.filter(emp__id = request.user.id, visibility=True).first()
+#         # user_role = obj_user.user_role
+#         # print('user_role', user_role)
+#         user = request.user
 
-        res = Response()
-        if user.department.title == 'director' or (user.department.title == 'admin' and user.designation.title == 'lead_manager') or (user.department.title == 'business_development' and user.designation.title == 'team_leader'):
+#         res = Response()
+#         if user.department.title == 'director' or (user.department.title == 'admin' and user.designation.title == 'lead_manager') or (user.department.title == 'business_development' and user.designation.title == 'team_leader'):
 
-            lead_id = request.data.get('lead_id')
-            assoc_employee_id = request.data.get('employee_id')
-            empData = employee_official.objects.filter(emp__employee_id = assoc_employee_id, emp__visibility=True).first()
-            # print('empData',empData.emp.id)
-            team_leader_id = getTeamLeaderInst(empData.emp.employee_id)
+#             lead_id = request.data.get('lead_id')
+#             assoc_employee_id = request.data.get('employee_id')
+#             empData = employee_official.objects.filter(emp__employee_id = assoc_employee_id, emp__visibility=True).first()
+#             # print('empData',empData.emp.id)
+#             team_leader_id = getTeamLeaderInst(empData.emp.employee_id)
 
-            req_data = {"team_leader": team_leader_id.emp.id, "associate_id": empData.emp.id}
-            print(req_data)
+#             req_data = {"team_leader": team_leader_id.emp.id, "associate_id": empData.emp.id}
+#             print(req_data)
 
-            # with connection.cursor() as cursor:
-            if isinstance(lead_id, list):
-                for ld in lead_id:
-                    data = service.objects.filter(lead_id__lead_id = ld, lead_id__visibility=True).first()
-                    if data: 
-                        serializer = assignAssociateSerializer(data, data=req_data, partial=True)
-                        if serializer.is_valid(raise_exception=True):
-                            serializer.save()
-                            lead_status_instance = lead_status.objects.get(title = 'pitch in progress')
-                            lead_status_record.objects.create(**{'lead_id': data.lead_id, 'status': lead_status_instance})
-                            res.status_code = status.HTTP_201_CREATED
-                            res.data = {
-                                'status' : status.HTTP_201_CREATED,
-                                'message' : 'associate assigned',
-                                'data' : {'message': 'this lead has been updated'}
-                                }
-                            return res
-                        else:
-                            res.status_code = status.HTTP_400_BAD_REQUEST
-                            res.data = {
-                                'status' : status.HTTP_400_BAD_REQUEST,
-                                'message' : 'request failed',
-                                'data' : []
-                                }
-                            return res
-                    else:
-                        res.status_code = status.HTTP_400_BAD_REQUEST
-                        res.data = {
-                            'status' : status.HTTP_400_BAD_REQUEST,
-                            'message' : 'invalid lead id',
-                            'data' : []
-                            }
-                        return res
-                    # d = cursor.execute(f"UPDATE api_business_leads_service set associate_id = '{assoc_employee_id}', team_leader_id = '{team_leader_id}' WHERE lead_id = '{ld}'")
-            else: 
-                data = service.objects.filter(lead_id__lead_id = lead_id, lead_id__visibility=True).first()
-                if data:
-                    serialize = assignAssociateSerializer(data, data=req_data, partial=True)
-                    serialize.is_valid(raise_exception=True)
-                    serialize.save()
-                    lead_status_instance = lead_status.objects.get(title = 'pitch in progress')
-                    lead_status_record.objects.create(**{'lead_id': data.lead_id, 'status': lead_status_instance})
+#             # with connection.cursor() as cursor:
+#             if isinstance(lead_id, list):
+#                 for ld in lead_id:
+#                     data = service.objects.filter(lead_id__lead_id = ld, lead_id__visibility=True).first()
+#                     if data: 
+#                         serializer = assignAssociateSerializer(data, data=req_data, partial=True)
+#                         if serializer.is_valid(raise_exception=True):
+#                             serializer.save()
+#                             lead_status_instance = lead_status.objects.get(title = 'pitch in progress')
+#                             lead_status_record.objects.create(**{'lead_id': data.lead_id, 'status': lead_status_instance})
+#                             res.status_code = status.HTTP_201_CREATED
+#                             res.data = {
+#                                 'status' : status.HTTP_201_CREATED,
+#                                 'message' : 'associate assigned',
+#                                 'data' : {'message': 'this lead has been updated'}
+#                                 }
+#                             return res
+#                         else:
+#                             res.status_code = status.HTTP_400_BAD_REQUEST
+#                             res.data = {
+#                                 'status' : status.HTTP_400_BAD_REQUEST,
+#                                 'message' : 'request failed',
+#                                 'data' : []
+#                                 }
+#                             return res
+#                     else:
+#                         res.status_code = status.HTTP_400_BAD_REQUEST
+#                         res.data = {
+#                             'status' : status.HTTP_400_BAD_REQUEST,
+#                             'message' : 'invalid lead id',
+#                             'data' : []
+#                             }
+#                         return res
+#                     # d = cursor.execute(f"UPDATE api_business_leads_service set associate_id = '{assoc_employee_id}', team_leader_id = '{team_leader_id}' WHERE lead_id = '{ld}'")
+#             else: 
+#                 data = service.objects.filter(lead_id__lead_id = lead_id, lead_id__visibility=True).first()
+#                 if data:
+#                     serialize = assignAssociateSerializer(data, data=req_data, partial=True)
+#                     serialize.is_valid(raise_exception=True)
+#                     serialize.save()
+#                     lead_status_instance = lead_status.objects.get(title = 'pitch in progress')
+#                     lead_status_record.objects.create(**{'lead_id': data.lead_id, 'status': lead_status_instance})
 
-                    res = resFun(status.HTTP_200_OK,'associate assigned',[])                    
-                else:
-                    res = resFun(status.HTTP_204_NO_CONTENT,'invalid lead id',[])
-        else: 
-            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized to assign leads',[])
+#                     res = resFun(status.HTTP_200_OK,'associate assigned',[])                    
+#                 else:
+#                     res = resFun(status.HTTP_204_NO_CONTENT,'invalid lead id',[])
+#         else: 
+#             res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized to assign leads',[])
         
-        return res
+#         return res
         
 
 

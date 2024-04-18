@@ -468,10 +468,10 @@ class ViewServicesSerializer(serializers.Serializer):
 #     return dynamicSeralizer
 
 
-class assignAssociateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Service_category
-        exclude = ['lead_id']
+# class assignAssociateSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Service_category
+#         exclude = ['lead_id']
 
 
 
