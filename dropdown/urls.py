@@ -10,6 +10,10 @@ urlpatterns = [
             path('employee_status', dropdown_employee_status.as_view()),
 
             path('employee_list/<str:searchAtr>', employee_list.as_view()),
+
+            
+            path('get_commercials/<str:lead_id>/<int:service_category_id>', get_commercials.as_view()),
+
             
             # path('dropdown_program/<int:id>', dropdown_program.as_view()),
     

@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from .serializers import *
 from leads.views import resFun
+from leads.models import Leads
 # from dropdown.models import ev_department, ev_designation, user_role_list
 # from dropdown.models import list_employee
 # from business_leads.serializers import allIdentifiersSerializer 
@@ -146,6 +147,24 @@ class dropdown_employee_status(GenericAPIView):
 
 
 
+def employeeListFun(searchData, searchAtr):
+
+    if searchData==None:
+        res = resFun(status.HTTP_400_BAD_REQUEST,'search attribute not valid',[])
+
+    elif searchData.exists():
+        data =[]
+        for d in searchData:
+            data.append({'id': d.id, 'value': d.name})
+
+        serializer = CommonDropdownSerializer(data=data, many=True)
+        serializer.is_valid(raise_exception=True)
+        res = resFun(status.HTTP_200_OK,'request successful',{'data': serializer.data, 'search_attribute': searchAtr})
+    else:
+        res = resFun(status.HTTP_204_NO_CONTENT,'data not found',{'data': serializer.data, 'search_attribute': searchAtr})
+
+    return res
+
 
 class employee_list(GenericAPIView):
     serializer_class = CommonDropdownSerializer
@@ -157,33 +176,56 @@ class employee_list(GenericAPIView):
 
             try:
                 if searchAtr == 'director':
-                    searchData = UserAccount.objects.filter(department__title = searchAtr).distinct()
+                    searchData = UserAccount.objects.filter(department__title = searchAtr, visibility=True).distinct()
                 elif searchAtr == 'user_manager':
-                    searchData = UserAccount.objects.filter(designation__title = searchAtr).distinct()
+                    searchData = UserAccount.objects.filter(designation__title = searchAtr, visibility=True).distinct()
                 elif searchAtr == 'lead_manager':
-                    searchData = UserAccount.objects.filter(designation__title = searchAtr).distinct()
+                    searchData = UserAccount.objects.filter(designation__title = searchAtr, visibility=True).distinct()
                 elif searchAtr == 'team_leader':
-                    searchData = UserAccount.objects.filter(designation__title = searchAtr).distinct()
-
-
-                print(searchData)
-
-                if searchData.exists():
-                    data =[]
-                    for d in searchData:
-                        data.append({'id': d.id, 'value': d.name})
-
-
-                    serializer = CommonDropdownSerializer(data=data, many=True)
-                    serializer.is_valid(raise_exception=True)
-                    res = resFun(status.HTTP_200_OK,'request successful',{'data': serializer.data, 'search_attribute': searchAtr})
+                    searchData = UserAccount.objects.filter(designation__title = searchAtr, visibility=True).distinct()
+                
+                res = employeeListFun(searchData, searchAtr)
 
             except:
-                res = resFun(status.HTTP_400_BAD_REQUEST,'no employee_status list found',[])
+                res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
+
+        elif (user.department.title == 'business_development' and user.designation.title == 'team_leader'):
+            try:
+                if searchAtr == 'team_member':
+                    print('searchData',user.id)
+                    searchData = UserAccount.objects.filter(team_leader__id = user.id).distinct()
+                    print('searchData',searchData)
+
+                res = employeeListFun(searchData, searchAtr)
+            except:
+                res = resFun(status.HTTP_400_BAD_REQUEST,'request failed',[])
+
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized for this action',[])
         return res
 
+
+
+
+class get_commercials(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CommonDropdownSerializer
+    def get(self, request, lead_id, service_category_id, format=None, *args, **kwargs):
+        try:
+            lead_instance = Leads.objects.get(lead_id=lead_id, visibility=True)
+            for ld in lead_instance.service_category_all.all():
+                if ld.id == service_category_id:
+                    data=[{"id": l.id, "value": l.commercials} for l in ld.service.commercials.all()]
+                    serializer =  CommonDropdownSerializer(data=data, many=True)
+                    serializer.is_valid(raise_exception=True)
+
+                    res =  resFun(status.HTTP_400_BAD_REQUEST, 'request successful', serializer.data)
+                else:
+                    res =  resFun(status.HTTP_204_NO_CONTENT, 'no data', [])
+                return res
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+            
 
 
 

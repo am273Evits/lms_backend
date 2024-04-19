@@ -52,9 +52,6 @@ class Drp_city(models.Model):
 #   lead_id = models.ForeignKey("leads.Leads", on_delete=models.CASCADE, null=True, blank=None)
 #   contact_number = models.CharField(max_length=100, blank=True, default='')
 
-class Email(models.Model):
-  lead_id = models.ForeignKey("leads.Leads", on_delete=models.CASCADE, null=True, blank=None)
-  email_id = models.CharField(max_length=100, blank=True, default='')
 
 
 
@@ -141,6 +138,12 @@ class Services_and_Commercials(models.Model):
 
 
 
+class Proposal_Email(models.Model):
+  # lead_id = models.ForeignKey("leads.Leads", on_delete=models.CASCADE, null=True, blank=None)
+  service = models.ForeignKey(Service, on_delete=models.CASCADE)
+  email = models.TextField()
+
+
 
 class Country(models.Model):
   country = models.CharField(max_length=100,blank=True, default='')
@@ -196,7 +199,7 @@ class drp_lead_status(models.Model):
 class Status_history(models.Model):
   # lead_id = models.ForeignKey("leads.Leads", on_delete=models.CASCADE, null=True, blank=None)
   status = models.ForeignKey(drp_lead_status, on_delete=models.CASCADE)
-  status_date = models.DateField(auto_now=False, auto_now_add=False)
+  status_date = models.DateTimeField(auto_now=True, auto_now_add=False)
   updated_by = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, blank=True)
 
 
@@ -282,6 +285,11 @@ class Remark_history(models.Model):
 #   email_id = models.CharField(max_length=100, blank=True, default='')
 
 
+class Commercial_Approval(models.Model):
+  commercial = models.CharField(max_length=100)
+  status = models.BooleanField(default=False)
+
+
 class Service_category(models.Model):
   # lead_id = models.ForeignKey(Leads, on_delete=models.CASCADE, null=True, blank=True)
   associate = models.ForeignKey(UserAccount , on_delete=models.CASCADE, null=True, blank=True)
@@ -291,8 +299,12 @@ class Service_category(models.Model):
   status = models.ForeignKey(drp_lead_status, on_delete=models.CASCADE, null=True, blank=True)
   payment_approval = models.BooleanField(null=True, blank=True, default='')
   mou_approval = models.BooleanField(null=True, blank=True, default='')
-  commercial_approval = models.BooleanField(null=True, blank=True, default='')
+  commercial_approval = models.ForeignKey(Commercial_Approval, on_delete=models.CASCADE, null=True, blank=True)
   def __str__(self): return str(self.service)
+
+
+
+
 
 
 class Email_history(models.Model):

@@ -1,4 +1,4 @@
-# from django.db import models
+from django.db import models
 
 # # Create your models here.
 
@@ -30,12 +30,12 @@
 #     # def __str__ (self): return self.country
 
 
-# class ev_bank_details(models.Model):
-#     account_name = models.CharField(max_length=200, null=True)
-#     bank_name = models.CharField(max_length=500, null=True)
-#     account_number = models.CharField(max_length=200, null=True)
-#     ifsc = models.CharField(max_length=500, null=True)
-#     def __str__ (self): return self.account_name
+class ev_bank_details(models.Model):
+    account_name = models.CharField(max_length=200, null=True)
+    bank_name = models.CharField(max_length=500, null=True)
+    account_number = models.CharField(max_length=200, null=True)
+    ifsc = models.CharField(max_length=500, null=True)
+    def __str__ (self): return self.account_name
 
 
 # class email_ask_for_details(models.Model):

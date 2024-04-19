@@ -17,7 +17,7 @@ urlpatterns = [
             path('view_all_leads/<int:page>', viewAllLeads.as_view()), #view_all_leads
             path('archive_lead/<int:id>', archive_lead.as_view()), #view_all_leads
             path('view_all_leads_archived/<int:page>', viewAllLeadsArchive.as_view()), #view_all_leads
-            path('view_lead_search_archived/<str:lead_id>', viewAllLeadsSearchArchive.as_view()), #view_all_leads
+            path('view_lead_search_archived/<str:lead_id>', viewAllLeadsSearchArchive.as_view()), #view_all_leads   
             path('restore_lead/<int:id>', restore_lead.as_view()), #view_all_leads
             # path('view_lead/<str:lead_id>', viewLeadsAllIdentifiers.as_view()), #view_all_leads
 
@@ -108,7 +108,7 @@ urlpatterns = [
 
             # path('business_leads_all_tables', businessLeadsAllTables.as_view()), #all tables submit
 
-            # path('assign_associate', assignAssociate.as_view()), #all tables submit
+            path('assign_associate', assignAssociate.as_view()), #all tables submit
 
             
             # path('email_ask_for_details/<str:lead_id>', apiSubmitEmailAskForDetails.as_view()),
@@ -142,7 +142,7 @@ urlpatterns = [
             # path('field_email_proposal/<str:country>/<str:marketplace>', apiFieldEmailProposalMarkeplace.as_view()),
             # path('field_email_proposal/<str:country>/<str:marketplace>/<str:services>', apiFieldEmailProposalService.as_view()),
 
-            # path('email_proposal/<str:lead_id>', apiSubmitEmailProposal.as_view()),
+            path('email_proposal', apiSubmitEmailProposal.as_view()),
 
 
             # path('field_add_new_service', fieldsAddNewServiceCountry.as_view()),

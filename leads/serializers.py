@@ -41,12 +41,12 @@ class lead_managerBlSerializer_bd(serializers.Serializer):
     # country = serializers.CharField()
     # state = serializers.CharField()
     # city = serializers.CharField()
-    service = serializers.CharField()
+    service = serializers.DictField()
     # associate = serializers.CharField()
     assigned_status = serializers.CharField()
     payment_approval = serializers.CharField()
     mou_approval = serializers.CharField()
-    commercial_approval = serializers.CharField()
+    commercial_approval = serializers.DictField()
     commercial = serializers.CharField()
     status = serializers.CharField()
     follow_up = serializers.ListField()
@@ -468,10 +468,10 @@ class ViewServicesSerializer(serializers.Serializer):
 #     return dynamicSeralizer
 
 
-# class assignAssociateSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Service_category
-#         exclude = ['lead_id']
+class assignAssociateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service_category
+        fields = ['associate']
 
 
 
@@ -494,10 +494,10 @@ class ViewServicesSerializer(serializers.Serializer):
 #     employee_id = serializers.CharField()
 
 
-# class ev_servicesSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = ev_services
-#         fields = '__all__'
+class ev_servicesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service_category
+        fields = ['pricing']
 
 
 class uploadFileSerializer(serializers.Serializer):

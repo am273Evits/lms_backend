@@ -2,6 +2,7 @@ from django.db.models import Q
 from django.apps import apps
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
+from django.core.mail import EmailMultiAlternatives
 
 from rest_framework.generics import CreateAPIView, GenericAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -17,6 +18,7 @@ import random
 from .serializers import *
 from account.models import UserAccount, Drp_Program, Department, Designation, Employee_status
 from .models import Leads, Remark_history
+from evitamin.models import ev_bank_details
 # from account.views import getLeadId
 
 import math
@@ -438,8 +440,8 @@ def viewLeadFun(leadsData, department):
                         "assigned_status": 'assigned' if s.associate != None else "not assigned", 
                         "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
                         "mou_approval": s.mou_approval if s.mou_approval != None else "-",
-                        "commercial_approval": s.commercial_approval if s.commercial_approval != None else "-",
-                        "commercial": s.pricing if s.pricing else "-",
+                        "commercial_approval": {"status": s.commercial_approval.status, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
+                        "commercial": s.pricing.commercials if s.pricing else "-",
                         "status": s.status.title if s.status else "-",
                         "follow_up": [ {
                             'date':f.followup_date if f.followup_date else '-', 
@@ -481,13 +483,13 @@ def viewLeadFun(leadsData, department):
                     # "associate" : sd.associate.name if sd.associate else '-',
                     # "service_category" : [
                         # { 
-                            'service': s.service.service.service, 
+                            'service': { 'service_category_id': s.id, 'service': s.service.service.service}, 
                             "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
                             "assigned_status": 'assigned' if s.associate != None else "not assigned", 
                             "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
                             "mou_approval": s.mou_approval if s.mou_approval != None else "-",
-                            "commercial_approval": s.commercial_approval if s.commercial_approval != None else "-",
-                            "commercial": s.pricing if s.pricing else "-",
+                            "commercial_approval": {"status": s.commercial_approval.status, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
+                            "commercial": s.pricing.commercials if s.pricing else "-",
                             "status": s.status.title if s.status else "-",
                             "follow_up": [ {
                                 'date':f.followup_date if f.followup_date else '-', 
@@ -846,7 +848,6 @@ def archiveRestoreFun(request, id, visibility, message):
                 res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized for this action',[])
         except:
                 res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed',[])
-        
         return res
         
 
@@ -1853,80 +1854,229 @@ class UnarchiveSubProgram(GenericAPIView):
 #     serializer_class = 
 
 
-# class assignAssociate(GenericAPIView):
-#     serializer_class = assignAssociateSerializer
-#     permission_classes = [IsAuthenticated]
-#     def put(self, request, format=None, *args, **kwargs):
-#         print('request.data',request.data)
+class assignAssociate(GenericAPIView):
+    serializer_class = assignAssociateSerializer
+    permission_classes = [IsAuthenticated]
+    def put(self, request, format=None, *args, **kwargs):
+        print('request.data',request.data)
 
-#         # obj_user = Leads.objects.filter(emp__id = request.user.id, visibility=True).first()
-#         # user_role = obj_user.user_role
-#         # print('user_role', user_role)
-#         user = request.user
-
-#         res = Response()
-#         if user.department.title == 'director' or (user.department.title == 'admin' and user.designation.title == 'lead_manager') or (user.department.title == 'business_development' and user.designation.title == 'team_leader'):
-
-#             lead_id = request.data.get('lead_id')
-#             assoc_employee_id = request.data.get('employee_id')
-#             empData = employee_official.objects.filter(emp__employee_id = assoc_employee_id, emp__visibility=True).first()
-#             # print('empData',empData.emp.id)
-#             team_leader_id = getTeamLeaderInst(empData.emp.employee_id)
-
-#             req_data = {"team_leader": team_leader_id.emp.id, "associate_id": empData.emp.id}
-#             print(req_data)
-
-#             # with connection.cursor() as cursor:
-#             if isinstance(lead_id, list):
-#                 for ld in lead_id:
-#                     data = service.objects.filter(lead_id__lead_id = ld, lead_id__visibility=True).first()
-#                     if data: 
-#                         serializer = assignAssociateSerializer(data, data=req_data, partial=True)
-#                         if serializer.is_valid(raise_exception=True):
-#                             serializer.save()
-#                             lead_status_instance = lead_status.objects.get(title = 'pitch in progress')
-#                             lead_status_record.objects.create(**{'lead_id': data.lead_id, 'status': lead_status_instance})
-#                             res.status_code = status.HTTP_201_CREATED
-#                             res.data = {
-#                                 'status' : status.HTTP_201_CREATED,
-#                                 'message' : 'associate assigned',
-#                                 'data' : {'message': 'this lead has been updated'}
-#                                 }
-#                             return res
-#                         else:
-#                             res.status_code = status.HTTP_400_BAD_REQUEST
-#                             res.data = {
-#                                 'status' : status.HTTP_400_BAD_REQUEST,
-#                                 'message' : 'request failed',
-#                                 'data' : []
-#                                 }
-#                             return res
-#                     else:
-#                         res.status_code = status.HTTP_400_BAD_REQUEST
-#                         res.data = {
-#                             'status' : status.HTTP_400_BAD_REQUEST,
-#                             'message' : 'invalid lead id',
-#                             'data' : []
-#                             }
-#                         return res
-#                     # d = cursor.execute(f"UPDATE api_business_leads_service set associate_id = '{assoc_employee_id}', team_leader_id = '{team_leader_id}' WHERE lead_id = '{ld}'")
-#             else: 
-#                 data = service.objects.filter(lead_id__lead_id = lead_id, lead_id__visibility=True).first()
-#                 if data:
-#                     serialize = assignAssociateSerializer(data, data=req_data, partial=True)
-#                     serialize.is_valid(raise_exception=True)
-#                     serialize.save()
-#                     lead_status_instance = lead_status.objects.get(title = 'pitch in progress')
-#                     lead_status_record.objects.create(**{'lead_id': data.lead_id, 'status': lead_status_instance})
-
-#                     res = resFun(status.HTTP_200_OK,'associate assigned',[])                    
-#                 else:
-#                     res = resFun(status.HTTP_204_NO_CONTENT,'invalid lead id',[])
-#         else: 
-#             res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized to assign leads',[])
         
-#         return res
+
+        # obj_user = Leads.objects.filter(emp__id = request.user.id, visibility=True).first()
+        # user_role = obj_user.user_role
+        # print('user_role', user_role)
+        user = request.user
+
+        res = Response()
+        if user.department.title == 'director' or (user.department.title == 'admin' and user.designation.title == 'lead_manager') or (user.department.title == 'business_development' and user.designation.title == 'team_leader'):
+
+            user_id = request.data.get('user_id')
+            service_category_id = request.data.get('service_category_id')
+
+
+            userData = UserAccount.objects.get(id = user_id, visibility=True)
+            print('userData',userData)
+
+            if isinstance(service_category_id, list):
+                for ld in service_category_id:
+
+                    data = Service_category.objects.get(id= ld)
+                    if data: 
+                        serializer = assignAssociateSerializer(data, data={'associate': user_id}, partial=True)
+                        if serializer.is_valid(raise_exception=True):
+                            serializer.save()
+                            lead_status_instance = drp_lead_status.objects.get(title = 'pitch in progress')
+                            status_history_instance = Status_history.objects.create(**{'status': lead_status_instance, 'updated_by': request.user})
+                            lead_instance = Leads.objects.get(service_category_all__id=ld)
+                            lead_instance.status_history_all.add(status_history_instance)
+                            res = resFun(status.HTTP_201_CREATED,'associate assigned', [])
+                        else:
+                            res = resFun(status.HTTP_400_BAD_REQUEST,'request failed', [])
+                    else:
+                        res = resFun(status.HTTP_400_BAD_REQUEST,'invalid lead id', [])
+                    
+                    # return res
+                    # d = cursor.execute(f"UPDATE api_business_leads_service set associate_id = '{assoc_employee_id}', team_leader_id = '{team_leader_id}' WHERE lead_id = '{ld}'")
+            else: 
+
+                data = Service_category.objects.get(id= service_category_id)
+                if data: 
+                    serializer = assignAssociateSerializer(data, data={'associate': user_id}, partial=True)
+                    if serializer.is_valid(raise_exception=True):
+                        serializer.save()
+                        lead_status_instance = drp_lead_status.objects.get(title = 'pitch in progress')
+                        status_history_instance = Status_history.objects.create(**{'status': lead_status_instance, 'updated_by': request.user})
+                        lead_instance = Leads.objects.get(service_category_all__id=service_category_id)
+                        lead_instance.status_history_all.add(status_history_instance)
+                        res = resFun(status.HTTP_201_CREATED,'associate assigned', [])
+                    else:
+                        res = resFun(status.HTTP_400_BAD_REQUEST,'request failed', [])
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST,'invalid lead id', [])
+
+
+
+
+                # data = service.objects.filter(lead_id__lead_id = lead_id, lead_id__visibility=True).first()
+                # if data:
+                    # serialize = assignAssociateSerializer(data, data=req_data, partial=True)
+                    # serialize.is_valid(raise_exception=True)
+                    # serialize.save()
+                    # lead_status_instance = lead_status.objects.get(title = 'pitch in progress')
+                    # lead_status_record.objects.create(**{'lead_id': data.lead_id, 'status': lead_status_instance})
+
+                    # res = resFun(status.HTTP_200_OK,'associate assigned',[])                    
+                # else:
+                    # res = resFun(status.HTTP_204_NO_CONTENT,'invalid lead id',[])
+        else: 
+            res = resFun(status.HTTP_400_BAD_REQUEST,'you are not authorized to assign leads',[])
         
+        return res
+        
+
+
+
+def SendEmail(email, subject, message):
+
+    subject = subject
+    # message = '<h1>This email was sent from django</h1>'
+    from_email = 'akshatnigamcfl@gmail.com'
+    recipient_list = email
+    text = 'email sent from MyDjango'
+    email = EmailMultiAlternatives(subject, text, from_email, recipient_list)
+    email.attach_alternative(message, 'text/html')
+    # email.attach_file('files/uploadFile_0dTGU7A.csv', 'text/csv')
+    email.send()
+
+
+
+
+
+
+class apiSubmitEmailProposal(GenericAPIView):
+    serializer_class = ev_servicesSerializer
+    permission_classes = [IsAuthenticated]
+    def post(self, request, format=None, *args, **kwargs):
+        # print(commercial_id)
+        try:
+            lead_id = request.data.get('lead_id')
+            commercial_id = request.data.get('commercial_id')
+            if commercial_id == None:
+
+                if not request.data.get('service_category_id'):
+                    return resFun(status.HTTP_400_BAD_REQUEST, 'service category id is required', [])
+                if not request.data.get('custom_commercial'):
+                    return resFun(status.HTTP_400_BAD_REQUEST, 'custom commercial is required', [])
+                
+
+                service_category_instance = Service_category.objects.get(id=request.data.get('service_category_id'))
+                commercial_approval_instance = Commercial_Approval.objects.create(**{"commercial": request.data.get('custom_commercial')})
+                service_category_instance.commercial_approval = commercial_approval_instance
+                # service_category_instance.save()
+
+                SendEmail([request.user.director.email], 'Commercial Approval Pending', f'''<h3>Hello {request.user.director.name},</h3></br><p><b>{request.user.name}</b> from <b>{request.user.department}</b> has requested you to approve a commercial. Check commercial details below</p></br>
+                        <table class="table table-zebra" style="border: 1px solid black; border-collapse:collapse" border="1>
+                            <thead>
+                              <tr>
+                                <th style="border: 1px solid black;">Segment</th>
+                                <th style="border: 1px solid black;">Service</th>
+                                <th style="border: 1px solid black;">Marketplace</th>
+                                <th style="border: 1px solid black;">Commercial</th>
+                                <th style="border: 1px solid black;">Requested By</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                  <td style="border: 1px solid black;">{service_category_instance.service.segment.segment}</td>
+                                  <td style="border: 1px solid black;">{service_category_instance.service.service.service}</td>
+                                  <td style="border: 1px solid black;">{service_category_instance.service.marketplace.marketplace}</td>
+                                  <td style="border: 1px solid black;">{request.data.get('custom_commercial')}</td>
+                                  <td style="border: 1px solid black;">{request.user.name}</td>
+                                </tr>
+                            </tbody>
+                            </table>
+                            </br>
+                            <p>Please click link below to approve commercial</p>
+                            <a href="#"><button>Approve</button></a>
+                            <p><b>Regards,</b></p>
+                          ''')
+
+                res = resFun(status.HTTP_200_OK, 'commercial sent for approval, you will be notified once approved', [])
+                return res
+            else:
+                lead_instance = Leads.objects.get(lead_id=lead_id, visibility=True)            
+                email = lead_instance.email_id
+                service = None
+                for ld in lead_instance.service_category_all.all():
+                    print('ld', ld)
+                    # service = 
+                    for l in ld.service.commercials.all():
+                        if l.id == commercial_id:
+                            service = ld.service.service
+                print('service',service)
+                if service != None:
+                    message = Proposal_Email.objects.get(service__id = service.id)
+                    message = message.email
+                    bank_details = ev_bank_details.objects.all().first()
+                    account_name = bank_details.account_name
+                    bank_name = bank_details.bank_name
+                    account_number = bank_details.account_number
+                    ifsc = bank_details.ifsc
+
+                    # print(message)
+
+                    # message = message.replace('{***account_name***}', account_name)
+                    # message = message.replace('{***bank_name***}', bank_name)
+                    # message = message.replace('{***account_number***}', account_number)
+                    # message = message.replace('{***ifsc_code***}', ifsc)
+
+                    message = message.replace('{***service***}', service.service)
+                    message = message.replace('{***slab***}', Commercials.objects.get(id=commercial_id).commercials)
+                    message = message.replace('{***sender***}', request.user.name)
+                    # message = html.escape(message)
+                    # print(message)
+                    subject = 'service proposal from evitamin'
+                    # message = '<h1>This email was sent from django</h1>'
+                    from_email = 'akshatnigamcfl@gmail.com'
+                    recipient_list = [email]
+                    text = 'email sent from MyDjango'
+                    # if send_mail(subject, message, from_email, recipient_list):
+                    print(recipient_list)
+                    email = EmailMultiAlternatives(subject, text, from_email, recipient_list)
+                    email.attach_alternative(message, 'text/html')
+                    # email.attach_file('files/uploadFile_0dTGU7A.csv', 'text/csv')
+                    email.send()
+
+                    if email:
+                        status_update=False
+                        for ld in lead_instance.service_category_all.all():
+                            if ld.service.service.id == service.id:
+                                ld.pricing = Commercials.objects.get(id=commercial_id)
+                                ld.status = drp_lead_status.objects.get(title='proposal email sent')
+                                ld.save()
+                                Status_history.objects.create(**{'status': drp_lead_status.objects.get(title='proposal email sent'), 'updated_by': request.user})
+                                status_update = True
+                        # status_update = service.objects.filter(lead_id__lead_id=lead_id, lead_id__visibility=True).update(lead_status = getLeadStatusInst('proposal email sent'))
+                        # print(status_update)
+                        # lead_instance.save()
+
+                        if status_update:
+                            res = resFun(status.HTTP_200_OK, 'email sent', [] )
+                        else:
+                            res = resFun(status.HTTP_400_BAD_REQUEST, 'email not sent', [] )
+                    else:
+                        res = resFun(status.HTTP_400_BAD_REQUEST, 'email not sent', [] )
+                else:
+                    res = resFun(status.HTTP_204_NO_CONTENT, 'no email found against the service id', [] )
+                return res
+        
+        except:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
+            return res
+        
+
+
+
 
 
 
