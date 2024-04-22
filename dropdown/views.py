@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from .serializers import *
 from leads.views import resFun
-from leads.models import Leads
+from leads.models import Leads, drp_lead_status
 # from dropdown.models import ev_department, ev_designation, user_role_list
 # from dropdown.models import list_employee
 # from business_leads.serializers import allIdentifiersSerializer 
@@ -233,41 +233,43 @@ class get_commercials(GenericAPIView):
 
 # Create your views here.
 
-# class dropdownOption(GenericAPIView):
-#     serializer_class = dropdownOptionSerializers
-#     permissions_classes = [IsAuthenticated]
-#     def get(self, request, table, format=None, *args, **kwargs):
+class dropdownOption(GenericAPIView):
+    serializer_class = dropdownOptionSerializers
+    permissions_classes = [IsAuthenticated]
+    def get(self, request, table, format=None, *args, **kwargs):
 
-#         model = apps.get_model('dropdown', table)
-#         data = list(model.objects.values_list('title', flat=True).order_by('title'))
-        
-#         serializer = dropdownOptionSerializers(data=[{'title': data}], many=True)
-#         res = Response()
-#         if serializer.is_valid(raise_exception=True):
-#             print(serializer.data)
-#             DR_LIST = set()
-#             for s in serializer.data:
-#                 for key in s:
-#                     for d in s[key]:
-#                         DR_LIST.add(d)
-            
-#             print(DR_LIST)
-                    
-#             res.status_code = status.HTTP_200_OK
-#             res.data = {
-#                 'status': status.HTTP_200_OK,
-#                 "message": 'successful',
-#                 "data": {'title': DR_LIST, 'dropdown_name': table}
-#                 }
-#         else :
-#             res.status_code = status.HTTP_400_BAD_REQUEST
-#             res.data = {
-#                 'status': status.HTTP_400_BAD_REQUEST,
-#                 "message": 'request failed',
-#                 "data": []
-#                 }
-#         return res
+        try:
+            model = apps.get_model('dropdown', table)
+            data = model.objects.all().order_by('title')
+            main_data = [{"id": d.id, "title": d.title } for d in data]
+            serializer = dropdownOptionSerializers(data=main_data, many=True)
+            serializer.is_valid(raise_exception=True)
+            res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'table_name': table})
+            return res
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
     
+
+class leadStatusList(GenericAPIView):
+    permissions_classes = [IsAuthenticated]
+    serializer_class = dropdownOptionSerializers
+    def get(self, request, format=None, *args, **kwargs):
+
+        print(request.data)
+
+        try:
+            lead_status = drp_lead_status.objects.all().values()
+            print('lead_status',lead_status)
+
+            serializer = dropdownOptionSerializers(data=list(lead_status), many=True)
+            serializer.is_valid(raise_exception=True)
+
+            res =  resFun(status.HTTP_200_OK, 'successful', serializer.data)
+            return res
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+
+        
 
 # class dropdownOptionData1(GenericAPIView):
 #     serializer_class = dropdownOptionSerializers

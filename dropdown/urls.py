@@ -10,7 +10,6 @@ urlpatterns = [
             path('employee_status', dropdown_employee_status.as_view()),
 
             path('employee_list/<str:searchAtr>', employee_list.as_view()),
-
             
             path('get_commercials/<str:lead_id>/<int:service_category_id>', get_commercials.as_view()),
 
@@ -22,7 +21,9 @@ urlpatterns = [
 
 
         # lead_manager:
-            # path('options/<str:table>', dropdownOption.as_view()),
+            path('options/<str:table>', dropdownOption.as_view()),
+
+            path('lead_status_list', leadStatusList.as_view()),
 
             # path('options/<str:table>/<str:data1>', dropdownOptionData1.as_view()),
             # path('options/<str:table>/<str:data1>/<str:data2>', dropdownOptionData2.as_view()),

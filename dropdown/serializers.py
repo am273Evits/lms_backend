@@ -3,7 +3,8 @@ from account.models import UserAccount
 
 
 class dropdownOptionSerializers(serializers.Serializer):
-    title = serializers.ListField()
+    id = serializers.IntegerField()
+    title = serializers.CharField()
 
 
 class employeesAllTablesSerializer(serializers.Serializer):

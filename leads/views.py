@@ -18,6 +18,7 @@ import random
 from .serializers import *
 from account.models import UserAccount, Drp_Program, Department, Designation, Employee_status
 from .models import Leads, Remark_history
+from dropdown.models import *
 from evitamin.models import ev_bank_details
 # from account.views import getLeadId
 
@@ -865,6 +866,34 @@ class restore_lead(GenericAPIView):
     def put(self, request, id, format=None, *args, **kwargs):
         res = archiveRestoreFun(request, id, False, 'lead restored successfully')
         return res
+    
+
+class UpdateLeads(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UpdateLeadsSerializer_TL
+    def put(self, request, lead_id, format=None, *args, **kwargs):
+
+        if request.user.department.title == 'admin' and request.user.designation.title == 'lead_manager':
+            pass
+        elif request.user.department.title == 'business_development':
+
+                lead_instance = Leads.objects.get(lead_id=lead_id)
+                if lead_instance:
+                    if request.user.designation.title == 'team_leader':
+                        serializer = UpdateLeadsSerializer_TL(lead_instance, data=request.data, partial=True)
+                    elif request.user.designation.title == 'team_member':
+                        serializer = UpdateLeadsSerializer_TM(lead_instance, data=request.data, partial=True)
+
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+                    res = resFun(status.HTTP_200_OK, 'request successful', [])
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid lead id', [])
+                return res
+            
+
+                
+
 
 
 # class viewLeadsAllIdentifiers(GenericAPIView):
@@ -1935,6 +1964,104 @@ class assignAssociate(GenericAPIView):
         
 
 
+class reasonSubmit(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    def put(self, request, table, format=None, *args, **kwargs):
+        
+        try:
+            model = apps.get_model('dropdown', table)
+
+            if not request.data.get('id'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'id field is mandatory', [])
+            
+            if not request.data.get('lead_id'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'lead id field is mandatory', [])
+            
+            if not request.data.get('service_category_id'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'service category id field is mandatory', [])
+
+
+            id = request.data.get('id')
+            lead_id = request.data.get('lead_id')
+            service_category_id = request.data.get('service_category_id')
+
+            lead_instance = Leads.objects.get(lead_id=lead_id, service_category_all__id=service_category_id)
+
+            if table == 'not_interested':
+                for ld in lead_instance.service_category_all.all():
+                    if ld.id == service_category_id:
+                        status_instance = drp_lead_status.objects.get(title='not interested')
+                        ld.status = status_instance
+                        ld.not_interested_reason = not_interested.objects.get(id=id)
+                        # print(drp_lead_status.objects.get(title=''))
+                        ld.save()
+                        Status_history_instance = Status_history.objects.create(**{"status": status_instance, "updated_by": request.user })
+                        lead_instance.status_history_all.add(Status_history_instance)
+                        status_update = True
+
+                if status_update:
+                    res = resFun(status.HTTP_200_OK, 'saved successfully',[])
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'status not updated',[])
+
+            elif table == 'unresponsive':
+                for ld in lead_instance.service_category_all.all():
+                    if ld.id == service_category_id:
+                        status_instance = drp_lead_status.objects.get(title='unresponsive')
+                        ld.status = status_instance
+                        ld.unresponsive_reason = unresponsive.objects.get(id=id)
+                        # print(drp_lead_status.objects.get(title=''))
+                        ld.save()
+                        Status_history_instance = Status_history.objects.create(**{"status": status_instance, "updated_by": request.user })
+                        lead_instance.status_history_all.add(Status_history_instance)
+                        status_update = True
+
+                if status_update:
+                    res = resFun(status.HTTP_200_OK, 'saved successfully',[])
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'status not updated',[])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'table out of range',[])
+            return res
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+
+
+
+class LeadStatusUpdate(GenericAPIView):
+    permission_classes=[IsAuthenticated]
+    serializer_class = LeadStatusUpdateSerializer
+    def put(self, request, format=None, *args, **kwargs):
+        try:
+            if not request.data.get('lead_id'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'lead id is required',[])
+            if not request.data.get('service_category_id'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'service category id is required',[])
+            if not request.data.get('lead_status_id'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'lead status id is required',[])
+            
+            lead_instance = Leads.objects.get(lead_id=request.data.get('lead_id'))
+            for ld in lead_instance.service_category_all.all():
+                if ld.id == request.data.get('service_category_id'):
+                    status_instance = drp_lead_status.objects.get(id = request.data.get('lead_status_id'))
+                    ld.status  = status_instance
+                    ld.save()
+                    print('request.data',ld)
+                    status_history_instance = Status_history.objects.create(**{'status': status_instance, 'updated_by': request.user })
+                    lead_instance.status_history_all.add(status_history_instance)
+                    status_update = True
+
+            if status_update:
+                res = resFun(status.HTTP_200_OK, 'successful',[])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'status not updated',[])
+            return res 
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed',[])
+
+
+
+
 
 def SendEmail(email, subject, message):
 
@@ -2004,7 +2131,7 @@ class apiSubmitEmailProposal(GenericAPIView):
                 res = resFun(status.HTTP_200_OK, 'commercial sent for approval, you will be notified once approved', [])
                 return res
             else:
-                lead_instance = Leads.objects.get(lead_id=lead_id, visibility=True)            
+                lead_instance = Leads.objects.get(lead_id=lead_id, visibility=True)
                 email = lead_instance.email_id
                 service = None
                 for ld in lead_instance.service_category_all.all():

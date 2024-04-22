@@ -1,4 +1,4 @@
-# from django.db import models
+from django.db import models
 # # Create your models here.
 
 
@@ -179,14 +179,14 @@
 # # class marital_status(models.Model):
 # #     title = models.CharField(max_length=500, blank=True, default='')
 
-# class not_interested_reason(models.Model):
-#     title = models.CharField(max_length=500, blank=True, default='')
-#     def __str__ (self): return self.title
+class not_interested(models.Model):
+    title = models.CharField(max_length=500, blank=True, default='')
+    def __str__ (self): return self.title
 
 
-# class unresponsive_reason(models.Model):
-#     title = models.CharField(max_length=500, blank=True, default='')
-#     def __str__ (self): return self.title
+class unresponsive(models.Model):
+    title = models.CharField(max_length=500, blank=True, default='')
+    def __str__ (self): return self.title
 
 
 # class list_business_leads(models.Model):
