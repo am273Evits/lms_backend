@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import *
 import re
+# from leads.views import resFun
 # from dropdown.models import *
 # from evitamin.models import *
 # from django.db.models import Q
@@ -10,7 +11,20 @@ import re
 
 # from records.models import lead_status_record
 
-# from account.views import getLeadId
+from .main_functions import getLeadId
+
+
+
+# def resFun(status,message,data):
+#     res = Response()
+#     res.status_code = status
+#     res.data = {
+#         'status': status,
+#         'message': message,
+#         'data': data,
+#     }
+#     return res
+
 
 
 class lead_managerBlSerializer_bd(serializers.Serializer):
@@ -667,156 +681,192 @@ class UpdateLeadsSerializer_TM(serializers.ModelSerializer):
 #         fields = '__all__'
 
 
-# class createLeadManualSerializer(serializers.Serializer):
-#     client_name = serializers.CharField(required=True)
-#     phone_number = serializers.CharField(required=True)
-#     alternate_phone_number = serializers.CharField(required=False)
-#     email_id = serializers.EmailField(required=False)
-#     alternate_email_id = serializers.EmailField(required=False)
-#     service_category = serializers.ListField(required=True)
-#     business_name = serializers.CharField(required=True)
-#     business_category = serializers.IntegerField(required=False)
-#     client_turnover = serializers.IntegerField(required=False)
-#     hot_lead = serializers.BooleanField(required=False)
+class createLeadManualSerializer(serializers.Serializer):
+    client_name = serializers.CharField(required=True)
+    phone_number = serializers.CharField(max_length = 15, required=True)
+    alternate_phone_number = serializers.CharField(required=False)
+    email_id = serializers.EmailField(required=False)
+    alternate_email_id = serializers.EmailField(required=False)
+    business_name = serializers.CharField(required=True)
+    brand_name = serializers.CharField(required=True)
+    business_category = serializers.IntegerField(required=False)
+    client_turnover = serializers.IntegerField(required=False)
+    hot_lead = serializers.BooleanField(required=False)
+    segment = serializers.IntegerField(required=False)
+    service = serializers.ListField(required=True)
+    marketplace = serializers.ListField(required=True)
 
-#     def validate(self, attrs):
-#         client_name = attrs.get('client_name')
-#         phone_number = attrs.get('phone_number')
-#         alternate_phone_number = attrs.get('alternate_phone_number')
-#         email_id = attrs.get('email_id')
-#         alternate_email_id = attrs.get('alternate_email_id')
-#         service_category = attrs.get('service_category')
-#         business_name = attrs.get('business_name')
-#         business_category = attrs.get('business_category')
-#         client_turnover = attrs.get('client_turnover')
-#         hot_lead = attrs.get('hot_lead')
+    def validate(self, attrs):
+        
+        client_name = attrs.get('client_name')
+        phone_number = attrs.get('phone_number')
+        alternate_phone_number = attrs.get('alternate_phone_number')
+        email_id = attrs.get('email_id')
+        alternate_email_id = attrs.get('alternate_email_id')
+        business_name = attrs.get('business_name')
+        brand_name = attrs.get('brand_name')
+        business_category = attrs.get('business_category')
+        client_turnover = attrs.get('client_turnover')
+        hot_lead = attrs.get('hot_lead')
+        segment = attrs.get('segment')
+        service = attrs.get('service')
+        marketplace = attrs.get('marketplace')
 
 
-#         print('attrs', attrs)
-
-
-#         if business_name is None:
-#             raise serializers.ValidationError('service category is required')
-#         if client_name is None:
-#             raise serializers.ValidationError('client name is required')
-#         # if business_category is None:
-#         #     raise serializers.ValidationError('business category is required')
-#         # if client_turnover is None:
-#         #     raise serializers.ValidationError('client turnover is required')
-#         # if hot_lead is None:
-#         #     raise serializers.ValidationError('hot lead is required')
+        # if business_name is None:
+        #     raise serializers.ValidationError('service category is required')
+        # if client_name is None:
+        #     raise serializers.ValidationError('client name is required')
+        # if business_category is None:
+        #     raise serializers.ValidationError('business category is required')
+        # if client_turnover is None:
+        #     raise serializers.ValidationError('client turnover is required')
+        # if hot_lead is None:
+        #     raise serializers.ValidationError('hot lead is required')
         
         
-#         duplicate_leads = []
-#         phone_number_list = [phone_number]
-#         if alternate_phone_number: phone_number_list.append(alternate_phone_number)
-#         print(phone_number_list)
+        duplicate_leads = []
+        phone_number_list = [phone_number]
+        if alternate_phone_number: phone_number_list.append(alternate_phone_number)
+        print(phone_number_list)
 
-#         email_id_list = [email_id, alternate_email_id]
-#         print(email_id_list)
+        email_id_list = [email_id, alternate_email_id]
+        print(email_id_list)
 
-#         for ph in phone_number_list:
-#             if len(ph) < 10:
-#                 raise serializers.ValidationError('a valid 10 digit number is required')
-#             else:
-#                 dup_contact = Leads.objects.filter(contact_number = ph)
-#                 # dup_contact_list = []
-#                 if dup_contact.exists():
-#                     for dup in dup_contact:
-#                         if dup.lead_id != None:
-#                             duplicate_leads.append({'lead_id': str(dup.lead_id), 'remark': [str(r.remark) for r in  Remark_history.objects.filter(lead_id = dup.id)]})
+        for ph in phone_number_list:
+            if len(ph) < 9:
+                raise serializers.ValidationError('a valid digit number is required')
+            else:
+                dup_contact = Leads.objects.filter(contact_number = ph)
+                # dup_contact_list = []
+                if dup_contact.exists():
+                    for dup in dup_contact:
+                        if dup.lead_id != None:
+                            duplicate_leads.append({'lead_id': str(dup.lead_id), 'remark': [r.remark for r in dup.remark.all()]})
+
+                            # [str(r.remark) for r in  Remark_history.objects.filter(lead_id = dup.id)]
                 
-#         for em in email_id_list:
-#             pattern = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
-#             input_string = em
-#             if pattern.match(input_string):
-#                 dup_email = Leads.objects.filter(email_id = em)
-#                 if dup_email.exists():
-#                     for dup in dup_email:
-#                         for dcl in duplicate_leads:
-#                             if str(dcl['lead_id']) != str(dup.lead_id):
-#                                 print(dcl['lead_id'])
-#                                 print(dup.lead_id)
-#                                 duplicate_leads.append({'lead_id': str(dup.lead_id) , 'remarks': [str(d.remark) for d in Remark_history.objects.filter(lead_id = dup.id)]})
-#                                 break
-#             else:
-#                 raise serializers.ValidationError(f'{em} is not a valid email address')
+        for em in email_id_list:
+            pattern = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
+            input_string = em
+            if pattern.match(input_string):
+                dup_email = Leads.objects.filter(email_id = em)
+                if dup_email.exists():
+                    for dup in dup_email:
+                        for dcl in duplicate_leads:
+                            if str(dcl['lead_id']) != str(dup.lead_id):
+                                print(dcl['lead_id'])
+                                print(dup.lead_id)
+                                duplicate_leads.append({'lead_id': str(dup.lead_id) , 'remarks': [r.remark for r in dup.remark.all()]})
+                                break
 
-#         if duplicate_leads and len(duplicate_leads) > 0:
-#             raise serializers.ValidationError(duplicate_leads)
+                                # [str(d.remark) for d in Remark_history.objects.filter(lead_id = dup.id)]
+                                
+            else:
+                raise serializers.ValidationError(f'{em} is not a valid email address')
+
+        if duplicate_leads and len(duplicate_leads) > 0:
+            # return resFun(status.HTTP_400_BAD_REQUEST, 'lead already exists with this contact number or email id')
+            # print('duplicate_leads',duplicate_leads)
+            raise serializers.ValidationError('lead already exists with this contact number or email id')
         
-#         if client_turnover != None:
-#             client_turnover_INST = Client_turnover.objects.filter(id = client_turnover).exists()
-#             if not client_turnover_INST:
-#                 raise serializers.ValidationError('client turnover field is not valid')
+        if client_turnover != None:
+            client_turnover_INST = Client_turnover.objects.filter(id = client_turnover).exists()
+            if not client_turnover_INST:
+                raise serializers.ValidationError('client turnover field is not valid')
             
-#         if business_category != None:
-#             business_cat_INST = Drp_business_category.objects.filter(id = business_category).exists()
-#             if not business_cat_INST:
-#                 raise serializers.ValidationError('business category field is not valid')
+        if business_category != None:
+            business_cat_INST = Drp_business_category.objects.filter(id = business_category).exists()
+            if not business_cat_INST:
+                raise serializers.ValidationError('business category field is not valid')
+            
+                    
+        if not Segment.objects.filter(id = segment).exists():
+            raise serializers.ValidationError(f"segment field is not valid")
         
 
-#         for sr in service_category:
-#             serv_category = Services.objects.filter(id = sr).exists()
-#             if not serv_category:
-#                 raise serializers.ValidationError(f"service category field is not valid")
+        for sr in service:
+            serv_category = Service.objects.filter(id = sr).exists()
+            if not serv_category:
+                raise serializers.ValidationError(f"service category field is not valid")
             
-#         return attrs
+
+        for sr in marketplace:
+            serv_category = Marketplace.objects.filter(id = sr).exists()
+            if not serv_category:
+                raise serializers.ValidationError(f"marketplace field is not valid")
+
+        return attrs
     
 
-#     def create(self, validated_data):
+    def create(self, validated_data):
 
-#         for v in validated_data['service_category']:
+        print('validated_data', validated_data)
 
-#             lead_id = getLeadId()
-#             validated_data['lead_id'] = lead_id
+        lead_id = getLeadId()
+        validated_data['lead_id'] = lead_id
 
-#             for key in validated_data:
-#                 if isinstance(validated_data[key] ,str):
-#                     validated_data[key] = validated_data[key].lower()
-#                 else :
-#                     validated_data[key] = validated_data[key]
 
-#             v_data = {
-#                 'status' : drp_lead_status.objects.filter(title = 'yet to contact').first(), 
-#                 'lead_id' : validated_data['lead_id'], 
-#                 'client_name': validated_data['client_name'],
-#                 'contact_number': validated_data['phone_number'],
-#                 'business_name': validated_data['business_name'], 
-#                 'service_category': Services.objects.filter(id = v).first(), 
-#                 }
+        for key in validated_data:
+            if isinstance(validated_data[key] ,str):
+                validated_data[key] = validated_data[key].lower()
+            else :
+                validated_data[key] = validated_data[key]
+
+        # print('validated_data',validated_data)
+
+
+        v_data = {
+            # 'status' : drp_lead_status.objects.filter(title = 'yet to contact').first(), 
+            'lead_id' : validated_data['lead_id'], 
+            'client_name': validated_data['client_name'],
+            'contact_number': validated_data['phone_number'],
+            'email_id': validated_data['email_id'],
+            'business_name': validated_data['business_name'], 
+            'brand_name': validated_data['brand_name'],
+            # 'service_category': Services.objects.filter(id = v).first(),
+            }
+        
+        if 'alternate_contact_number' in validated_data:
+            v_data['alternate_contact_number'] = validated_data['alternate_contact_number']
+        if 'alternate_email_id' in validated_data:
+            v_data['alternate_email_id'] = validated_data['alternate_email_id']
+        if 'business_category' in validated_data:
+            v_data['business_category'] = Drp_business_category.objects.filter(id = validated_data['business_category']).first()
+        if 'client_turnover' in validated_data:
+            v_data['client_turnover'] = Client_turnover.objects.filter(id = validated_data['client_turnover']).first()
+        if 'hot_lead' in validated_data:
+            v_data['hot_lead'] = validated_data['hot_lead']
             
-#             if 'alternate_phone_number' in validated_data:
-#                 v_data['alternate_phone_number'] = validated_data['alternate_phone_number']
-#             if 'business_category' in validated_data:
-#                 v_data['business_category'] = Drp_business_category.objects.filter(id = validated_data['business_category']).first()
-#             if 'client_turnover' in validated_data:
-#                 v_data['client_turnover'] = Client_turnover.objects.filter(id = validated_data['client_turnover']).first()
-#             if 'hot_lead' in validated_data:
-#                 v_data['hot_lead'] = validated_data['hot_lead']
-                
+    
+        # 'business_category': Drp_business_category.objects.filter(id = validated_data['business_category']).first(), 
+        # 'client_turnover': Client_turnover.objects.filter(id = validated_data['client_turnover']).first(), 
+        # 'hot_lead':  validated_data['hot_lead']
+
+        print('v_data',v_data)
+    
+        data = Leads.objects.create(**v_data)
+        print('data', data.id)
+        # if data:        
+
+
         
-#             # 'business_category': Drp_business_category.objects.filter(id = validated_data['business_category']).first(), 
-#             # 'client_turnover': Client_turnover.objects.filter(id = validated_data['client_turnover']).first(), 
-#             # 'hot_lead':  validated_data['hot_lead']
+
         
-#             data = Leads.objects.create(**v_data)
-#             print('data', data.id)
-#             # if data:
 
-#             # phone_number = [{'contact_number': p, 'lead_id': data} for p in validated_data['phone_number']]
-#             # email_id = [{'email_id': e, 'lead_id': data} for e in validated_data['email_id']]
-#             # service_category = [{'service': Services.objects.filter(id = s).first(), 'lead_id': data} for s in validated_data['service_category']]
+            # phone_number = [{'contact_number': p, 'lead_id': data} for p in validated_data['phone_number']]
+            # email_id = [{'email_id': e, 'lead_id': data} for e in validated_data['email_id']]
+            # service_category = [{'service': Services.objects.filter(id = s).first(), 'lead_id': data} for s in validated_data['service_category']]
 
-#             # phone_number = [Contact_number.objects.create(**ph) for ph in phone_number]
-#             # email_id = [email_ids.objects.create(**em) for em in email_id]
-#             # service_category = [Service_category.objects.create(**sc) for sc in service_category]
+            # phone_number = [Contact_number.objects.create(**ph) for ph in phone_number]
+            # email_id = [email_ids.objects.create(**em) for em in email_id]
+            # service_category = [Service_category.objects.create(**sc) for sc in service_category]
 
-#             # if phone_number and email_id and service_category:
-#             #     print('all saved')
-#             # else :
-#             #     print('not saved')
-#         return data
+            # if phone_number and email_id and service_category:
+            #     print('all saved')
+            # else :
+            #     print('not saved')
+        return data
     
 
 
@@ -826,6 +876,11 @@ class dashboardSerializer(serializers.Serializer):
 
 
 
+class AddNewServiceCategorySerializer(serializers.Serializer):
+    lead_id = serializers.CharField()
+    service_id = serializers.IntegerField()
+    segment_id = serializers.IntegerField()
+    marketplace_id = serializers.IntegerField()
 
 
 

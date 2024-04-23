@@ -22,6 +22,8 @@ from dropdown.models import *
 from evitamin.models import ev_bank_details
 # from account.views import getLeadId
 
+from .main_functions import getLeadId
+
 import math
 from datetime import date, datetime, timezone, timedelta
 
@@ -33,12 +35,12 @@ def loginpage(request):
     return res
 
 
-def getLeadId():
-    date = datetime.now()
-    date = date.strftime('%Y%m%d%H%M%S%f')
-    random_int = random.randint(100,499) + random.randint(100,499)
-    lead_id = f'L{str(date) + str(random_int)}'
-    return lead_id
+# def getLeadId():
+#     date = datetime.now()
+#     date = date.strftime('%Y%m%d%H%M%S%f')
+#     random_int = random.randint(100,499) + random.randint(100,499)
+#     lead_id = f'L{str(date) + str(random_int)}'
+#     return lead_id
 
 
 def resFun(status,message,data):
@@ -104,11 +106,12 @@ class uploadBusinessLeads(CreateAPIView):
                     df = pd.DataFrame(df)
                     df = df.astype(object)
                     df.fillna('', inplace=True)
-                    print(df)
+                    # print(df)
                     head_row = df.columns.values
                     h_row = [f.replace(' ', '_').replace('(', '').replace(')', '').replace('/', '_').replace('__', '_').replace('__', '_').lower() for f in head_row]
                     h_row[h_row.index('requester_name')] = 'client_name'
                     h_row[h_row.index('phone_number')] = 'contact_number'
+                    h_row[h_row.index('service_category')] = 'service_category_all'
 
                     # print('h_row',h_row)
 
@@ -189,11 +192,11 @@ class uploadBusinessLeads(CreateAPIView):
                                     # if db_head_row_all[i] == 'marketplace':
                                     #     dt[db_head_row_all[i]] = Services_and_Commercials.objects.filter(marketplace__marketplace = ls[ind].lower()).first()
 
-                                    if db_head_row_all[i] == 'service_category':
+                                    if db_head_row_all[i] == 'service_category_all':
                                         # if ls[h_row.index('sub_program')] == '':
                                         #     print('ls[h_row.index(sub_program)]',ls[h_row.index('sub_program')])
 
-                                        if ls[h_row.index('service_category')] == '':
+                                        if ls[h_row.index('service_category_all')] == '':
                                             # print(ls[h_row.index('service_category')])
                                             break_out = False
                                             error_message = ['service category can not be blank']
@@ -216,6 +219,8 @@ class uploadBusinessLeads(CreateAPIView):
                                             else:
                                                 service_commercial = Services_and_Commercials.objects.filter( segment__segment=ls[h_row.index('segment')].lower(), service__service = ls[ind].lower(), marketplace__marketplace=ls[h_row.index('marketplace')].lower(), program__program = ls[h_row.index('program')].lower())
                                                 pass
+
+                                            print('service_commercial',service_commercial)
 
 
                                             if not service_commercial.exists():
@@ -264,6 +269,7 @@ class uploadBusinessLeads(CreateAPIView):
 
                             dt['lead_id'] = str(lead_id)
                             dt['status'] = drp_lead_status.objects.filter(title = 'yet to contact').first()
+                            dt['lead_owner'] = request.user
                             
                             Status_history_instance = Status_history.objects.create(**{'status': drp_lead_status.objects.filter(title = 'yet to contact').first(), 'status_date': date.today() ,'updated_by': request.user })
 
@@ -273,11 +279,13 @@ class uploadBusinessLeads(CreateAPIView):
                                     setattr(leads_instance, field_name, value)
                             leads_instance.save()
 
+                            # print('service_commercial',service_commercial)
+
                             service_category_instance = Service_category.objects.create(**{'service':service_commercial.first(), 'status': drp_lead_status.objects.filter(title = 'yet to contact').first()})
 
                             
 
-                            leads_instance.status_history_all.add(Status_history_instance.id)
+                            service_category_instance.status_history_all.add(Status_history_instance)
                             leads_instance.service_category_all.add(service_category_instance.id)
 
                             # ref_id = Leads.objects.filter(lead_id = lead_id).values('id').first()
@@ -373,7 +381,42 @@ class uploadBusinessLeads(CreateAPIView):
                 }
 
         return res
+
+
+
+
+
+class createLeadManual(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = createLeadManualSerializer
+    def post(self, request, format=None, *args, **kwargs):
     
+        serializer = createLeadManualSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+
+            # try:
+                if serializer.save():
+                    serializer.instance.lead_owner = request.user
+                    serializer.instance.save()
+
+                    for s in serializer.validated_data['service']:
+                        for m in serializer.validated_data['marketplace']:
+                            services_and_commercials = Services_and_Commercials.objects.filter(segment__id=serializer.validated_data['segment'], service__id=s, marketplace__id=m, visibility=True, program__program='regular')
+                            # print(s,m, services_and_commercials)
+                            service_instance = Service_category.objects.create(**{'service': services_and_commercials.first(), 'status': drp_lead_status.objects.get(title='yet to contact') })
+                            status_history_all = Status_history.objects.create(**{'status': drp_lead_status.objects.get(title='yet to contact'), 'updated_by': request.user })
+                            service_instance.status_history_all.add(status_history_all)
+                            serializer.instance.service_category_all.add(service_instance)
+
+
+
+                
+                    res = resFun(status.HTTP_200_OK, 'lead registered successfully', [])
+                    return res
+            # except:
+            #     return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+
+
 
 
 
@@ -1889,8 +1932,6 @@ class assignAssociate(GenericAPIView):
     def put(self, request, format=None, *args, **kwargs):
         print('request.data',request.data)
 
-        
-
         # obj_user = Leads.objects.filter(emp__id = request.user.id, visibility=True).first()
         # user_role = obj_user.user_role
         # print('user_role', user_role)
@@ -1916,8 +1957,8 @@ class assignAssociate(GenericAPIView):
                             serializer.save()
                             lead_status_instance = drp_lead_status.objects.get(title = 'pitch in progress')
                             status_history_instance = Status_history.objects.create(**{'status': lead_status_instance, 'updated_by': request.user})
-                            lead_instance = Leads.objects.get(service_category_all__id=ld)
-                            lead_instance.status_history_all.add(status_history_instance)
+                            # lead_instance = Leads.objects.get(service_category_all__id=ld)
+                            data.status_history_all.add(status_history_instance)
                             res = resFun(status.HTTP_201_CREATED,'associate assigned', [])
                         else:
                             res = resFun(status.HTTP_400_BAD_REQUEST,'request failed', [])
@@ -1935,8 +1976,8 @@ class assignAssociate(GenericAPIView):
                         serializer.save()
                         lead_status_instance = drp_lead_status.objects.get(title = 'pitch in progress')
                         status_history_instance = Status_history.objects.create(**{'status': lead_status_instance, 'updated_by': request.user})
-                        lead_instance = Leads.objects.get(service_category_all__id=service_category_id)
-                        lead_instance.status_history_all.add(status_history_instance)
+                        # lead_instance = Leads.objects.get(service_category_all__id=service_category_id)
+                        data.status_history_all.add(status_history_instance)
                         res = resFun(status.HTTP_201_CREATED,'associate assigned', [])
                     else:
                         res = resFun(status.HTTP_400_BAD_REQUEST,'request failed', [])
@@ -1996,7 +2037,7 @@ class reasonSubmit(GenericAPIView):
                         # print(drp_lead_status.objects.get(title=''))
                         ld.save()
                         Status_history_instance = Status_history.objects.create(**{"status": status_instance, "updated_by": request.user })
-                        lead_instance.status_history_all.add(Status_history_instance)
+                        ld.status_history_all.add(Status_history_instance)
                         status_update = True
 
                 if status_update:
@@ -2013,7 +2054,7 @@ class reasonSubmit(GenericAPIView):
                         # print(drp_lead_status.objects.get(title=''))
                         ld.save()
                         Status_history_instance = Status_history.objects.create(**{"status": status_instance, "updated_by": request.user })
-                        lead_instance.status_history_all.add(Status_history_instance)
+                        ld.status_history_all.add(Status_history_instance)
                         status_update = True
 
                 if status_update:
@@ -2048,7 +2089,8 @@ class LeadStatusUpdate(GenericAPIView):
                     ld.save()
                     print('request.data',ld)
                     status_history_instance = Status_history.objects.create(**{'status': status_instance, 'updated_by': request.user })
-                    lead_instance.status_history_all.add(status_history_instance)
+                    service_category = lead_instance.service_category_all.filter(id=request.data.get('service_category_id')).first()
+                    service_category.status_history_all.add(status_history_instance)
                     status_update = True
 
             if status_update:
@@ -2058,6 +2100,19 @@ class LeadStatusUpdate(GenericAPIView):
             return res 
         except:
             return resFun(status.HTTP_400_BAD_REQUEST, 'request failed',[])
+
+
+
+
+class AddNewServiceCategory(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AddNewServiceCategorySerializer
+    def post(self, request, format=None, *args, **kwargs):
+        serializer = AddNewServiceCategorySerializer(data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        res = resFun(status.HTTP_200_OK, 'new service created, it will be assigned to the concerned department')
+        return res
+        
 
 
 
@@ -2181,8 +2236,9 @@ class apiSubmitEmailProposal(GenericAPIView):
                                 ld.pricing = Commercials.objects.get(id=commercial_id)
                                 ld.status = drp_lead_status.objects.get(title='proposal email sent')
                                 ld.save()
-                                Status_history.objects.create(**{'status': drp_lead_status.objects.get(title='proposal email sent'), 'updated_by': request.user})
+                                status_history_instance = Status_history.objects.create(**{'status': drp_lead_status.objects.get(title='proposal email sent'), 'updated_by': request.user})
                                 status_update = True
+                                ld.status_history_all.add(status_history_instance)
                         # status_update = service.objects.filter(lead_id__lead_id=lead_id, lead_id__visibility=True).update(lead_status = getLeadStatusInst('proposal email sent'))
                         # print(status_update)
                         # lead_instance.save()

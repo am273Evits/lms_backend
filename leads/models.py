@@ -257,6 +257,7 @@ class Leads(models.Model):
     instagram_store_link = models.CharField(max_length=100, blank=True, default='')
     upload_date = models.DateTimeField(auto_now_add=True, null=True)
     visibility = models.BooleanField(default=True)
+    lead_owner = models.ForeignKey("account.useraccount", on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):return str(self.lead_id)
 
@@ -302,6 +303,7 @@ class Service_category(models.Model):
   commercial_approval = models.ForeignKey(Commercial_Approval, on_delete=models.CASCADE, null=True, blank=True)
   not_interested_reason = models.ForeignKey("dropdown.not_interested", on_delete=models.CASCADE, null=True, blank=True)
   unresponsive_reason = models.ForeignKey("dropdown.unresponsive", on_delete=models.CASCADE, null=True, blank=True)
+  status_history_all = models.ManyToManyField(Status_history)
   def __str__(self): return str(self.service)
 
 

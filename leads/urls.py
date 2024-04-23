@@ -9,7 +9,7 @@ urlpatterns = [
 
             path('upload', uploadBusinessLeads.as_view()), #file upload
             # path('update', updateBusinessLeads.as_view()), #file upload
-            # path('create_lead_manual', createLeadManual.as_view()), #file upload
+            path('create_lead_manual', createLeadManual.as_view()), #file upload
 
             path('dashboard', dashboard.as_view()), #file upload
 
@@ -111,6 +111,7 @@ urlpatterns = [
             path('assign_associate', assignAssociate.as_view()), #all tables submit
             path('reason_submit/<str:table>', reasonSubmit.as_view()), #all tables submit
             path('lead_status_update', LeadStatusUpdate.as_view()), #all tables submit
+            path('add_new_service_category', AddNewServiceCategory.as_view()), #all tables submit
 
 
 
