@@ -10,14 +10,14 @@ class Client_turnover(models.Model):
   title = models.CharField(max_length=100, blank=True, default='')
   def __str__(self): return str(self.title)
 
-class Drp_business_type(models.Model):
+class Business_type(models.Model):
   title = models.CharField(max_length=100, blank=True, default='')
 
-class Drp_business_category(models.Model):
+class Business_category(models.Model):
   title = models.CharField(max_length=100, blank=True, default='')
   def __str__(self): return (self.title)
 
-class Drp_firm_type(models.Model):
+class Firm_type(models.Model):
   title = models.CharField(max_length=100, blank=True, default='')
 
 # class Turnover_slab(models.Model):
@@ -28,11 +28,11 @@ class Contact_preference(models.Model):
   title = models.CharField(max_length=100, blank=True, default='')
 
 class Followup_history(models.Model):
-  followup_date = models.DateField(default='0001/01/01')
-  followup_time = models.TimeField(auto_now=False, auto_now_add=False)
-  followup_notes = models.TextField()
+  date = models.DateField(default='0001/01/01')
+  time = models.TimeField(auto_now=False, auto_now_add=False)
+  notes = models.TextField()
   created_by = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, blank=True)
-  def __str__(self): return str(self.followup_date)
+  def __str__(self): return str(self.date)
 
 class Drp_country(models.Model):
   title = models.CharField(max_length=100, blank=True, default='')
@@ -231,10 +231,10 @@ class Leads(models.Model):
     client_turnover = models.ForeignKey(Client_turnover, on_delete=models.CASCADE, null=True, blank=True)
     hot_lead = models.BooleanField(default=False)
     business_name = models.CharField(max_length=100, blank=True, default='') 
-    business_type = models.ForeignKey(Drp_business_type, on_delete=models.CASCADE, null=True, blank=True) 
-    business_category = models.ForeignKey(Drp_business_category, on_delete=models.CASCADE, null=True, blank=True) 
+    business_type = models.ForeignKey(Business_type, on_delete=models.CASCADE, null=True, blank=True) 
+    business_category = models.ForeignKey(Business_category, on_delete=models.CASCADE, null=True, blank=True) 
     brand_name = models.CharField(max_length=100, blank=True, default='') 
-    firm_type = models.ForeignKey(Drp_firm_type, on_delete=models.CASCADE, null=True, blank=True) 
+    firm_type = models.ForeignKey(Firm_type, on_delete=models.CASCADE, null=True, blank=True) 
     name_for_mou = models.CharField(max_length=100, blank=True, default='') 
     designation_in_company = models.CharField(max_length=100, blank=True, default='') 
     # turnover = models.ForeignKey(Turnover_slab, on_delete=models.CASCADE, null=True, blank=True) 

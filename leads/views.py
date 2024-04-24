@@ -488,9 +488,9 @@ def viewLeadFun(leadsData, department):
                         "commercial": s.pricing.commercials if s.pricing else "-",
                         "status": s.status.title if s.status else "-",
                         "follow_up": [ {
-                            'date':f.followup_date if f.followup_date else '-', 
-                            'time': f.followup_time if f.followup_time else '-', 
-                            'notes': f.followup_notes if f.followup_notes else '-', 
+                            'date':f.date if f.date else '-', 
+                            'time': f.time if f.time else '-', 
+                            'notes': f.notes if f.notes else '-', 
                             'created_by': f.created_by.name if f.created_by else '-' } for f in s.followup.all()],
                         } for s in sd.service_category_all.all()] if sd.service_category_all else [],
                 # "commercials" : sd.commercials.price_for_mou if sd.commercials else '-',
@@ -536,9 +536,9 @@ def viewLeadFun(leadsData, department):
                             "commercial": s.pricing.commercials if s.pricing else "-",
                             "status": s.status.title if s.status else "-",
                             "follow_up": [ {
-                                'date':f.followup_date if f.followup_date else '-', 
-                                'time': f.followup_time if f.followup_time else '-', 
-                                'notes': f.followup_notes if f.followup_notes else '-', 
+                                'date':f.date if f.date else '-', 
+                                'time': f.time if f.time else '-', 
+                                'notes': f.notes if f.notes else '-', 
                                 'created_by': f.created_by.name if f.created_by else '-' } for f in s.followup.all()],
                             # } for s in sd.service_category_all.all()] if sd.service_category_all else [],
                     # "commercials" : sd.commercials.price_for_mou if sd.commercials else '-',
@@ -1225,7 +1225,7 @@ class ViewSegment(GenericAPIView):
     serializer_class = ViewSegmentSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'director') or user.department.title == 'business_development':
+        if (str(user.department) == 'director') or (str(user.department) == 'admin') or user.department.title == 'business_development':
             try:
                 segment = Segment.objects.filter(visibility=True)
             except:
@@ -1374,7 +1374,7 @@ class ViewService(GenericAPIView):
     serializer_class = ViewServiceSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'director') or user.department.title == 'business_development':
+        if (str(user.department) == 'director') or (str(user.department) == 'admin') or user.department.title == 'business_development':
             try:
                 service = Service.objects.filter(visibility=True)
             except:
@@ -1515,7 +1515,7 @@ class ViewMarketplace(GenericAPIView):
     serializer_class = MarketplaceSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'director') or user.department.title == 'business_development':
+        if (str(user.department) == 'director') or (str(user.department) == 'admin') or user.department.title == 'business_development':
             try:
                 marketplace = Marketplace.objects.filter(visibility=True)
             except:
@@ -1656,7 +1656,7 @@ class ViewProgram(GenericAPIView):
     serializer_class = ProgramSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'director') or user.department.title == 'business_development':
+        if (str(user.department) == 'director') or (str(user.department) == 'admin') or user.department.title == 'business_development':
             try:
                 marketplace = Program.objects.filter(visibility=True)
             except:
@@ -1812,7 +1812,7 @@ class ViewSubProgram(GenericAPIView):
     serializer_class = SubProgramSerializer
     def get(self, request, format=None, *args, **kwargs):
         user = request.user
-        if (str(user.department) == 'director') or user.department.title == 'business_development':
+        if (str(user.department) == 'director') or (str(user.department) == 'admin')or user.department.title == 'business_development':
             try:
                 sub_program = Sub_Program.objects.filter(visibility=True)
             except:
@@ -2007,6 +2007,7 @@ class assignAssociate(GenericAPIView):
 
 class reasonSubmit(GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = reasonSubmitSerializer
     def put(self, request, table, format=None, *args, **kwargs):
         
         try:
@@ -2108,18 +2109,102 @@ class AddNewServiceCategory(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = AddNewServiceCategorySerializer
     def post(self, request, format=None, *args, **kwargs):
-        serializer = AddNewServiceCategorySerializer(data=request.data, many=False)
-        serializer.is_valid(raise_exception=True)
-        res = resFun(status.HTTP_200_OK, 'new service created, it will be assigned to the concerned department')
-        return res
-        
+        # print(request.data)
+        try:
 
+            if not request.data.get('lead_id'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'lead id is a required field', [])
+                
+
+            if not request.data.get('segment'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'segment is a required field', [])
+            elif not Segment.objects.filter(id = request.data.get('segment')).exists():
+                return resFun(status.HTTP_400_BAD_REQUEST, 'invalid segment id', [])
+
+            if not request.data.get('service'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'service is a required field', [])
+            elif not Service.objects.filter(id = request.data.get('service')).exists() :
+                return resFun(status.HTTP_400_BAD_REQUEST, 'invalid service id', [])
+
+            if not request.data.get('marketplace'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'marketplace is a required field', [])
+            elif not Marketplace.objects.filter(id = request.data.get('marketplace')).exists() :
+                return resFun(status.HTTP_400_BAD_REQUEST, 'invalid marketplace id', [])
+
+
+            try:
+                lead_instance = Leads.objects.get(lead_id = request.data.get('lead_id'))
+            except:
+                lead_instance = None
+
+            if lead_instance != None:
+
+                service_commercials = Services_and_Commercials.objects.filter(segment__id=request.data.get('segment'),service__id=request.data.get('service'), marketplace__id=request.data.get('marketplace'), visibility=True)
+
+                if service_commercials.exists():
+
+                    service_check = lead_instance.service_category_all.filter(service__id=service_commercials.first().id).exists()
+
+                    if service_check:
+                        res = resFun(status.HTTP_400_BAD_REQUEST, 'service already created previously',[])
+                    else:
+                        data = {'service': service_commercials.first().id, 'status': drp_lead_status.objects.filter(title='yet to contact').first().id}
+                        serializer = AddNewServiceCategorySerializer(data=data, many=False)
+                        serializer.is_valid(raise_exception=True)
+                        serializer.save()
+
+                        status_history_instance = Status_history.objects.create(**{'status': drp_lead_status.objects.filter(title='yet to contact').first(), 'updated_by': request.user})
+                        print(serializer.instance)
+                        serializer.instance.status_history_all.add(status_history_instance)
+
+                        lead_instance.service_category_all.add(serializer.instance)
+                        lead_instance.save()
+                        res = resFun(status.HTTP_200_OK, 'new service created, it will be assigned to the concerned department',[])
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'service commercial not available, please contact admin to create a service with commercials',[])    
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid lead id',[])
+            return res
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed',[])
+
+
+
+class CreateFollowUp(GenericAPIView):
+    serializer_class = CreateFollowUpSerializer
+    permission_classes =[IsAuthenticated]
+    def post(self, request):
+
+        try:
+            try:
+                service_category_instance = Service_category.objects.get(id=request.data.get('service_category_id'))
+            except:
+                service_category_instance = None
+
+            if not request.data.get('service_category_id'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'service category id is mandatory field',[])
+            if service_category_instance == None:
+                return resFun(status.HTTP_400_BAD_REQUEST, 'invalid service category id',[])
+
+            
+            serializer = CreateFollowUpSerializer(data=request.data, many=False)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            serializer.instance.created_by = request.user
+            serializer.instance.save()
+            service_category_instance.followup.add(serializer.instance)
+            service_category_instance.save()
+
+            res = resFun(status.HTTP_200_OK, 'follow up created', [])
+            return res
+
+        except: 
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
 
 
 
 
 def SendEmail(email, subject, message):
-
     subject = subject
     # message = '<h1>This email was sent from django</h1>'
     from_email = 'akshatnigamcfl@gmail.com'

@@ -112,6 +112,7 @@ urlpatterns = [
             path('reason_submit/<str:table>', reasonSubmit.as_view()), #all tables submit
             path('lead_status_update', LeadStatusUpdate.as_view()), #all tables submit
             path('add_new_service_category', AddNewServiceCategory.as_view()), #all tables submit
+            path('create_followup', CreateFollowUp.as_view()), #all tables submit
 
 
 

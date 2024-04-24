@@ -520,6 +520,11 @@ class uploadFileSerializer(serializers.Serializer):
         # models=all_identifiers
         fields=["file"]
 
+class reasonSubmitSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    lead_id = serializers.IntegerField()
+    service_category_id = serializers.IntegerField()
+
 
 class LeadStatusUpdateSerializer(serializers.ModelField):
     class Meta:
@@ -876,11 +881,17 @@ class dashboardSerializer(serializers.Serializer):
 
 
 
-class AddNewServiceCategorySerializer(serializers.Serializer):
-    lead_id = serializers.CharField()
-    service_id = serializers.IntegerField()
-    segment_id = serializers.IntegerField()
-    marketplace_id = serializers.IntegerField()
+class AddNewServiceCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service_category
+        fields = ['service', 'status']
+
+
+class CreateFollowUpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Followup_history
+        exclude = ['created_by']
+
 
 
 
