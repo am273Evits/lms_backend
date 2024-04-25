@@ -8,7 +8,7 @@ class CommercialsAdmin(admin.ModelAdmin):
 
 
 class LeadsAdmin(admin.ModelAdmin):
-    list_display = ('lead_id', 'client_name' )
+    list_display = ('client_id', 'client_name' )
 
 # admin.site.register(Commercials, CommercialsAdmin)  
 admin.site.register(Leads, LeadsAdmin)

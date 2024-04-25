@@ -11,7 +11,7 @@ import re
 
 # from records.models import lead_status_record
 
-from .main_functions import getLeadId
+from .main_functions import getClientId
 
 
 
@@ -29,7 +29,7 @@ from .main_functions import getLeadId
 
 class lead_managerBlSerializer_bd(serializers.Serializer):
     id = serializers.CharField()
-    lead_id = serializers.CharField()
+    client_id = serializers.CharField()
     client_name = serializers.CharField()
     contact_number = serializers.CharField()
     alternate_contact_number = serializers.CharField()
@@ -69,7 +69,7 @@ class lead_managerBlSerializer_bd(serializers.Serializer):
 
 class lead_managerBlSerializer_admin(serializers.Serializer):
     id = serializers.CharField()
-    lead_id = serializers.CharField()
+    client_id = serializers.CharField()
     client_name = serializers.CharField()
     contact_number = serializers.CharField()
     alternate_contact_number = serializers.CharField()
@@ -97,25 +97,25 @@ class lead_managerBlSerializer_admin(serializers.Serializer):
 
 
 
-class View_All_Leads(serializers.ModelSerializer):
-    associate = serializers.CharField()
-    service_category = serializers.CharField()
-    commercials = serializers.CharField()
-    status = serializers.CharField()
-    client_turnover = serializers.CharField()
-    business_type = serializers.CharField()
-    business_category = serializers.CharField()
-    firm_type = serializers.CharField()
-    contact_preferences = serializers.CharField()
-    followup = serializers.CharField()
-    country = serializers.CharField()
-    state = serializers.CharField()
-    city = serializers.CharField()
-    # status = serializers.CharField()
-    # associate = serializers.CharField()
-    class Meta:
-        model = Leads
-        exclude = ['visibility', 'email_record', 'created_date', 'current_status']
+# class View_All_Leads(serializers.ModelSerializer):
+#     associate = serializers.CharField()
+#     service_category = serializers.CharField()
+#     commercials = serializers.CharField()
+#     status = serializers.CharField()
+#     client_turnover = serializers.CharField()
+#     business_type = serializers.CharField()
+#     business_category = serializers.CharField()
+#     firm_type = serializers.CharField()
+#     contact_preferences = serializers.CharField()
+#     followup = serializers.CharField()
+#     country = serializers.CharField()
+#     state = serializers.CharField()
+#     city = serializers.CharField()
+#     # status = serializers.CharField()
+#     # associate = serializers.CharField()
+#     class Meta:
+#         model = Leads
+#         exclude = ['visibility', 'email_record', 'created_date', 'current_status']
 
 
 
@@ -402,7 +402,7 @@ class ViewServicesSerializer(serializers.Serializer):
 
 
 # class BusinessDevelopmentLeadSerializer(serializers.Serializer):
-#     lead_id = serializers.CharField() 
+#     client_id = serializers.CharField() 
 #     service_category = serializers.CharField() 
 #     associate = serializers.CharField() 
 #     lead_status = serializers.CharField()
@@ -412,7 +412,7 @@ class ViewServicesSerializer(serializers.Serializer):
 
 
 # class bd_teamLeaderSerializer(serializers.Serializer):
-#     lead_id = serializers.CharField()
+#     client_id = serializers.CharField()
 #     requester_name = serializers.CharField()
 #     phone_number = serializers.CharField()
 #     email_id = serializers.CharField()
@@ -430,12 +430,12 @@ class ViewServicesSerializer(serializers.Serializer):
 # # class businessIdentifiersSerializer(serializers.ModelSerializer):
 # #     class Meta:
 # #         model = business_identifiers
-# #         exclude = ['lead_id']
+# #         exclude = ['client_id']
 
 # # class commentSerializer(serializers.ModelSerializer):
 # #     class Meta:
 # #         model = comment
-# #         exclude = ['lead_id']
+# #         exclude = ['client_id']
 
 # # class contactPreferenceSerializer(serializers.ModelSerializer):
 # #     class Meta:
@@ -445,22 +445,22 @@ class ViewServicesSerializer(serializers.Serializer):
 # # class followupSerializer(serializers.ModelSerializer):
 # #     class Meta:
 # #         model = followup
-# #         exclude = ['lead_id']
+# #         exclude = ['client_id']
 
 # # class sellerAddressSerializer(serializers.ModelSerializer):
 # #     class Meta:
 # #         model = seller_address
-# #         exclude = ['lead_id']
+# #         exclude = ['client_id']
 
 # # class serviceSerializer(serializers.ModelSerializer):
 # #     class Meta:
 # #         model = service
-# #         exclude = ['lead_id']
+# #         exclude = ['client_id']
 
 # # class websiteStoreSerializer(serializers.ModelSerializer):
 # #     class Meta:
 # #         model = website_store
-# #         exclude = ['lead_id']
+# #         exclude = ['client_id']
 
 
 
@@ -469,7 +469,7 @@ class ViewServicesSerializer(serializers.Serializer):
 #         # password = serializers.CharField(read_only=True)
 #         class Meta:
 #             model = model_class
-#             exclude = ['lead_id']
+#             exclude = ['client_id']
 #     return dynamicSeralizer
 
 
@@ -522,14 +522,14 @@ class uploadFileSerializer(serializers.Serializer):
 
 class reasonSubmitSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    lead_id = serializers.IntegerField()
-    service_category_id = serializers.IntegerField()
+    client_id = serializers.IntegerField()
+    lead_id = serializers.CharField()
 
 
-class LeadStatusUpdateSerializer(serializers.ModelField):
+class LeadStatusUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service_category
-        fields = ['status']
+        fields = ['status_history_all']
 
 
 def serializer_validation(self, attrs, method):
@@ -563,12 +563,10 @@ def serializer_validation(self, attrs, method):
                 raise serializers.ValidationError('business category id is not valid')
             data['client_turnover'] = Client_turnover.objects.get(id=attrs.get('client_turnover'))
 
-        print('attrs',attrs)
-        
         if attrs.get('status') or attrs.get('associate') or attrs.get('service') or attrs.get('marketplace') or attrs.get('program') or attrs.get('sub_program'):
 
-            if not attrs.get('service_category_id'):
-                raise serializers.ValidationError('service category id is a required field')
+            if not attrs.get('lead_id'):
+                raise serializers.ValidationError('lead id is a required field')
             
             if attrs.get('associate'):
                 if not drp_lead_status.objects.get(id=attrs.get('status')):
@@ -692,7 +690,7 @@ class UpdateLeadsSerializer_TL(serializers.ModelSerializer):
         #     data['associate'] = UserAccount.objects.get(id=attrs.get('associate'))
         
         # if attrs.get('status'):
-        #     if not attrs.get('service_category_id'):
+        #     if not attrs.get('lead_id'):
         #         raise serializers.ValidationError('service category id is a required field')
         #     if not drp_lead_status.objects.get(id=attrs.get('associate')):
         #         raise serializers.ValidationError('associate id is not valid')
@@ -751,7 +749,7 @@ class UpdateLeadsSerializer_TM(serializers.ModelSerializer):
 
         
         # if attrs.get('status'):
-        #     if not attrs.get('service_category_id'):
+        #     if not attrs.get('lead_id'):
         #         raise serializers.ValidationError('service category id is a required field')
         #     if not drp_lead_status.objects.get(id=attrs.get('associate')):
         #         raise serializers.ValidationError('associate id is not valid')
@@ -859,10 +857,10 @@ class createLeadManualSerializer(serializers.Serializer):
                 # dup_contact_list = []
                 if dup_contact.exists():
                     for dup in dup_contact:
-                        if dup.lead_id != None:
-                            duplicate_leads.append({'lead_id': str(dup.lead_id), 'remark': [r.remark for r in dup.remark.all()]})
+                        if dup.client_id != None:
+                            duplicate_leads.append({'client_id': str(dup.client_id), 'remark': [r.remark for r in dup.remark.all()]})
 
-                            # [str(r.remark) for r in  Remark_history.objects.filter(lead_id = dup.id)]
+                            # [str(r.remark) for r in  Remark_history.objects.filter(client_id = dup.id)]
                 
         for em in email_id_list:
             pattern = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
@@ -872,13 +870,13 @@ class createLeadManualSerializer(serializers.Serializer):
                 if dup_email.exists():
                     for dup in dup_email:
                         for dcl in duplicate_leads:
-                            if str(dcl['lead_id']) != str(dup.lead_id):
-                                print(dcl['lead_id'])
-                                print(dup.lead_id)
-                                duplicate_leads.append({'lead_id': str(dup.lead_id) , 'remarks': [r.remark for r in dup.remark.all()]})
+                            if str(dcl['client_id']) != str(dup.client_id):
+                                print(dcl['client_id'])
+                                print(dup.client_id)
+                                duplicate_leads.append({'client_id': str(dup.client_id) , 'remarks': [r.remark for r in dup.remark.all()]})
                                 break
 
-                                # [str(d.remark) for d in Remark_history.objects.filter(lead_id = dup.id)]
+                                # [str(d.remark) for d in Remark_history.objects.filter(client_id = dup.id)]
                                 
             else:
                 raise serializers.ValidationError(f'{em} is not a valid email address')
@@ -921,8 +919,8 @@ class createLeadManualSerializer(serializers.Serializer):
 
         print('validated_data', validated_data)
 
-        lead_id = getLeadId()
-        validated_data['lead_id'] = lead_id
+        client_id = getClientId()
+        validated_data['client_id'] = client_id
 
 
         for key in validated_data:
@@ -936,7 +934,7 @@ class createLeadManualSerializer(serializers.Serializer):
 
         v_data = {
             # 'status' : drp_lead_status.objects.filter(title = 'yet to contact').first(), 
-            'lead_id' : validated_data['lead_id'], 
+            'client_id' : validated_data['client_id'], 
             'client_name': validated_data['client_name'],
             'contact_number': validated_data['phone_number'],
             'email_id': validated_data['email_id'],
@@ -975,9 +973,9 @@ class createLeadManualSerializer(serializers.Serializer):
 
         
 
-            # phone_number = [{'contact_number': p, 'lead_id': data} for p in validated_data['phone_number']]
-            # email_id = [{'email_id': e, 'lead_id': data} for e in validated_data['email_id']]
-            # service_category = [{'service': Services.objects.filter(id = s).first(), 'lead_id': data} for s in validated_data['service_category']]
+            # phone_number = [{'contact_number': p, 'client_id': data} for p in validated_data['phone_number']]
+            # email_id = [{'email_id': e, 'client_id': data} for e in validated_data['email_id']]
+            # service_category = [{'service': Services.objects.filter(id = s).first(), 'client_id': data} for s in validated_data['service_category']]
 
             # phone_number = [Contact_number.objects.create(**ph) for ph in phone_number]
             # email_id = [email_ids.objects.create(**em) for em in email_id]
@@ -1000,7 +998,7 @@ class dashboardSerializer(serializers.Serializer):
 class AddNewServiceCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Service_category
-        fields = ['service', 'status']
+        fields = ['lead_id','service']
 
 
 class CreateFollowUpSerializer(serializers.ModelSerializer):
@@ -1011,7 +1009,7 @@ class CreateFollowUpSerializer(serializers.ModelSerializer):
 
 
 class AskForDetailEmailSerializer(serializers.Serializer):
-    lead_id = serializers.CharField()
+    client_id = serializers.CharField()
 
 
 # class tableFieldSerializer(serializers.Serializer):
@@ -1023,7 +1021,7 @@ class AskForDetailEmailSerializer(serializers.Serializer):
 
 
 # class leadIdSerializer(serializers.Serializer):
-#     lead_id = serializers.CharField()
+#     client_id = serializers.CharField()
 
 
 # def visibility_dynamic_serializer(model_class):

@@ -212,7 +212,7 @@ class Status_history(models.Model):
 
 
 class Leads(models.Model):
-    lead_id = models.CharField(max_length=100, blank=True, default='')
+    client_id = models.CharField(max_length=100, blank=True, default='')
     # service_country = models.CharField(max_length=100, blank=True, default='') 
     marketplace = models.CharField(max_length=100, blank=True, default='') 
     request_id = models.CharField(max_length=100, blank=True, default='') 
@@ -265,7 +265,7 @@ class Leads(models.Model):
     visibility = models.BooleanField(default=True)
     lead_owner = models.ForeignKey("account.useraccount", on_delete=models.CASCADE, null=True, blank=True)
 
-    def __str__(self):return str(self.lead_id)
+    def __str__(self):return str(self.client_id)
 
 
 class Turn_Arround_Time(models.Model):
@@ -298,7 +298,7 @@ class Commercial_Approval(models.Model):
 
 
 class Service_category(models.Model):
-  # lead_id = models.ForeignKey(Leads, on_delete=models.CASCADE, null=True, blank=True)
+  lead_id = models.CharField(max_length=100, blank=True, default='')
   associate = models.ForeignKey(UserAccount , on_delete=models.CASCADE, null=True, blank=True)
   service = models.ForeignKey(Services_and_Commercials, on_delete=models.CASCADE, null=True, blank=True)
   pricing = models.ForeignKey(Commercials, on_delete=models.CASCADE, null=True, blank=True)

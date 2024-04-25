@@ -22,7 +22,7 @@ from dropdown.models import *
 from evitamin.models import ev_bank_details
 # from account.views import getLeadId
 
-from .main_functions import getLeadId
+from .main_functions import getLeadId, getClientId
 
 import math
 from datetime import date, datetime, timezone, timedelta
@@ -39,8 +39,8 @@ def loginpage(request):
 #     date = datetime.now()
 #     date = date.strftime('%Y%m%d%H%M%S%f')
 #     random_int = random.randint(100,499) + random.randint(100,499)
-#     lead_id = f'L{str(date) + str(random_int)}'
-#     return lead_id
+#     client_id = f'L{str(date) + str(random_int)}'
+#     return client_id
 
 
 def resFun(status,message,data):
@@ -148,11 +148,11 @@ class uploadBusinessLeads(CreateAPIView):
                         duplicate_contacts = []
                         if dup_contact_number.exists():
                             for d in dup_contact_number:
-                                # duplicate_remarks = Remark_history.objects.filter(lead_id = d.id)
+                                # duplicate_remarks = Remark_history.objects.filter(client_id = d.id)
                                 # duplicate_remarks = [str(d.remark) for d in duplicate_remarks]
-                                # duplicate_contacts.append({'lead_id': str(d.lead_id), 'remarks': duplicate_remarks})
+                                # duplicate_contacts.append({'client_id': str(d.client_id), 'remarks': duplicate_remarks})
                                 
-                                duplicate_contacts.append({'lead_id': str(d.lead_id), 'remarks': [r.remark for r in d.remark.all()]})
+                                duplicate_contacts.append({'client_id': str(d.client_id), 'remarks': [r.remark for r in d.remark.all()]})
 
                         dup_email_id = Leads.objects.filter(Q(email_id = dup_email) | Q(alternate_email_id = dup_email))
                         duplicate_email = []
@@ -160,15 +160,15 @@ class uploadBusinessLeads(CreateAPIView):
                             for d in dup_email_id:
                                 if len(duplicate_contacts) > 0:
                                     for dt in duplicate_contacts:
-                                        if dt['lead_id'] == d.lead_id:
+                                        if dt['client_id'] == d.client_id:
                                             break
                                 else:
                                     print(d.remark.all())
-                                    # duplicate_remarks = Remark_history.objects.filter(lead_id = d.id)
+                                    # duplicate_remarks = Remark_history.objects.filter(client_id = d.id)
                                     # duplicate_remarks = [str(d.remark) for d in duplicate_remarks]
-                                    # duplicate_email.append({'lead_id': str(d.lead_id) , 'remarks': duplicate_remarks})
+                                    # duplicate_email.append({'client_id': str(d.client_id) , 'remarks': duplicate_remarks})
 
-                                    duplicate_contacts.append({'lead_id': str(d.lead_id), 'remarks': [r.remark for r in d.remark.all()]})
+                                    duplicate_contacts.append({'client_id': str(d.client_id), 'remarks': [r.remark for r in d.remark.all()]})
 
 
                         if len(duplicate_contacts) > 0 or len(duplicate_email) > 0:
@@ -179,11 +179,11 @@ class uploadBusinessLeads(CreateAPIView):
 
                         if dup == False:
                             dt = {}
-                            lead_id = getLeadId()
+                            client_id = getClientId()
                             leads_instance = Leads()
                             for i in range (len(db_head_row_all)):
                                 # service_category = ''
-                                if not (db_head_row_all[i] == 'id' or db_head_row_all[i] == 'lead_id') and db_head_row_all[i] in h_row:
+                                if not (db_head_row_all[i] == 'id' or db_head_row_all[i] == 'Client_id') and db_head_row_all[i] in h_row:
                                     ind = h_row.index(db_head_row_all[i])
 
                                     # print('lsdsd',ls)
@@ -259,16 +259,16 @@ class uploadBusinessLeads(CreateAPIView):
 
                         if break_out:
                             # Status_history.objects.create({'service'})
-                            d = [lead_id]
+                            d = [client_id]
                             head_rows = [h for h in h_row]
-                            head_rows.insert(0, 'lead_id')
+                            head_rows.insert(0, 'client_id')
                             d = d + ls
-                            head_rows.insert(0, 'status')
-                            d = [str(drp_lead_status.objects.filter(title = 'yet to contact').first().title)] + d
+                            # head_rows.insert(0, 'status')
+                            # d = [str(drp_lead_status.objects.filter(title = 'yet to contact').first().title)] + d
                             output_data.append(dict(zip(head_rows ,d)))
 
-                            dt['lead_id'] = str(lead_id)
-                            dt['status'] = drp_lead_status.objects.filter(title = 'yet to contact').first()
+                            dt['client_id'] = str(client_id)
+                            # dt['status'] = drp_lead_status.objects.filter(title = 'yet to contact').first()
                             dt['lead_owner'] = request.user
                             
                             Status_history_instance = Status_history.objects.create(**{'status': drp_lead_status.objects.filter(title = 'yet to contact').first(), 'status_date': date.today() ,'updated_by': request.user })
@@ -281,24 +281,23 @@ class uploadBusinessLeads(CreateAPIView):
 
                             # print('service_commercial',service_commercial)
 
-                            service_category_instance = Service_category.objects.create(**{'service':service_commercial.first(), 'status': drp_lead_status.objects.filter(title = 'yet to contact').first()})
-
+                            service_category_instance = Service_category.objects.create(**{'lead_id': getLeadId() ,'service':service_commercial.first()})
                             
 
                             service_category_instance.status_history_all.add(Status_history_instance)
                             leads_instance.service_category_all.add(service_category_instance.id)
 
-                            # ref_id = Leads.objects.filter(lead_id = lead_id).values('id').first()
+                            # ref_id = Leads.objects.filter(client_id = client_id).values('id').first()
                             # ref_id = ref_id['id']
 
                             # contact_instance = Contact_number()
                             # dt = {}
                             # for i in range (len(db_head_row_phNum)):
-                            #     if not (db_head_row_phNum[i] == 'id' or db_head_row_phNum[i] == 'lead_id'):
+                            #     if not (db_head_row_phNum[i] == 'id' or db_head_row_phNum[i] == 'client_id'):
                             #         ind = h_row.index(db_head_row_phNum[i])
                             #         dt[db_head_row_phNum[i]] = str(int(ls[ind]))
 
-                            # dt['lead_id'] = leads_instance
+                            # dt['client_id'] = leads_instance
                             # for field_name, value in dt.items():
                             #     setattr(contact_instance, field_name, value)
                             # contact_instance.save()
@@ -306,11 +305,11 @@ class uploadBusinessLeads(CreateAPIView):
                             # email_instance = email_ids()
                             # dt = {}
                             # for i in range (len(db_head_row_emlId)):
-                            #     if not (db_head_row_emlId[i] == 'id' or db_head_row_emlId[i] == 'lead_id'):
+                            #     if not (db_head_row_emlId[i] == 'id' or db_head_row_emlId[i] == 'client_id'):
                             #         ind = h_row.index(db_head_row_emlId[i])
                             #         dt[db_head_row_emlId[i]] = str(ls[ind])
 
-                            # dt['lead_id'] = leads_instance
+                            # dt['client_id'] = leads_instance
                             # for field_name, value in dt.items():
                             #     setattr(email_instance, field_name, value)
                             # email_instance.save()
@@ -318,13 +317,13 @@ class uploadBusinessLeads(CreateAPIView):
                             
 
                             # service_instance = Service_category() 
-                            # dt = {'service': service_category if service_category else None  ,'lead_id': leads_instance, 'status': drp_lead_status.objects.filter(title = 'yet to contact').first() }
+                            # dt = {'service': service_category if service_category else None  ,'client_id': leads_instance, 'status': drp_lead_status.objects.filter(title = 'yet to contact').first() }
                             # for i in range (len(db_head_row_emlId)):
-                            #     if not (db_head_row_emlId[i] == 'id' or db_head_row_emlId[i] == 'lead_id'):
+                            #     if not (db_head_row_emlId[i] == 'id' or db_head_row_emlId[i] == 'client_id'):
                             #         ind = h_row.index(db_head_row_emlId[i])
                             #         dt[db_head_row_emlId[i]] = str(ls[ind])
 
-                            # dt['lead_id'] = leads_instance
+                            # dt['client_id'] = leads_instance
                             # for field_name, value in dt.items():
                             #     setattr(service_instance, field_name, value)
                             # service_instance.save()
@@ -337,7 +336,7 @@ class uploadBusinessLeads(CreateAPIView):
                                 data = [dup_data] + ls
                             else:
                                 data = ls
-                            head_rows.insert(0, 'lead_id')
+                            head_rows.insert(0, 'client_id')
                             d = d + data
                             head_rows.insert(0, 'error message')
                             d = error_message + d
@@ -394,7 +393,7 @@ class createLeadManual(CreateAPIView):
         serializer = createLeadManualSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
 
-            # try:
+            try:
                 if serializer.save():
                     serializer.instance.lead_owner = request.user
                     serializer.instance.save()
@@ -403,18 +402,15 @@ class createLeadManual(CreateAPIView):
                         for m in serializer.validated_data['marketplace']:
                             services_and_commercials = Services_and_Commercials.objects.filter(segment__id=serializer.validated_data['segment'], service__id=s, marketplace__id=m, visibility=True, program__program='regular')
                             # print(s,m, services_and_commercials)
-                            service_instance = Service_category.objects.create(**{'service': services_and_commercials.first(), 'status': drp_lead_status.objects.get(title='yet to contact') })
+                            service_instance = Service_category.objects.create(**{'lead_id': getLeadId(),'service': services_and_commercials.first() })
                             status_history_all = Status_history.objects.create(**{'status': drp_lead_status.objects.get(title='yet to contact'), 'updated_by': request.user })
                             service_instance.status_history_all.add(status_history_all)
                             serializer.instance.service_category_all.add(service_instance)
-
-
-
                 
                     res = resFun(status.HTTP_200_OK, 'lead registered successfully', [])
                     return res
-            # except:
-            #     return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+            except:
+                return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
 
 
 
@@ -464,7 +460,7 @@ def viewLeadFun(leadsData, department):
         if department == 'admin':
             data.append({
                 'id' : sd.id , 
-                'lead_id' : sd.lead_id , 
+                'client_id' : sd.client_id , 
                 'client_name': sd.client_name, 
                 'contact_number': sd.contact_number,
                 'alternate_contact_number': sd.alternate_contact_number if sd.alternate_contact_number else '-',
@@ -479,14 +475,15 @@ def viewLeadFun(leadsData, department):
                 # "associate" : sd.associate.name if sd.associate else '-',
                 "service_category" : [
                     { 
-                        'service': s.service.service.service, 
+                        "lead_id": s.lead_id,
+                        'service': s.service.service.service if s.service else '-', 
                         "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
                         "assigned_status": 'assigned' if s.associate != None else "not assigned", 
                         "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
                         "mou_approval": s.mou_approval if s.mou_approval != None else "-",
                         "commercial_approval": {"status": s.commercial_approval.status, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
                         "commercial": s.pricing.commercials if s.pricing else "-",
-                        "status": s.status.title if s.status else "-",
+                        "status": s.status_history_all.all().order_by('-id').first().status.title if s.status_history_all.all().exists() else "-",
                         "follow_up": [ {
                             'date':f.date if f.date else '-', 
                             'time': f.time if f.time else '-', 
@@ -512,7 +509,7 @@ def viewLeadFun(leadsData, department):
             for s in sd.service_category_all.all():
                 data.append({
                     'id' : sd.id , 
-                    'lead_id' : sd.lead_id , 
+                    'client_id' : sd.client_id , 
                     'client_name': sd.client_name, 
                     'contact_number': sd.contact_number,
                     'alternate_contact_number': sd.alternate_contact_number if sd.alternate_contact_number else '-',
@@ -527,14 +524,15 @@ def viewLeadFun(leadsData, department):
                     # "associate" : sd.associate.name if sd.associate else '-',
                     # "service_category" : [
                         # { 
-                            'service': { 'service_category_id': s.id, 'service': s.service.service.service}, 
+                            "lead_id": s.lead_id,
+                            'service': { 'lead_id': s.lead_id, 'service': s.service.service.service if s.service else '-'}, 
                             "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
                             "assigned_status": 'assigned' if s.associate != None else "not assigned", 
                             "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
                             "mou_approval": s.mou_approval if s.mou_approval != None else "-",
                             "commercial_approval": {"status": s.commercial_approval.status, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
                             "commercial": s.pricing.commercials if s.pricing else "-",
-                            "status": s.status.title if s.status else "-",
+                            "status": s.status_history_all.all().order_by('-id').first().status.title if s.status_history_all.all().exists() else "-",
                             "follow_up": [ {
                                 'date':f.date if f.date else '-', 
                                 'time': f.time if f.time else '-', 
@@ -561,7 +559,7 @@ def viewLeadFun(leadsData, department):
     return data
 
 
-def viewLeadBd_tl(user, offset, limit, page, lead_id, department):
+def viewLeadBd_tl(user, offset, limit, page, client_id, department):
     if user.segment == None:
         return resFun(status.HTTP_400_BAD_REQUEST, 'contact user manager to assign you a segment', [])
     
@@ -594,7 +592,7 @@ def viewLeadBd_tl(user, offset, limit, page, lead_id, department):
                 ).all()[offset : offset + limit]
     else:
         if len(user.sub_program.all()) == 0:
-            leadsData = Leads.objects.select_related().filter(lead_id=lead_id,
+            leadsData = Leads.objects.select_related().filter(client_id=client_id,
                 service_category_all__service__segment__segment= user.segment, 
                 service_category_all__service__service__in= user.service.all(), 
                 service_category_all__service__marketplace__in= user.marketplace.all(),  
@@ -602,7 +600,7 @@ def viewLeadBd_tl(user, offset, limit, page, lead_id, department):
                 visibility = True
                 ).all()
         elif len(user.sub_program.all()) > 0:
-            leadsData = Leads.objects.select_related().filter(lead_id=lead_id,
+            leadsData = Leads.objects.select_related().filter(client_id=client_id,
                 service_category_all__service__segment__segment= user.segment, 
                 service_category_all__service__service__in= user.service.all(), 
                 service_category_all__service__marketplace__in= user.marketplace.all(),
@@ -645,7 +643,7 @@ def viewLeadBd_tl(user, offset, limit, page, lead_id, department):
         #         FLATTEN_DATA.append({
 
         #             'id' : d['id'],
-        #             'lead_id' : d['lead_id'] , 
+        #             'client_id' : d['client_id'] , 
         #             'client_name': d['client_name'], 
         #             'contact_number': d['contact_number'],
         #             'alternate_contact_number': d['alternate_contact_number'] if d["alternate_contact_number else '-'"],
@@ -755,13 +753,13 @@ class viewAllLeads(GenericAPIView):
         #     product = getProduct(user.id)
         #     # print(product)
         #     data = []
-        #     serviceData = service.objects.select_related().filter(service_category = product, lead_id__visibility = True)[offset : limit]
+        #     serviceData = service.objects.select_related().filter(service_category = product, client_id__visibility = True)[offset : limit]
         #     for sd in serviceData:
         #         associate = sd.associate_id.name if sd.associate_id != None else 'not assigned'
-        #         data.append({'lead_id': sd.lead_id.lead_id, 'requester_name': sd.lead_id.requester_name, 'phone_number':  sd.lead_id.phone_number, 'email_id': sd.lead_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
+        #         data.append({'client_id': sd.client_id.client_id, 'requester_name': sd.client_id.requester_name, 'phone_number':  sd.client_id.phone_number, 'email_id': sd.client_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
 
         #     if len(data) > 0:
-        #         pagecount = math.ceil(service.objects.filter(service_category = product ,lead_id__visibility = True).count()/limit)
+        #         pagecount = math.ceil(service.objects.filter(service_category = product ,client_id__visibility = True).count()/limit)
         #         print('pagecount',pagecount)
         #         serializer = bd_teamLeaderSerializer(data=data, many=True)
         #         serializer.is_valid(raise_exception=True)
@@ -774,7 +772,7 @@ class viewAllLeads(GenericAPIView):
         #                 }
 
         #         else :
-        #             pagecount = math.ceil(service.objects.filter(service_category = product ,lead_id__visibility = True).count()/limit)
+        #             pagecount = math.ceil(service.objects.filter(service_category = product ,client_id__visibility = True).count()/limit)
 
         #             res.status_code = status.HTTP_400_BAD_REQUEST
         #             res.data = {
@@ -829,13 +827,13 @@ class viewAllLeadsArchive(GenericAPIView):
         #     product = getProduct(user.id)
         #     # print(product)
         #     data = []
-        #     serviceData = service.objects.select_related().filter(service_category = product, lead_id__visibility = True)[offset : limit]
+        #     serviceData = service.objects.select_related().filter(service_category = product, client_id__visibility = True)[offset : limit]
         #     for sd in serviceData:
         #         associate = sd.associate_id.name if sd.associate_id != None else 'not assigned'
-        #         data.append({'lead_id': sd.lead_id.lead_id, 'requester_name': sd.lead_id.requester_name, 'phone_number':  sd.lead_id.phone_number, 'email_id': sd.lead_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
+        #         data.append({'client_id': sd.client_id.client_id, 'requester_name': sd.client_id.requester_name, 'phone_number':  sd.client_id.phone_number, 'email_id': sd.client_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
 
         #     if len(data) > 0:
-        #         pagecount = math.ceil(service.objects.filter(service_category = product ,lead_id__visibility = True).count()/limit)
+        #         pagecount = math.ceil(service.objects.filter(service_category = product ,client_id__visibility = True).count()/limit)
         #         print('pagecount',pagecount)
         #         serializer = bd_teamLeaderSerializer(data=data, many=True)
         #         serializer.is_valid(raise_exception=True)
@@ -848,7 +846,7 @@ class viewAllLeadsArchive(GenericAPIView):
         #                 }
 
         #         else :
-        #             pagecount = math.ceil(service.objects.filter(service_category = product ,lead_id__visibility = True).count()/limit)
+        #             pagecount = math.ceil(service.objects.filter(service_category = product ,client_id__visibility = True).count()/limit)
 
         #             res.status_code = status.HTTP_400_BAD_REQUEST
         #             res.data = {
@@ -873,8 +871,8 @@ class viewAllLeadsArchive(GenericAPIView):
 class viewAllLeadsSearchArchive(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = lead_managerBlSerializer_admin
-    def get(self, request, lead_id, format=None, *args, **kwargs):
-        res = viewLeadSeachFun(request, lead_id, False)
+    def get(self, request, client_id, format=None, *args, **kwargs):
+        res = viewLeadSeachFun(request, client_id, False)
         return res
     
 
@@ -914,10 +912,10 @@ class restore_lead(GenericAPIView):
 class UpdateLeads(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UpdateLeadsSerializer_TL
-    def put(self, request, lead_id, format=None, *args, **kwargs):
+    def put(self, request, client_id, format=None, *args, **kwargs):
 
         try:
-            lead_instance = Leads.objects.get(lead_id=lead_id)
+            lead_instance = Leads.objects.get(client_id=client_id)
         except:
             lead_instance = None
 
@@ -950,12 +948,12 @@ class UpdateLeads(GenericAPIView):
 # class viewLeadsAllIdentifiers(GenericAPIView):
 #     permission_classes = [IsAuthenticated]
 #     serializer_class = View_All_Leads
-#     def get(self, request, lead_id ,format=None, *args, **kwargs):
+#     def get(self, request, client_id ,format=None, *args, **kwargs):
 #         user = request.user
 #         res = Response()
 #         if (str(user.department) == 'director'):
 
-#             leads = Leads.objects.select_related().filter(lead_id=lead_id, visibility =True)
+#             leads = Leads.objects.select_related().filter(client_id=client_id, visibility =True)
 #             if leads.exists():
 #                 # print('leads', leads)
 #                 leads_val = leads.values().first()
@@ -999,7 +997,7 @@ class UpdateLeads(GenericAPIView):
 #                 res.data = {
 #                     "status": status.HTTP_404_NOT_FOUND,
 #                     'data': [],
-#                     'message': 'invalid lead_id'
+#                     'message': 'invalid client_id'
 #                 }
 
 #         else:
@@ -1013,11 +1011,11 @@ class UpdateLeads(GenericAPIView):
     
 
 
-def viewLeadSeachFun(request, lead_id, visibility):
+def viewLeadSeachFun(request, client_id, visibility):
         user = request.user
         if (str(user.department) == 'director') or (str(user.department) == 'admin' and str(user.designation) == 'lead_manager'):
             data = []
-            leads = Leads.objects.select_related().filter(lead_id = lead_id, visibility = visibility)
+            leads = Leads.objects.select_related().filter(client_id = client_id, visibility = visibility)
             if leads.exists():
 
                 data = viewLeadFun(leads, user.department.title)
@@ -1031,18 +1029,18 @@ def viewLeadSeachFun(request, lead_id, visibility):
 
         elif user.department.title == 'business_development' and user.designation.title == 'team_leader':
             print('user',user)
-            leads = Leads.objects.select_related().filter(lead_id = lead_id, visibility = visibility)
+            leads = Leads.objects.select_related().filter(client_id = client_id, visibility = visibility)
             
             if leads.exists():
-                res = viewLeadBd_tl(user,None,None,None, lead_id, user.department.title)
+                res = viewLeadBd_tl(user,None,None,None, client_id, user.department.title)
             
         #     product = getProduct(user.id)
         #     data = []
-        #     serviceData = service.objects.select_related().filter(lead_id__lead_id = lead_id, service_category = product, lead_id__visibility=True)
+        #     serviceData = service.objects.select_related().filter(client_id__client_id = client_id, service_category = product, client_id__visibility=True)
         #     if serviceData:
         #         for sd in serviceData:
         #             associate = sd.associate_id.name if sd.associate_id != None else '-'
-        #             data.append({'lead_id': sd.lead_id.lead_id, 'requester_name': sd.lead_id.requester_name, 'phone_number':  sd.lead_id.phone_number, 'email_id': sd.lead_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
+        #             data.append({'client_id': sd.client_id.client_id, 'requester_name': sd.client_id.requester_name, 'phone_number':  sd.client_id.phone_number, 'email_id': sd.client_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
 
         #         serializer = BusinessDevelopmentLeadSerializer(data=data, many=True)
         #         serializer.is_valid(raise_exception=True)
@@ -1059,8 +1057,8 @@ def viewLeadSeachFun(request, lead_id, visibility):
 class viewAllLeadsSearch(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = lead_managerBlSerializer_admin
-    def get(self, request, lead_id, format=None, *args, **kwargs):
-        res = viewLeadSeachFun(request, lead_id, True)
+    def get(self, request, client_id, format=None, *args, **kwargs):
+        res = viewLeadSeachFun(request, client_id, True)
         return res
 
 
@@ -1949,14 +1947,14 @@ class assignAssociate(GenericAPIView):
         if user.department.title == 'director' or (user.department.title == 'admin' and user.designation.title == 'lead_manager') or (user.department.title == 'business_development' and user.designation.title == 'team_leader'):
 
             user_id = request.data.get('user_id')
-            service_category_id = request.data.get('service_category_id')
+            lead_id = request.data.get('lead_id')
 
 
             userData = UserAccount.objects.get(id = user_id, visibility=True)
             print('userData',userData)
 
-            if isinstance(service_category_id, list):
-                for ld in service_category_id:
+            if isinstance(lead_id, list):
+                for ld in lead_id:
 
                     data = Service_category.objects.get(id= ld)
                     if data: 
@@ -1974,17 +1972,17 @@ class assignAssociate(GenericAPIView):
                         res = resFun(status.HTTP_400_BAD_REQUEST,'invalid lead id', [])
                     
                     # return res
-                    # d = cursor.execute(f"UPDATE api_business_leads_service set associate_id = '{assoc_employee_id}', team_leader_id = '{team_leader_id}' WHERE lead_id = '{ld}'")
+                    # d = cursor.execute(f"UPDATE api_business_leads_service set associate_id = '{assoc_employee_id}', team_leader_id = '{team_leader_id}' WHERE client_id = '{ld}'")
             else: 
 
-                data = Service_category.objects.get(id= service_category_id)
+                data = Service_category.objects.get(id= lead_id)
                 if data: 
                     serializer = assignAssociateSerializer(data, data={'associate': user_id}, partial=True)
                     if serializer.is_valid(raise_exception=True):
                         serializer.save()
                         lead_status_instance = drp_lead_status.objects.get(title = 'pitch in progress')
                         status_history_instance = Status_history.objects.create(**{'status': lead_status_instance, 'updated_by': request.user})
-                        # lead_instance = Leads.objects.get(service_category_all__id=service_category_id)
+                        # lead_instance = Leads.objects.get(service_category_all__id=lead_id)
                         data.status_history_all.add(status_history_instance)
                         res = resFun(status.HTTP_201_CREATED,'associate assigned', [])
                     else:
@@ -1995,13 +1993,13 @@ class assignAssociate(GenericAPIView):
 
 
 
-                # data = service.objects.filter(lead_id__lead_id = lead_id, lead_id__visibility=True).first()
+                # data = service.objects.filter(client_id__client_id = client_id, client_id__visibility=True).first()
                 # if data:
                     # serialize = assignAssociateSerializer(data, data=req_data, partial=True)
                     # serialize.is_valid(raise_exception=True)
                     # serialize.save()
                     # lead_status_instance = lead_status.objects.get(title = 'pitch in progress')
-                    # lead_status_record.objects.create(**{'lead_id': data.lead_id, 'status': lead_status_instance})
+                    # lead_status_record.objects.create(**{'client_id': data.client_id, 'status': lead_status_instance})
 
                     # res = resFun(status.HTTP_200_OK,'associate assigned',[])                    
                 # else:
@@ -2024,24 +2022,24 @@ class reasonSubmit(GenericAPIView):
             if not request.data.get('id'):
                 return resFun(status.HTTP_400_BAD_REQUEST, 'id field is mandatory', [])
             
-            if not request.data.get('lead_id'):
+            if not request.data.get('client_id'):
                 return resFun(status.HTTP_400_BAD_REQUEST, 'lead id field is mandatory', [])
             
-            if not request.data.get('service_category_id'):
-                return resFun(status.HTTP_400_BAD_REQUEST, 'service category id field is mandatory', [])
+            if not request.data.get('lead_id'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'lead id field is mandatory', [])
 
 
             id = request.data.get('id')
+            client_id = request.data.get('client_id')
             lead_id = request.data.get('lead_id')
-            service_category_id = request.data.get('service_category_id')
 
-            lead_instance = Leads.objects.get(lead_id=lead_id, service_category_all__id=service_category_id)
+            lead_instance = Leads.objects.get(client_id=client_id, service_category_all__lead_id=lead_id)
 
             if table == 'not_interested':
                 for ld in lead_instance.service_category_all.all():
-                    if ld.id == service_category_id:
+                    if ld.lead_id == lead_id:
                         status_instance = drp_lead_status.objects.get(title='not interested')
-                        ld.status = status_instance
+                        # ld.status = status_instance
                         ld.not_interested_reason = not_interested.objects.get(id=id)
                         # print(drp_lead_status.objects.get(title=''))
                         ld.save()
@@ -2056,9 +2054,9 @@ class reasonSubmit(GenericAPIView):
 
             elif table == 'unresponsive':
                 for ld in lead_instance.service_category_all.all():
-                    if ld.id == service_category_id:
+                    if ld.lead_id == lead_id:
                         status_instance = drp_lead_status.objects.get(title='unresponsive')
-                        ld.status = status_instance
+                        # ld.status = status_instance
                         ld.unresponsive_reason = unresponsive.objects.get(id=id)
                         # print(drp_lead_status.objects.get(title=''))
                         ld.save()
@@ -2083,22 +2081,22 @@ class LeadStatusUpdate(GenericAPIView):
     serializer_class = LeadStatusUpdateSerializer
     def put(self, request, format=None, *args, **kwargs):
         try:
+            if not request.data.get('client_id'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'client id is required',[])
             if not request.data.get('lead_id'):
                 return resFun(status.HTTP_400_BAD_REQUEST, 'lead id is required',[])
-            if not request.data.get('service_category_id'):
-                return resFun(status.HTTP_400_BAD_REQUEST, 'service category id is required',[])
             if not request.data.get('lead_status_id'):
                 return resFun(status.HTTP_400_BAD_REQUEST, 'lead status id is required',[])
             
-            lead_instance = Leads.objects.get(lead_id=request.data.get('lead_id'))
+            lead_instance = Leads.objects.get(client_id=request.data.get('client_id'))
             for ld in lead_instance.service_category_all.all():
-                if ld.id == request.data.get('service_category_id'):
+                if ld.lead_id == request.data.get('lead_id'):
                     status_instance = drp_lead_status.objects.get(id = request.data.get('lead_status_id'))
-                    ld.status  = status_instance
+                    # ld.status  = status_instance
                     ld.save()
-                    print('request.data',ld)
+                    # print('request.data',ld)
                     status_history_instance = Status_history.objects.create(**{'status': status_instance, 'updated_by': request.user })
-                    service_category = lead_instance.service_category_all.filter(id=request.data.get('service_category_id')).first()
+                    service_category = lead_instance.service_category_all.filter(lead_id=request.data.get('lead_id')).first()
                     service_category.status_history_all.add(status_history_instance)
                     status_update = True
 
@@ -2120,7 +2118,7 @@ class AddNewServiceCategory(GenericAPIView):
         # print(request.data)
         try:
 
-            if not request.data.get('lead_id'):
+            if not request.data.get('client_id'):
                 return resFun(status.HTTP_400_BAD_REQUEST, 'lead id is a required field', [])
                 
 
@@ -2141,7 +2139,7 @@ class AddNewServiceCategory(GenericAPIView):
 
 
             try:
-                lead_instance = Leads.objects.get(lead_id = request.data.get('lead_id'))
+                lead_instance = Leads.objects.get(client_id = request.data.get('client_id'))
             except:
                 lead_instance = None
 
@@ -2156,7 +2154,7 @@ class AddNewServiceCategory(GenericAPIView):
                     if service_check:
                         res = resFun(status.HTTP_400_BAD_REQUEST, 'service already created previously',[])
                     else:
-                        data = {'service': service_commercials.first().id, 'status': drp_lead_status.objects.filter(title='yet to contact').first().id}
+                        data = {'lead_id': getLeadId(),'service': service_commercials.first().id}
                         serializer = AddNewServiceCategorySerializer(data=data, many=False)
                         serializer.is_valid(raise_exception=True)
                         serializer.save()
@@ -2185,14 +2183,14 @@ class CreateFollowUp(GenericAPIView):
 
         try:
             try:
-                service_category_instance = Service_category.objects.get(id=request.data.get('service_category_id'))
+                service_category_instance = Service_category.objects.get(lead_id=request.data.get('lead_id'))
             except:
                 service_category_instance = None
 
-            if not request.data.get('service_category_id'):
-                return resFun(status.HTTP_400_BAD_REQUEST, 'service category id is mandatory field',[])
+            if not request.data.get('lead_id'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'lead id is mandatory field',[])
             if service_category_instance == None:
-                return resFun(status.HTTP_400_BAD_REQUEST, 'invalid service category id',[])
+                return resFun(status.HTTP_400_BAD_REQUEST, 'invalid lead id',[])
 
             
             serializer = CreateFollowUpSerializer(data=request.data, many=False)
@@ -2234,17 +2232,17 @@ class apiSubmitEmailProposal(GenericAPIView):
     def post(self, request, format=None, *args, **kwargs):
         # print(commercial_id)
         try:
-            lead_id = request.data.get('lead_id')
+            client_id = request.data.get('client_id')
             commercial_id = request.data.get('commercial_id')
             if commercial_id == None:
 
-                if not request.data.get('service_category_id'):
-                    return resFun(status.HTTP_400_BAD_REQUEST, 'service category id is required', [])
+                if not request.data.get('lead_id'):
+                    return resFun(status.HTTP_400_BAD_REQUEST, 'lead id is required', [])
                 if not request.data.get('custom_commercial'):
                     return resFun(status.HTTP_400_BAD_REQUEST, 'custom commercial is required', [])
                 
 
-                service_category_instance = Service_category.objects.get(id=request.data.get('service_category_id'))
+                service_category_instance = Service_category.objects.get(lead_id=request.data.get('lead_id'))
                 commercial_approval_instance = Commercial_Approval.objects.create(**{"commercial": request.data.get('custom_commercial')})
                 service_category_instance.commercial_approval = commercial_approval_instance
                 # service_category_instance.save()
@@ -2279,7 +2277,7 @@ class apiSubmitEmailProposal(GenericAPIView):
                 res = resFun(status.HTTP_200_OK, 'commercial sent for approval, you will be notified once approved', [])
                 return res
             else:
-                lead_instance = Leads.objects.get(lead_id=lead_id, visibility=True)
+                lead_instance = Leads.objects.get(client_id=client_id, visibility=True)
                 email = lead_instance.email_id
                 service = None
                 for ld in lead_instance.service_category_all.all():
@@ -2327,12 +2325,12 @@ class apiSubmitEmailProposal(GenericAPIView):
                         for ld in lead_instance.service_category_all.all():
                             if ld.service.service.id == service.id:
                                 ld.pricing = Commercials.objects.get(id=commercial_id)
-                                ld.status = drp_lead_status.objects.get(title='proposal email sent')
+                                # ld.status = drp_lead_status.objects.get(title='proposal email sent')
                                 ld.save()
                                 status_history_instance = Status_history.objects.create(**{'status': drp_lead_status.objects.get(title='proposal email sent'), 'updated_by': request.user})
                                 status_update = True
                                 ld.status_history_all.add(status_history_instance)
-                        # status_update = service.objects.filter(lead_id__lead_id=lead_id, lead_id__visibility=True).update(lead_status = getLeadStatusInst('proposal email sent'))
+                        # status_update = service.objects.filter(client_id__client_id=client_id, client_id__visibility=True).update(lead_status = getLeadStatusInst('proposal email sent'))
                         # print(status_update)
                         # lead_instance.save()
 
@@ -2361,7 +2359,7 @@ class AskForDetailEmail(GenericAPIView):
         serializer = AskForDetailEmailSerializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
 
-        lead_instance = Leads.objects.filter(lead_id=serializer.data['lead_id'])
+        lead_instance = Leads.objects.filter(client_id=serializer.data['client_id'])
         if lead_instance.exists():
 
             message = canned_email.objects.filter(email_type = 'ask_for_details').first()
