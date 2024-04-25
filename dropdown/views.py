@@ -215,11 +215,15 @@ class get_commercials(GenericAPIView):
             lead_instance = Leads.objects.get(lead_id=lead_id, visibility=True)
             for ld in lead_instance.service_category_all.all():
                 if ld.id == service_category_id:
-                    data=[{"id": l.id, "value": l.commercials} for l in ld.service.commercials.all()]
-                    serializer =  CommonDropdownSerializer(data=data, many=True)
-                    serializer.is_valid(raise_exception=True)
+                    data=[{"id": l.id, "value": l.commercials} for l in ld.service.commercials.all() ]
+                    if len(data) > 0: 
+                        serializer =  CommonDropdownSerializer(data=data, many=True)
+                        serializer.is_valid(raise_exception=True)
 
-                    res =  resFun(status.HTTP_400_BAD_REQUEST, 'request successful', serializer.data)
+                        res =  resFun(status.HTTP_200_OK, 'request successful', serializer.data)
+                    else:
+                        res =  resFun(status.HTTP_204_NO_CONTENT, 'no data found, contact director to create commercials for this service', [])
+
                 else:
                     res =  resFun(status.HTTP_204_NO_CONTENT, 'no data', [])
                 return res

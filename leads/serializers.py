@@ -532,6 +532,109 @@ class LeadStatusUpdateSerializer(serializers.ModelField):
         fields = ['status']
 
 
+def serializer_validation(self, attrs, method):
+        data = {}
+
+        if attrs.get('client_name'):
+            data['client_name'] = attrs.get('client_name')
+        if attrs.get('email_id'):
+            data['email_id'] = attrs.get('email_id')
+        if attrs.get('contact_number'):
+            if attrs.get('contact_number') and len(attrs.get('contact_number')) < 9:
+                raise serializers.ValidationError('phone number is not valid')
+            data['contact_number'] = attrs.get('contact_number')
+        if attrs.get('business_name'):
+            data['business_name'] = attrs.get('business_name')
+        if attrs.get('gst'):
+            data['gst'] = attrs.get('gst')
+        if attrs.get('seller_address'):
+            data['seller_address'] = attrs.get('seller_address')
+
+        if attrs.get('brand_name'):
+            data['brand_name'] = attrs.get('brand_name')
+
+        if attrs.get('business_category'):
+            if not Business_category.objects.get(id=attrs.get('business_category')):
+                raise serializers.ValidationError('business category id is not valid')
+            data['business_category'] = Business_category.objects.get(id=attrs.get('business_category'))
+
+        if attrs.get('client_turnover'):
+            if not Client_turnover.objects.get(id=attrs.get('client_turnover')):
+                raise serializers.ValidationError('business category id is not valid')
+            data['client_turnover'] = Client_turnover.objects.get(id=attrs.get('client_turnover'))
+
+        print('attrs',attrs)
+        
+        if attrs.get('status') or attrs.get('associate') or attrs.get('service') or attrs.get('marketplace') or attrs.get('program') or attrs.get('sub_program'):
+
+            if not attrs.get('service_category_id'):
+                raise serializers.ValidationError('service category id is a required field')
+            
+            if attrs.get('associate'):
+                if not drp_lead_status.objects.get(id=attrs.get('status')):
+                    raise serializers.ValidationError('status id is not valid')
+                data['status'] = drp_lead_status.objects.get(id=attrs.get('status'))
+
+            if method == 'tm':
+                if attrs.get('associate'):
+                    if not UserAccount.objects.get(id=attrs.get('associate')):
+                        raise serializers.ValidationError('associate id is not valid')
+                    data['associate'] = UserAccount.objects.get(id=attrs.get('associate'))
+
+
+            if method == 'admin':
+                if attrs.get('service'):
+
+                    if not UserAccount.objects.get(id=attrs.get('segment')):
+                        raise serializers.ValidationError('segment id is not valid')
+
+                    if not UserAccount.objects.get(id=attrs.get('service')):
+                        raise serializers.ValidationError('service id is not valid')
+                    
+                    if not UserAccount.objects.get(id=attrs.get('marketplace')):
+                        raise serializers.ValidationError('marketplace id is not valid')
+                    
+                    if not UserAccount.objects.get(id=attrs.get('program')):
+                        raise serializers.ValidationError('program id is not valid')
+                    
+                    if not UserAccount.objects.get(id=attrs.get('sub_program')):
+                        raise serializers.ValidationError('sub_program id is not valid')
+
+                    data['associate'] = UserAccount.objects.get(id=attrs.get('associate'))
+
+        return data
+
+
+
+class UpdateLeadsSerializer_ADMIN(serializers.ModelSerializer):
+    client_name = serializers.CharField(max_length=100)
+    email_id = serializers.EmailField()
+    contact_number = serializers.CharField(max_length=15)
+    business_name = serializers.CharField(max_length=100)
+    gst = serializers.CharField(max_length=100)
+    seller_address = serializers.CharField(max_length=500)
+    brand_name = serializers.CharField(max_length=100)
+    business_category = serializers.IntegerField()
+    client_turnover = serializers.IntegerField()
+    associate = serializers.IntegerField()
+    status = serializers.IntegerField()
+    segment = serializers.ListField()
+    service = serializers.ListField()
+    marketplace = serializers.ListField()
+    program = serializers.ListField()
+    sub_program = serializers.ListField()
+
+    class Meta:
+        model = Leads
+        fields = ['client_name', 'email_id', 'contact_number', 'business_name', 'gst', 'seller_address', 'business_category', 'client_turnover','associate', 'status', 'brand_name']
+
+    def validate(self, attrs):
+
+        data = serializer_validation(self,attrs, 'admin')
+        return data
+
+
+
 class UpdateLeadsSerializer_TL(serializers.ModelSerializer):
     client_name = serializers.CharField(max_length=100)
     email_id = serializers.EmailField()
@@ -550,44 +653,50 @@ class UpdateLeadsSerializer_TL(serializers.ModelSerializer):
         fields = ['client_name', 'email_id', 'contact_number', 'business_name', 'gst', 'seller_address', 'business_category', 'client_turnover','associate', 'status', 'brand_name']
 
     def validate(self, attrs):
-        data = {}
 
-        if attrs.get('client_name'):
-            data['client_name'] = attrs.get('client_name')
-        if attrs.get('email_id'):
-            data['email_id'] = attrs.get('email_id')
-        if attrs.get('contact_number'):
-            if attrs.get('contact_number') and len(attrs.get('contact_number')) < 9:
-                raise serializers.ValidationError('phone number is not valid')
-            data['contact_number'] = attrs.get('contact_number')
-        if attrs.get('business_name'):
-            data['business_name'] = attrs.get('business_name')
-        if attrs.get('gst'):
-            data['gst'] = attrs.get('gst')
-        if attrs.get('seller_address'):
-            data['seller_address'] = attrs.get('seller_address')
+        data = serializer_validation(self,attrs, 'tl')
 
-        if attrs.get('business_category'):
-            if not Drp_business_category.objects.get(id=attrs.get('business_category')):
-                raise serializers.ValidationError('business category id is not valid')
-            data['business_category'] = Drp_business_category.objects.get(id=attrs.get('business_category'))
+        # data = {}
 
-        if attrs.get('client_turnover'):
-            if not Client_turnover.objects.get(id=attrs.get('client_turnover')):
-                raise serializers.ValidationError('business category id is not valid')
-            data['client_turnover'] = Client_turnover.objects.get(id=attrs.get('client_turnover'))
+        # if attrs.get('client_name'):
+        #     data['client_name'] = attrs.get('client_name')
+        # if attrs.get('email_id'):
+        #     data['email_id'] = attrs.get('email_id')
+        # if attrs.get('contact_number'):
+        #     if attrs.get('contact_number') and len(attrs.get('contact_number')) < 9:
+        #         raise serializers.ValidationError('phone number is not valid')
+        #     data['contact_number'] = attrs.get('contact_number')
+        # if attrs.get('business_name'):
+        #     data['business_name'] = attrs.get('business_name')
+        # if attrs.get('gst'):
+        #     data['gst'] = attrs.get('gst')
+        # if attrs.get('seller_address'):
+        #     data['seller_address'] = attrs.get('seller_address')
 
-        if attrs.get('associate'):
-            if not UserAccount.objects.get(id=attrs.get('associate')):
-                raise serializers.ValidationError('associate id is not valid')
-            data['associate'] = UserAccount.objects.get(id=attrs.get('associate'))
+        # if attrs.get('brand_name'):
+        #     data['brand_name'] = attrs.get('brand_name')
+
+        # if attrs.get('business_category'):
+        #     if not Business_category.objects.get(id=attrs.get('business_category')):
+        #         raise serializers.ValidationError('business category id is not valid')
+        #     data['business_category'] = Business_category.objects.get(id=attrs.get('business_category'))
+
+        # if attrs.get('client_turnover'):
+        #     if not Client_turnover.objects.get(id=attrs.get('client_turnover')):
+        #         raise serializers.ValidationError('business category id is not valid')
+        #     data['client_turnover'] = Client_turnover.objects.get(id=attrs.get('client_turnover'))
+
+        # if attrs.get('associate'):
+        #     if not UserAccount.objects.get(id=attrs.get('associate')):
+        #         raise serializers.ValidationError('associate id is not valid')
+        #     data['associate'] = UserAccount.objects.get(id=attrs.get('associate'))
         
-        if attrs.get('status'):
-            if not attrs.get('service_category_id'):
-                raise serializers.ValidationError('service category id is a required field')
-            if not drp_lead_status.objects.get(id=attrs.get('associate')):
-                raise serializers.ValidationError('associate id is not valid')
-            data['associate'] = drp_lead_status.objects.get(id=attrs.get('associate'))
+        # if attrs.get('status'):
+        #     if not attrs.get('service_category_id'):
+        #         raise serializers.ValidationError('service category id is a required field')
+        #     if not drp_lead_status.objects.get(id=attrs.get('associate')):
+        #         raise serializers.ValidationError('associate id is not valid')
+        #     data['associate'] = drp_lead_status.objects.get(id=attrs.get('associate'))
         return data
     
 
@@ -608,41 +717,45 @@ class UpdateLeadsSerializer_TM(serializers.ModelSerializer):
         fields = ['client_name', 'email_id', 'contact_number', 'business_name', 'gst', 'seller_address', 'business_category', 'client_turnover', 'status', 'brand_name']
 
     def validate(self, attrs):
+            
+        data = serializer_validation(self, attrs, 'tm')
 
-        data = {}
+        # data = {}
 
-        if attrs.get('client_name'):
-            data['client_name'] = attrs.get('client_name')
-        if attrs.get('email_id'):
-            data['email_id'] = attrs.get('email_id')
-        if attrs.get('contact_number'):
-            if attrs.get('contact_number') and len(attrs.get('contact_number')) < 9:
-                raise serializers.ValidationError('phone number is not valid')
-            data['contact_number'] = attrs.get('contact_number')
-        if attrs.get('business_name'):
-            data['business_name'] = attrs.get('business_name')
-        if attrs.get('gst'):
-            data['gst'] = attrs.get('gst')
-        if attrs.get('seller_address'):
-            data['seller_address'] = attrs.get('seller_address')
+        # if attrs.get('client_name'):
+        #     data['client_name'] = attrs.get('client_name')
+        # if attrs.get('email_id'):
+        #     data['email_id'] = attrs.get('email_id')
+        # if attrs.get('contact_number'):
+        #     if attrs.get('contact_number') and len(attrs.get('contact_number')) < 9:
+        #         raise serializers.ValidationError('phone number is not valid')
+        #     data['contact_number'] = attrs.get('contact_number')
+        # if attrs.get('business_name'):
+        #     data['business_name'] = attrs.get('business_name')
+        # if attrs.get('gst'):
+        #     data['gst'] = attrs.get('gst')
+        # if attrs.get('seller_address'):
+        #     data['seller_address'] = attrs.get('seller_address')
+        # if attrs.get('brand_name'):
+        #     data['brand_name'] = attrs.get('brand_name')
 
-        if attrs.get('business_category'):
-            if not Drp_business_category.objects.get(id=attrs.get('business_category')):
-                raise serializers.ValidationError('business category id is not valid')
-            data['business_category'] = Drp_business_category.objects.get(id=attrs.get('business_category'))
+        # if attrs.get('business_category'):
+        #     if not Business_category.objects.get(id=attrs.get('business_category')):
+        #         raise serializers.ValidationError('business category id is not valid')
+        #     data['business_category'] = Business_category.objects.get(id=attrs.get('business_category'))
 
-        if attrs.get('client_turnover'):
-            if not Client_turnover.objects.get(id=attrs.get('client_turnover')):
-                raise serializers.ValidationError('business category id is not valid')
-            data['client_turnover'] = Client_turnover.objects.get(id=attrs.get('client_turnover'))
+        # if attrs.get('client_turnover'):
+        #     if not Client_turnover.objects.get(id=attrs.get('client_turnover')):
+        #         raise serializers.ValidationError('business category id is not valid')
+        #     data['client_turnover'] = Client_turnover.objects.get(id=attrs.get('client_turnover'))
 
         
-        if attrs.get('status'):
-            if not attrs.get('service_category_id'):
-                raise serializers.ValidationError('service category id is a required field')
-            if not drp_lead_status.objects.get(id=attrs.get('associate')):
-                raise serializers.ValidationError('associate id is not valid')
-            data['associate'] = drp_lead_status.objects.get(id=attrs.get('associate'))
+        # if attrs.get('status'):
+        #     if not attrs.get('service_category_id'):
+        #         raise serializers.ValidationError('service category id is a required field')
+        #     if not drp_lead_status.objects.get(id=attrs.get('associate')):
+        #         raise serializers.ValidationError('associate id is not valid')
+            # data['associate'] = drp_lead_status.objects.get(id=attrs.get('associate'))
         return data
 
 
@@ -781,7 +894,7 @@ class createLeadManualSerializer(serializers.Serializer):
                 raise serializers.ValidationError('client turnover field is not valid')
             
         if business_category != None:
-            business_cat_INST = Drp_business_category.objects.filter(id = business_category).exists()
+            business_cat_INST = Business_category.objects.filter(id = business_category).exists()
             if not business_cat_INST:
                 raise serializers.ValidationError('business category field is not valid')
             
@@ -837,7 +950,7 @@ class createLeadManualSerializer(serializers.Serializer):
         if 'alternate_email_id' in validated_data:
             v_data['alternate_email_id'] = validated_data['alternate_email_id']
         if 'business_category' in validated_data:
-            v_data['business_category'] = Drp_business_category.objects.filter(id = validated_data['business_category']).first()
+            v_data['business_category'] = Business_category.objects.filter(id = validated_data['business_category']).first()
         if 'client_turnover' in validated_data:
             v_data['client_turnover'] = Client_turnover.objects.filter(id = validated_data['client_turnover']).first()
         if 'hot_lead' in validated_data:
@@ -893,6 +1006,9 @@ class CreateFollowUpSerializer(serializers.ModelSerializer):
         exclude = ['created_by']
 
 
+
+class AskForDetailEmailSerializer(serializers.Serializer):
+    lead_id = serializers.CharField()
 
 
 # class tableFieldSerializer(serializers.Serializer):

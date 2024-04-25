@@ -16,7 +16,7 @@ import numpy as np
 import random
 
 from .serializers import *
-from account.models import UserAccount, Drp_Program, Department, Designation, Employee_status
+from account.models import UserAccount, Drp_Program, Department, Designation, Employee_status, canned_email
 from .models import Leads, Remark_history
 from dropdown.models import *
 from evitamin.models import ev_bank_details
@@ -916,23 +916,31 @@ class UpdateLeads(GenericAPIView):
     serializer_class = UpdateLeadsSerializer_TL
     def put(self, request, lead_id, format=None, *args, **kwargs):
 
-        if request.user.department.title == 'admin' and request.user.designation.title == 'lead_manager':
-            pass
-        elif request.user.department.title == 'business_development':
+        try:
+            lead_instance = Leads.objects.get(lead_id=lead_id)
+        except:
+            lead_instance = None
 
-                lead_instance = Leads.objects.get(lead_id=lead_id)
-                if lead_instance:
-                    if request.user.designation.title == 'team_leader':
-                        serializer = UpdateLeadsSerializer_TL(lead_instance, data=request.data, partial=True)
-                    elif request.user.designation.title == 'team_member':
-                        serializer = UpdateLeadsSerializer_TM(lead_instance, data=request.data, partial=True)
+        if lead_instance != None:
+            if request.user.department.title == 'admin' and request.user.designation.title == 'lead_manager':
 
-                    serializer.is_valid(raise_exception=True)
-                    serializer.save()
-                    res = resFun(status.HTTP_200_OK, 'request successful', [])
-                else:
-                    res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid lead id', [])
-                return res
+                serializer = UpdateLeadsSerializer_ADMIN(lead_instance, data=request.data, partial=True)
+                # pass
+            elif request.user.department.title == 'business_development':
+
+                if request.user.designation.title == 'team_leader':
+                    serializer = UpdateLeadsSerializer_TL(lead_instance, data=request.data, partial=True)
+                elif request.user.designation.title == 'team_member':
+                    serializer = UpdateLeadsSerializer_TM(lead_instance, data=request.data, partial=True)
+
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            res = resFun(status.HTTP_200_OK, 'request successful', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid lead id', [])
+
+        return res
             
 
                 
@@ -2345,6 +2353,34 @@ class apiSubmitEmailProposal(GenericAPIView):
 
 
 
+class AskForDetailEmail(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AskForDetailEmailSerializer
+    def post(self, request):
+
+        serializer = AskForDetailEmailSerializer(data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+
+        lead_instance = Leads.objects.filter(lead_id=serializer.data['lead_id'])
+        if lead_instance.exists():
+
+            message = canned_email.objects.filter(email_type = 'ask_for_details').first()
+            message = message.email
+            message = str(message).replace("{***sender***}", request.user.name)
+            email_id = lead_instance.first().email_id
+            subject = 'Details required to proceed further with your onboarding with evitamin!'
+
+            SendEmail([email_id], subject, message)
+
+            # message = Ask_For_Detail_Email.objects.filter()
+            # pass
+
+            res = resFun(status.HTTP_200_OK, "Email sent to the client, keep an eye on seller's response",[])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, "invalid lead id",[])
+            
+        return res
+        
 
 
 

@@ -143,6 +143,12 @@ class Proposal_Email(models.Model):
   service = models.ForeignKey(Service, on_delete=models.CASCADE)
   email = models.TextField()
 
+# class Ask_For_Detail_Email(models.Model):
+#   # lead_id = models.ForeignKey("leads.Leads", on_delete=models.CASCADE, null=True, blank=None)
+#   service = models.ForeignKey(Service, on_delete=models.CASCADE)
+#   email = models.TextField()
+
+
 
 
 class Country(models.Model):
