@@ -477,7 +477,10 @@ def viewLeadFun(leadsData, department):
                 "service_category" : [
                     { 
                         "lead_id": s.lead_id,
-                        'service': s.service.service.service if s.service else '-', 
+                        'service': s.service.service.service if s.service else '-',
+                        'marketplace': s.service.marketplace.marketplace if s.service else '-',
+                        'program': s.service.program.program if s.service else '-',
+                        'sub_program': s.service.sub_program.sub_program if s.service.sub_program else '-' if s.service else '-',
                         "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
                         "assigned_status": 'assigned' if s.associate != None else "not assigned", 
                         "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
