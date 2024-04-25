@@ -802,17 +802,17 @@ class UpdateLeadsSerializer_TM(serializers.ModelSerializer):
 class createLeadManualSerializer(serializers.Serializer):
     client_name = serializers.CharField(required=True)
     phone_number = serializers.CharField(max_length = 15, required=True)
+    business_name = serializers.CharField(required=True)
+    segment = serializers.IntegerField(required=True)
+    service = serializers.ListField(required=True)
+    marketplace = serializers.ListField(required=True)
     alternate_phone_number = serializers.CharField(required=False)
     email_id = serializers.EmailField(required=False)
     alternate_email_id = serializers.EmailField(required=False)
-    business_name = serializers.CharField(required=True)
-    brand_name = serializers.CharField(required=True)
+    brand_name = serializers.CharField(required=False)
     business_category = serializers.IntegerField(required=False)
     client_turnover = serializers.IntegerField(required=False)
     hot_lead = serializers.BooleanField(required=False)
-    segment = serializers.IntegerField(required=False)
-    service = serializers.ListField(required=True)
-    marketplace = serializers.ListField(required=True)
 
     def validate(self, attrs):
         
@@ -941,9 +941,12 @@ class createLeadManualSerializer(serializers.Serializer):
             'contact_number': validated_data['phone_number'],
             'email_id': validated_data['email_id'],
             'business_name': validated_data['business_name'], 
-            'brand_name': validated_data['brand_name'],
             # 'service_category': Services.objects.filter(id = v).first(),
             }
+        
+        if 'brand_name' in validated_data:
+            # 'brand_name': validated_data['brand_name'],
+            v_data['brand_name'] = validated_data['brand_name']
         
         if 'alternate_contact_number' in validated_data:
             v_data['alternate_contact_number'] = validated_data['alternate_contact_number']
