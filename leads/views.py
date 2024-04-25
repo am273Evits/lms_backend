@@ -471,6 +471,7 @@ def viewLeadFun(leadsData, department):
                 # 'status': sd.status.title if sd.status else '-', 
                 'upload_date': upload_date , 
                 'deadline': deadline,
+                'services': [s.service.service.service for s in sd.service_category_all.all() if s.service ],
                 # "assigned_status": ,
                 # "associate" : sd.associate.name if sd.associate else '-',
                 "service_category" : [
@@ -525,7 +526,7 @@ def viewLeadFun(leadsData, department):
                     # "service_category" : [
                         # { 
                             "lead_id": s.lead_id,
-                            'service': { 'lead_id': s.lead_id, 'service': s.service.service.service if s.service else '-'}, 
+                            'service': s.service.service.service if s.service else '-', 
                             "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
                             "assigned_status": 'assigned' if s.associate != None else "not assigned", 
                             "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
@@ -574,6 +575,7 @@ def viewLeadBd_tl(user, offset, limit, page, client_id, department):
     
     if offset!=None:
         if len(user.sub_program.all()) == 0:
+
             leadsData = Leads.objects.select_related().filter(
                 service_category_all__service__segment__segment= user.segment, 
                 service_category_all__service__service__in= user.service.all(), 
@@ -590,6 +592,10 @@ def viewLeadBd_tl(user, offset, limit, page, client_id, department):
                 service_category_all__service__sub_program__in= user.sub_program.all(),  
                 visibility = True
                 ).all()[offset : offset + limit]
+        
+        print(leadsData)
+        print('leadsData',leadsData)
+
     else:
         if len(user.sub_program.all()) == 0:
             leadsData = Leads.objects.select_related().filter(client_id=client_id,
@@ -609,9 +615,9 @@ def viewLeadBd_tl(user, offset, limit, page, client_id, department):
                 visibility = True
                 ).all()
     
-    # print('leadsData',leadsData)
+    print('leadsData',leadsData)
     data = viewLeadFun(leadsData, department)
-    # print(data)
+    # print('data')
     
     if len(data) > 0:
 
@@ -743,6 +749,7 @@ class viewAllLeads(GenericAPIView):
             return res
 
         elif user.department.title == 'business_development':
+
             if user.designation.title == 'team_leader':
             # services_flatten = .values_list('service', flat=True)
                 res = viewLeadBd_tl(user,offset,limit,page, None,user.department.title)
