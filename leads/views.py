@@ -502,6 +502,13 @@ def viewLeadFun(leadsData, department):
                 "business_category" : sd.business_category.title if sd.business_category else '-',
                 "firm_type" : sd.firm_type.title if sd.firm_type else '-',
                 "contact_preferences" : sd.contact_preferences.title if sd.contact_preferences else '-',
+                "request_id": sd.request_id if sd.request_id else '-',
+                "provider_id": sd.provider_id if sd.provider_id else '-',
+                "requester_id": sd.requester_id if sd.requester_id else '-',
+                "requester_location": sd.requester_location if sd.requester_location else '-',
+                "requester_sell_in_country": sd.requester_sell_in_country if sd.requester_sell_in_country else '-',
+                "service_requester_type": sd.service_requester_type if sd.service_requester_type else '-',
+                "lead_owner": sd.lead_owner.name if sd.lead_owner else '-',
                 # "followup" : sd.followup.followup_date if sd.followup else '-',
                 # "country" : sd.country.title if sd.country else '-',
                 # "state" : sd.state.title if sd.state else '-',
@@ -946,7 +953,7 @@ class UpdateLeads(GenericAPIView):
 
             res = resFun(status.HTTP_200_OK, 'request successful', [])
         else:
-            res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid lead id', [])
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid client id', [])
 
         return res
             
@@ -1035,7 +1042,7 @@ def viewLeadSeachFun(request, client_id, visibility):
 
                 res = resFun(status.HTTP_200_OK,'successful',serializer.data)
             else:
-                res = resFun(status.HTTP_403_FORBIDDEN,'invalid lead id',[])
+                res = resFun(status.HTTP_403_FORBIDDEN,'invalid client id',[])
 
         elif user.department.title == 'business_development' and user.designation.title == 'team_leader':
             print('user',user)
@@ -1959,14 +1966,13 @@ class assignAssociate(GenericAPIView):
             user_id = request.data.get('user_id')
             lead_id = request.data.get('lead_id')
 
-
             userData = UserAccount.objects.get(id = user_id, visibility=True)
             print('userData',userData)
 
             if isinstance(lead_id, list):
                 for ld in lead_id:
 
-                    data = Service_category.objects.get(id= ld)
+                    data = Service_category.objects.get(lead_id= ld)
                     if data: 
                         serializer = assignAssociateSerializer(data, data={'associate': user_id}, partial=True)
                         if serializer.is_valid(raise_exception=True):
@@ -1985,7 +1991,7 @@ class assignAssociate(GenericAPIView):
                     # d = cursor.execute(f"UPDATE api_business_leads_service set associate_id = '{assoc_employee_id}', team_leader_id = '{team_leader_id}' WHERE client_id = '{ld}'")
             else: 
 
-                data = Service_category.objects.get(id= lead_id)
+                data = Service_category.objects.get(lead_id= lead_id)
                 if data: 
                     serializer = assignAssociateSerializer(data, data={'associate': user_id}, partial=True)
                     if serializer.is_valid(raise_exception=True):
@@ -2033,7 +2039,7 @@ class reasonSubmit(GenericAPIView):
                 return resFun(status.HTTP_400_BAD_REQUEST, 'id field is mandatory', [])
             
             if not request.data.get('client_id'):
-                return resFun(status.HTTP_400_BAD_REQUEST, 'lead id field is mandatory', [])
+                return resFun(status.HTTP_400_BAD_REQUEST, 'client id field is mandatory', [])
             
             if not request.data.get('lead_id'):
                 return resFun(status.HTTP_400_BAD_REQUEST, 'lead id field is mandatory', [])
@@ -2126,26 +2132,45 @@ class AddNewServiceCategory(GenericAPIView):
     serializer_class = AddNewServiceCategorySerializer
     def post(self, request, format=None, *args, **kwargs):
         # print(request.data)
-        try:
+        # try:
 
             if not request.data.get('client_id'):
-                return resFun(status.HTTP_400_BAD_REQUEST, 'lead id is a required field', [])
+                return resFun(status.HTTP_400_BAD_REQUEST, 'client id is a required field', [])
                 
-
             if not request.data.get('segment'):
                 return resFun(status.HTTP_400_BAD_REQUEST, 'segment is a required field', [])
             elif not Segment.objects.filter(id = request.data.get('segment')).exists():
                 return resFun(status.HTTP_400_BAD_REQUEST, 'invalid segment id', [])
 
-            if not request.data.get('service'):
-                return resFun(status.HTTP_400_BAD_REQUEST, 'service is a required field', [])
-            elif not Service.objects.filter(id = request.data.get('service')).exists() :
-                return resFun(status.HTTP_400_BAD_REQUEST, 'invalid service id', [])
-
             if not request.data.get('marketplace'):
                 return resFun(status.HTTP_400_BAD_REQUEST, 'marketplace is a required field', [])
             elif not Marketplace.objects.filter(id = request.data.get('marketplace')).exists() :
                 return resFun(status.HTTP_400_BAD_REQUEST, 'invalid marketplace id', [])
+            
+            if not request.data.get('program'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'program is a required field', [])
+            else:
+                program = Program.objects.filter(id = request.data.get('program'))
+                if program.exists():
+                    if program.first().program == 'funded':
+                        if not request.data.get('sub_program'):
+                            return resFun(status.HTTP_400_BAD_REQUEST, 'sub program is a required field', [])
+                        elif not Sub_Program.objects.filter(id = request.data.get('sub_program')).exists() :
+                            return resFun(status.HTTP_400_BAD_REQUEST, 'invalid sub program id', [])
+                    else:
+                        pass
+                else:
+                    return resFun(status.HTTP_400_BAD_REQUEST, 'invalid program id', [])
+            
+            if not request.data.get('service'):
+                return resFun(status.HTTP_400_BAD_REQUEST, 'service is a required field', [])
+            else:
+                if isinstance(request.data.get('service'), list):
+                    for s in request.data.get('service'):
+                        if not Service.objects.filter(id = s).exists():
+                            return resFun(status.HTTP_400_BAD_REQUEST, 'invalid service id', [])
+                else:
+                    return resFun(status.HTTP_400_BAD_REQUEST, 'service should be a list of integer values', [])
 
 
             try:
@@ -2155,7 +2180,11 @@ class AddNewServiceCategory(GenericAPIView):
 
             if lead_instance != None:
 
-                service_commercials = Services_and_Commercials.objects.filter(segment__id=request.data.get('segment'),service__id=request.data.get('service'), marketplace__id=request.data.get('marketplace'), visibility=True)
+                if program.first().program == 'funded':
+                    service_commercials = Services_and_Commercials.objects.filter(segment__id=request.data.get('segment'),service__id__in=request.data.get('service'), marketplace__id=request.data.get('marketplace'), program__id=request.data.get('program'),sub_program__id=request.data.get('sub_program') , visibility=True)
+                else:
+                    service_commercials = Services_and_Commercials.objects.filter(segment__id=request.data.get('segment'),service__id__in=request.data.get('service'), marketplace__id=request.data.get('marketplace'), program__id=request.data.get('program'), visibility=True)
+
 
                 if service_commercials.exists():
 
@@ -2179,10 +2208,10 @@ class AddNewServiceCategory(GenericAPIView):
                 else:
                     res = resFun(status.HTTP_400_BAD_REQUEST, 'service commercial not available, please contact admin to create a service with commercials',[])    
             else:
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid lead id',[])
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid client id',[])
             return res
-        except:
-            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed',[])
+        # except:
+        #     return resFun(status.HTTP_400_BAD_REQUEST, 'request failed',[])
 
 
 
@@ -2385,7 +2414,7 @@ class AskForDetailEmail(GenericAPIView):
 
             res = resFun(status.HTTP_200_OK, "Email sent to the client, keep an eye on seller's response",[])
         else:
-            res = resFun(status.HTTP_400_BAD_REQUEST, "invalid lead id",[])
+            res = resFun(status.HTTP_400_BAD_REQUEST, "invalid client id",[])
             
         return res
         

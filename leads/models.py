@@ -254,7 +254,7 @@ class Leads(models.Model):
     # country = models.ForeignKey(Drp_country, on_delete=models.CASCADE, null=True, blank=True) 
     # state = models.ForeignKey(Drp_state, on_delete=models.CASCADE, null=True, blank=True) 
     # city = models.ForeignKey(Drp_city, on_delete=models.CASCADE, null=True, blank=True) 
-    # pin_code = models.CharField(max_length=100, blank=True, default='') S
+    # pin_code = models.CharField(max_length=100, blank=True, default='') 
     email_record = models.CharField(max_length=100, blank=True, default='')
     # deadline = models.CharField(max_length=100, blank=True, default='')
     seller_website = models.CharField(max_length=100, blank=True, default='') 

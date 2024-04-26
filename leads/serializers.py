@@ -94,6 +94,13 @@ class lead_managerBlSerializer_admin(serializers.Serializer):
     contact_preferences = serializers.CharField()
     # followup = serializers.CharField()
     hot_lead = serializers.BooleanField()
+    request_id = serializers.CharField()
+    provider_id = serializers.CharField()
+    requester_id = serializers.CharField()
+    requester_location = serializers.CharField()
+    requester_sell_in_country = serializers.CharField()
+    service_requester_type = serializers.CharField()
+    lead_owner = serializers.CharField()
 
 
 

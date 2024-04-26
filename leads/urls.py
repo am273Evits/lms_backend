@@ -13,13 +13,13 @@ urlpatterns = [
 
             path('dashboard', dashboard.as_view()), #file upload
 
-            path('view_lead_search/<str:lead_id>', viewAllLeadsSearch.as_view()), #view_all_leads
+            path('view_lead_search/<str:client_id>', viewAllLeadsSearch.as_view()), #view_all_leads
             path('view_all_leads/<int:page>', viewAllLeads.as_view()), #view_all_leads
             path('archive_lead/<int:id>', archive_lead.as_view()), #view_all_leads
             path('view_all_leads_archived/<int:page>', viewAllLeadsArchive.as_view()), #view_all_leads
-            path('view_lead_search_archived/<str:lead_id>', viewAllLeadsSearchArchive.as_view()), #view_all_leads   
+            path('view_lead_search_archived/<str:client_id>', viewAllLeadsSearchArchive.as_view()), #view_all_leads
             path('restore_lead/<int:id>', restore_lead.as_view()), #view_all_leads
-            path('update_lead/<str:lead_id>', UpdateLeads.as_view()), #view_all_leads
+            path('update_lead/<str:client_id>', UpdateLeads.as_view()), #view_all_leads
 
 
 
