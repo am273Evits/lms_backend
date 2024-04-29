@@ -478,6 +478,8 @@ def viewLeadFun(leadsData, department):
                 # 'status': sd.status.title if sd.status else '-', 
                 'upload_date': upload_date , 
                 'deadline': deadline,
+                'gst': sd.gst if sd.gst else '-',
+                'seller_address': sd.seller_address if sd.seller_address else '-',
                 'services': [s.service.service.service for s in sd.service_category_all.all() if s.service ],
                 # "assigned_status": ,
                 # "associate" : sd.associate.name if sd.associate else '-',
@@ -503,10 +505,10 @@ def viewLeadFun(leadsData, department):
                         } for s in sd.service_category_all.all()] if sd.service_category_all else [],
                 # "commercials" : sd.commercials.price_for_mou if sd.commercials else '-',
                 # "status" : sd.status.title if sd.status else '-',
-                "client_turnover" : sd.client_turnover.title if sd.client_turnover else '-',
+                "client_turnover" : sd.client_turnover.id if sd.client_turnover else None,
                 "business_name" : sd.business_name if sd.business_name else '-',
                 "business_type" : sd.business_type.title if sd.business_type else '-',
-                "business_category" : sd.business_category.title if sd.business_category else '-',
+                "business_category" : sd.business_category.id if sd.business_category else None,
                 "firm_type" : sd.firm_type.title if sd.firm_type else '-',
                 "contact_preferences" : sd.contact_preferences.title if sd.contact_preferences else '-',
                 "request_id": sd.request_id if sd.request_id else '-',
@@ -969,7 +971,6 @@ class UpdateLeads(GenericAPIView):
                     service_category_instance.pricing = serializer.validated_data['commercial_id']
                 service_category_instance.save()
             
-
             res = resFun(status.HTTP_200_OK, 'request successful', [])
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid client id', [])
@@ -2510,7 +2511,15 @@ def generate_mou(lead_id):
                             })
                     service_category_instance.status = drp_lead_status(title='mou generated')
                     res.seek(0)
-                    return FileResponse(res, content_type='application/pdf', as_attachment=True, filename=f'{business_name}.pdf')
+                    # return FileResponse(res, content_type='application/pdf', as_attachment=True, filename=f'{business_name}.pdf')
+        else:
+            res = resFun(status.HTTP_200_OK, 'something went wrong', [])
+    else:
+        res = resFun(status.HTTP_200_OK, 'invalid lead id', [])
+
+    return res
+
+        
 
 class preview_mou(GenericAPIView):
     permission_classes = [IsAuthenticated]
@@ -2597,12 +2606,9 @@ class preview_mou(GenericAPIView):
 
             #                 service_category_instance.status = drp_lead_status(title='mou generated')
             #                 res.seek(0)
-            #                 return FileResponse(res, content_type='application/pdf', as_attachment=True, filename=f'{business_name}.pdf')
+                            # return FileResponse(res, content_type='application/pdf', as_attachment=True, filename=f'{business_name}.pdf')
 
-                # else:
-                #     res = resFun(status.HTTP_200_OK, 'something went wrong', [])
-            # else:
-            #     res = resFun(status.HTTP_200_OK, 'invalid lead id', [])
+
 
         except:
             return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
