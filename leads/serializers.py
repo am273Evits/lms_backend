@@ -576,13 +576,15 @@ def serializer_validation(self, attrs, method):
 
             if not attrs.get('lead_id'):
                 raise serializers.ValidationError('lead id is a required field')
+            elif Service_category.objects.filter(lead_id=attrs.get('lead_id')).exists():
+                data['lead_id'] = attrs.get('lead_id')
             
             if attrs.get('associate'):
                 if not drp_lead_status.objects.get(id=attrs.get('status')):
                     raise serializers.ValidationError('status id is not valid')
                 data['status'] = drp_lead_status.objects.get(id=attrs.get('status'))
 
-            if method == 'tm':
+            if method == 'tl':
                 if attrs.get('associate'):
                     if not UserAccount.objects.get(id=attrs.get('associate')):
                         raise serializers.ValidationError('associate id is not valid')
@@ -592,23 +594,26 @@ def serializer_validation(self, attrs, method):
             if method == 'admin':
                 if attrs.get('service'):
 
-                    if not UserAccount.objects.get(id=attrs.get('segment')):
+                    if not Segment.objects.get(id=attrs.get('segment')):
                         raise serializers.ValidationError('segment id is not valid')
 
-                    if not UserAccount.objects.get(id=attrs.get('service')):
-                        raise serializers.ValidationError('service id is not valid')
+                    for s in attrs.get('service'):
+                        if not Service.objects.get(id=s):
+                            raise serializers.ValidationError('service id is not valid')
                     
-                    if not UserAccount.objects.get(id=attrs.get('marketplace')):
-                        raise serializers.ValidationError('marketplace id is not valid')
+                    for m in attrs.get('marketplace'):
+                        if not Marketplace.objects.get(id=m):
+                            raise serializers.ValidationError('marketplace id is not valid')
                     
-                    if not UserAccount.objects.get(id=attrs.get('program')):
-                        raise serializers.ValidationError('program id is not valid')
-                    
-                    if not UserAccount.objects.get(id=attrs.get('sub_program')):
-                        raise serializers.ValidationError('sub_program id is not valid')
+                    for p in attrs.get('program'):
+                        if not Program.objects.get(id=p):
+                            raise serializers.ValidationError('program id is not valid')
+
+                    for s in attrs.get('sub_program'):
+                        if not Sub_Program.objects.get(id=s):
+                            raise serializers.ValidationError('sub_program id is not valid')
 
                     data['associate'] = UserAccount.objects.get(id=attrs.get('associate'))
-
         return data
 
 
@@ -625,15 +630,16 @@ class UpdateLeadsSerializer_ADMIN(serializers.ModelSerializer):
     client_turnover = serializers.IntegerField()
     associate = serializers.IntegerField()
     status = serializers.IntegerField()
-    segment = serializers.ListField()
+    segment = serializers.IntegerField()
     service = serializers.ListField()
     marketplace = serializers.ListField()
     program = serializers.ListField()
-    sub_program = serializers.ListField()
+    sub_program = serializers.ListField(required=False)
+    lead_id = serializers.CharField(required=False)
 
     class Meta:
         model = Leads
-        fields = ['client_name', 'email_id', 'contact_number', 'business_name', 'gst', 'seller_address', 'business_category', 'client_turnover','associate', 'status', 'brand_name']
+        fields = ['client_name', 'email_id', 'contact_number', 'business_name', 'gst', 'seller_address', 'business_category', 'client_turnover','associate', 'status', 'brand_name', 'segment', 'service', 'marketplace', 'program', 'sub_program', 'lead_id']
 
     def validate(self, attrs):
 
@@ -654,10 +660,12 @@ class UpdateLeadsSerializer_TL(serializers.ModelSerializer):
     client_turnover = serializers.IntegerField()
     associate = serializers.IntegerField()
     status = serializers.IntegerField()
+    lead_id = serializers.CharField(required=False)
+
     
     class Meta:
         model = Leads
-        fields = ['client_name', 'email_id', 'contact_number', 'business_name', 'gst', 'seller_address', 'business_category', 'client_turnover','associate', 'status', 'brand_name']
+        fields = ['client_name', 'email_id', 'contact_number', 'business_name', 'gst', 'seller_address', 'business_category', 'client_turnover','associate', 'status', 'brand_name', 'lead_id']
 
     def validate(self, attrs):
 

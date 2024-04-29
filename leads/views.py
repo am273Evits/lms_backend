@@ -950,6 +950,14 @@ class UpdateLeads(GenericAPIView):
 
             serializer.is_valid(raise_exception=True)
             serializer.save()
+            print('serializer.data', serializer.validated_data)
+
+            if (request.user.department.title == 'admin' and request.user.designation.title == 'lead_manager') or (request.user.department.title == 'business_development' and request.user.designation.title) == 'team_leader':
+                service_category_instance = serializer.instance.service_category_all.get(lead_id=serializer.validated_data['lead_id'])
+                service_category_instance.associate = serializer.validated_data['associate']
+                service_category_instance.status = serializer.validated_data['status']
+                service_category_instance.save()
+            
 
             res = resFun(status.HTTP_200_OK, 'request successful', [])
         else:
@@ -2187,7 +2195,6 @@ class AddNewServiceCategory(GenericAPIView):
 
 
                 if service_commercials.exists():
-
                     service_check = lead_instance.service_category_all.filter(service__id=service_commercials.first().id).exists()
 
                     if service_check:
