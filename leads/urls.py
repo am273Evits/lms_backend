@@ -151,6 +151,9 @@ urlpatterns = [
             path('email_proposal', apiSubmitEmailProposal.as_view()),
             path('ask_for_details_email', AskForDetailEmail.as_view()),
 
+            path('preview_mou/<str:lead_id>', preview_mou.as_view()),
+            path('email_mou', email_mou.as_view()),
+
 
             # path('field_add_new_service', fieldsAddNewServiceCountry.as_view()),
             # path('field_add_new_service/<str:country>', fieldsAddNewServiceMarketplace.as_view()),

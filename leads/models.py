@@ -208,6 +208,9 @@ class Status_history(models.Model):
   status_date = models.DateTimeField(auto_now=True, auto_now_add=False)
   updated_by = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, blank=True)
 
+class Client_designation(models.Model):
+  title = models.CharField(max_length=100, blank=True, default='')
+
 
 
 
@@ -239,7 +242,8 @@ class Leads(models.Model):
     business_name = models.CharField(max_length=100, blank=True, default='') 
     business_type = models.ForeignKey(Business_type, on_delete=models.CASCADE, null=True, blank=True) 
     business_category = models.ForeignKey(Business_category, on_delete=models.CASCADE, null=True, blank=True) 
-    brand_name = models.CharField(max_length=100, blank=True, default='') 
+    brand_name = models.CharField(max_length=100, blank=True, default='')
+    client_designation = models.ForeignKey(Client_designation, on_delete=models.CASCADE, null=True, blank=True)
     firm_type = models.ForeignKey(Firm_type, on_delete=models.CASCADE, null=True, blank=True) 
     name_for_mou = models.CharField(max_length=100, blank=True, default='') 
     designation_in_company = models.CharField(max_length=100, blank=True, default='') 

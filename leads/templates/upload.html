@@ -1,0 +1,28 @@
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input class="flupl" type='file' name="fileinp">
+    <input class="flsub" type="submit">
+</form>
+
+<script>
+
+    const flupl = document.querySelector('.flupl');
+    const flsub = document.querySelector('.flsub');
+
+    const csrf = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+    flsub.addEventListener('click', (e)=>{
+        e.preventDefault();
+
+        var nott = new FormData();
+        nott.append("fileinp", flupl.files[0]);
+
+        console.log(nott)
+
+        // fetch('http://localhost:8000/api/clnt_submit_payment_proof/L20231121121622745133679', {method: 'POST', headers: {"X-CSRFToken": csrf}, body: nott})
+        // .then(res=>res.json())
+        // .then(data=>console.log(data))
+    })
+    
+</script>
