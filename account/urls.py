@@ -2,6 +2,9 @@ from django.urls import path ,re_path
 from .import views
 
 urlpatterns = [
+    
+      path('page_refresher',views.page_refresher),
+    
       path('login',views.LoginView.as_view()),
     #   path('test',views.TestView.as_view()),
       path('register',views.registration_VF.as_view()),

@@ -124,6 +124,10 @@ def get_tokens_for_user(user):
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
+
+
+def page_refresher(request):
+    return render(request, 'page_refresher.html')
     
 
 class LoginView(GenericAPIView):
