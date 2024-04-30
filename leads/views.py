@@ -3,6 +3,8 @@ from django.apps import apps
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.core.mail import EmailMultiAlternatives
+from django.db.models import Q
+
 
 from rest_framework.generics import CreateAPIView, GenericAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -464,7 +466,8 @@ def viewLeadFun(leadsData, department):
         deadline = (math.ceil((int(tat.duration_in_hrs) - math.floor(int(deadline // (3600)))) / 24) -1 )
         # print('deadline', deadline)
 
-        if department == 'admin':
+
+        if department == 'admin' or department == 'director' :
             data.append({
                 'id' : sd.id , 
                 'client_id' : sd.client_id , 
@@ -717,9 +720,6 @@ def viewLeadBd_tl(user, offset, limit, page, client_id, department):
 
 
 def viewLeadAccount(user,offset,limit,page, client_id, department):
-
-    # print(user,offset,limit,page, client_id, department)
-    
     if offset != None:
         leadsData = Leads.objects.select_related().filter(service_category_all__status__title = 'pending for payment validation', visibility = True).all()[offset : offset + limit]
     else:
@@ -733,14 +733,8 @@ def viewLeadAccount(user,offset,limit,page, client_id, department):
         else:
             pagecount = math.ceil(Leads.objects.filter(service_category_all__status__title = 'pending for payment validation', client_id=client_id, visibility = True).count()/limit)
 
-
-
-        print('data', data)
         serializer = lead_managerBlSerializer_account(data=data, many=True)
         serializer.is_valid(raise_exception=True)
-
-        print('data', serializer.errors)
-
         if offset!=None:
             if int(page) <= pagecount:
                 res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'total_pages': pagecount, "current_page": page})
@@ -748,7 +742,6 @@ def viewLeadAccount(user,offset,limit,page, client_id, department):
                 res = resFun(status.HTTP_400_BAD_REQUEST, 'the page is unavailable', {'data': [], 'total_pages': pagecount, "current_page": page} )
         else:
             res = resFun(status.HTTP_200_OK,'successful',serializer.data)
-
     else:
         if offset!=None:
             res = resFun(status.HTTP_204_NO_CONTENT, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
@@ -772,18 +765,13 @@ class viewAllLeads(GenericAPIView):
         data = []
         pagecount = 1
 
-        print(user.department, user.designation)
-
         if str(user.department) == 'director' or (str(user.department) == 'admin' and str(user.designation) == 'lead_manager'):
             leadsData = Leads.objects.select_related().filter(visibility = True).all()[offset : offset + limit]
-
             data = viewLeadFun(leadsData, user.department.title)
-            
             if len(data) > 0:
                 pagecount = math.ceil(Leads.objects.filter(visibility = True).count()/limit)
                 serializer = lead_managerBlSerializer_admin(data=data, many=True)
                 serializer.is_valid(raise_exception=True)
-
                 if int(page) <= pagecount:
                     res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'total_pages': pagecount, "current_page": page})
                 else :
@@ -791,66 +779,66 @@ class viewAllLeads(GenericAPIView):
             else:   
                 res = resFun(status.HTTP_400_BAD_REQUEST, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
             return res
-
+        
         elif user.department.title == 'business_development':
-
             if user.designation.title == 'team_leader':
-            # services_flatten = .values_list('service', flat=True)
                 res = viewLeadBd_tl(user,offset,limit,page, None,user.department.title)
-
             elif user.designation.title == 'team_member':
                 res = resFun(status.HTTP_204_NO_CONTENT, 'no data', [])
         
         elif user.department.title == 'accounts' and user.designation.title == 'payment_followup' :
-
             res = viewLeadAccount(user, offset, limit, page, None, user.department.title)
-
-            # res = resFun(status.HTTP_200_OK, 'payment followup working', {'data': data, 'total_pages': pagecount, "current_page": page})
-
             
-        #     product = getProduct(user.id)
-        #     # print(product)
-        #     data = []
-        #     serviceData = service.objects.select_related().filter(service_category = product, client_id__visibility = True)[offset : limit]
-        #     for sd in serviceData:
-        #         associate = sd.associate_id.name if sd.associate_id != None else 'not assigned'
-        #         data.append({'client_id': sd.client_id.client_id, 'requester_name': sd.client_id.requester_name, 'phone_number':  sd.client_id.phone_number, 'email_id': sd.client_id.email_id, 'service_category': sd.service_category, 'associate': associate, 'lead_status': sd.lead_status.title})
-
-        #     if len(data) > 0:
-        #         pagecount = math.ceil(service.objects.filter(service_category = product ,client_id__visibility = True).count()/limit)
-        #         print('pagecount',pagecount)
-        #         serializer = bd_teamLeaderSerializer(data=data, many=True)
-        #         serializer.is_valid(raise_exception=True)
-        #         if int(page) <= pagecount:
-        #             res.status_code = status.HTTP_200_OK
-        #             res.data = {
-        #                 'status': status.HTTP_200_OK,
-        #                 'message': 'successful',
-        #                 'data': {'data': serializer.data, 'total_pages': pagecount, "current_page": page}
-        #                 }
-
-        #         else :
-        #             pagecount = math.ceil(service.objects.filter(service_category = product ,client_id__visibility = True).count()/limit)
-
-        #             res.status_code = status.HTTP_400_BAD_REQUEST
-        #             res.data = {
-        #                 "status": status.HTTP_400_BAD_REQUEST,
-        #                 "message": 'the page is unavailable',
-        #                 "data": {'data': [], 'total_pages': pagecount, "current_page": page}
-        #                 }
-                    
-        #     else:
-        #         res.status_code = status.HTTP_400_BAD_REQUEST
-        #         res.data = {
-        #             "status": status.HTTP_400_BAD_REQUEST,
-        #             "message": 'no data found',
-        #             "data": {'data': [], 'total_pages': pagecount, "current_page": page}
-        #             }
-        
-            # res = resFun(status.HTTP_200_OK, 'request successful', {'data': [], 'total_pages': pagecount, "current_page": page} )
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', {'data': [], 'total_pages': pagecount, "current_page": page} )
         return res
+    
+
+
+
+
+class viewAllLeadsApproval(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = viewAllLeadsApprovalSerializer
+    def get(self, request, approval_type, page):
+        # try:
+            user = request.user
+            limit = 10
+            offset = int((page - 1) * limit)
+            data = []
+            pagecount = 1
+
+            if str(user.department) == 'director':
+                leadsData = Leads.objects.filter(Q(service_category_all__commercial_approval__isnull=False) & Q(visibility = True)).all()[offset : offset + limit]
+                data = viewLeadFun(leadsData, user.department.title)
+                if len(data) > 0:
+                    pagecount = math.ceil(Leads.objects.filter(visibility = True).count()/limit)
+                    serializer = lead_managerBlSerializer_admin(data=data, many=True)
+                    serializer.is_valid(raise_exception=True)
+                    if int(page) <= pagecount:
+                        res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'total_pages': pagecount, "current_page": page})
+                    else :
+                        res = resFun(status.HTTP_400_BAD_REQUEST, 'the page is unavailable', {'data': [], 'total_pages': pagecount, "current_page": page} )
+                else:   
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
+                return res
+
+                pass
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', {'data': [], 'total_pages': pagecount, "current_page": page} )
+            return res
+        # except:
+        #         return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
+
+
+
+
+class viewAllLeadsApprovalSearch(GenericAPIView):
+    pass
+
+
+
+
     
 
 class viewAllLeadsArchive(GenericAPIView):

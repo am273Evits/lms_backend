@@ -139,6 +139,11 @@ class lead_managerBlSerializer_admin(serializers.Serializer):
 
 
 
+class viewAllLeadsApprovalSerializer(serializers.Serializer):
+    lead_id = serializers.CharField()
+
+
+
 
 
 # class View_All_Leads(serializers.ModelSerializer):
@@ -628,10 +633,10 @@ def serializer_validation(self, attrs, method):
             # elif Service_category.objects.filter(lead_id=attrs.get('lead_id')).exists():
             #     data['lead_id'] = attrs.get('lead_id')
             
-            if attrs.get('associate'):
-                if not drp_lead_status.objects.get(id=attrs.get('status')):
-                    raise serializers.ValidationError('status id is not valid')
-                data['status'] = drp_lead_status.objects.get(id=attrs.get('status'))
+            # if attrs.get('associate'):
+            #     if not drp_lead_status.objects.get(id=attrs.get('status')):
+            #         raise serializers.ValidationError('status id is not valid')
+            #     data['status'] = drp_lead_status.objects.get(id=attrs.get('status'))
 
 
             if method == 'tl':

@@ -22,6 +22,11 @@ urlpatterns = [
             path('update_lead/<str:client_id>', UpdateLeads.as_view()), #view_all_leads
 
 
+            path('view_lead_search/approval/<str:approval_type>/<str:lead_id>', viewAllLeadsApprovalSearch.as_view()), #view_all_leads
+            path('view_all_leads/approval/<str:approval_type>/<int:page>', viewAllLeadsApproval.as_view()), #view_all_leads
+
+
+
 
             #services   
             path('create_country', Createcountry.as_view()),
