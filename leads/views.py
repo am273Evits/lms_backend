@@ -2547,7 +2547,7 @@ class preview_mou(GenericAPIView):
                     else:
                         res = generate_mou(service_category_instance, lead_instance)
                         print('res',res)
-                        return FileResponse(res.get('file'), content_type='application/pdf', as_attachment=True, filename=f'{res.get('lead_instance').business_name}.pdf')
+                        return FileResponse(res.get('file'), content_type='application/pdf', as_attachment=True, filename=f'{lead_instance.business_name}.pdf')
                 else:
                     return resFun(status.HTTP_400_BAD_REQUEST, 'something went wrong', [])
             else:
@@ -2597,7 +2597,7 @@ class email_mou(GenericAPIView):
                         email.attach_alternative('<h1>Hello</h1></br><p>Please seal & sign this MOU and revert back to the same email.</p>', 'text/html')
                         # email.attach(filename = res[f'{res['lead_instance'].business_name.replace(' ', '_')}_{res['service_category_instance'].service.service.service}'], content = res['file'], mimetype='application/pdf')
 
-                        email.attach(f'{res.get('lead_instance').business_name}', res.get('file').read(), 'application/pdf')
+                        email.attach(lead_instance.business_name, res.get('file').read(), 'application/pdf')
 
 
                         email.send()
