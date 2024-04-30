@@ -13,7 +13,7 @@ class employeesAllTablesSerializer(serializers.Serializer):
 
 
 class CommonDropdownSerializer(serializers.Serializer):
-    id = serializers.CharField()
+    id = serializers.CharField(allow_null=True)
     value = serializers.CharField()
 
 # class dropdown_designationSerializer(serializers.Serializer):

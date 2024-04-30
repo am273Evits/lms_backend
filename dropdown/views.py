@@ -215,7 +215,8 @@ class get_commercials(GenericAPIView):
             lead_instance = Leads.objects.get(client_id=client_id, visibility=True)
             for ld in lead_instance.service_category_all.all():
                 if ld.lead_id == lead_id:
-                    data=[{"id": l.id, "value": l.commercials} for l in ld.service.commercials.all() ]
+                    data=[{"id": l.id, "value": l.commercials} for l in ld.service.commercials.all()]
+                    data.append({"id": None, "value": 'others'})
                     if len(data) > 0: 
                         serializer =  CommonDropdownSerializer(data=data, many=True)
                         serializer.is_valid(raise_exception=True)
