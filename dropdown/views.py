@@ -210,11 +210,11 @@ class employee_list(GenericAPIView):
 class get_commercials(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CommonDropdownSerializer
-    def get(self, request, lead_id, service_category_id, format=None, *args, **kwargs):
+    def get(self, request, client_id, lead_id, format=None, *args, **kwargs):
         try:
-            lead_instance = Leads.objects.get(lead_id=lead_id, visibility=True)
+            lead_instance = Leads.objects.get(client_id=client_id, visibility=True)
             for ld in lead_instance.service_category_all.all():
-                if ld.id == service_category_id:
+                if ld.lead_id == lead_id:
                     data=[{"id": l.id, "value": l.commercials} for l in ld.service.commercials.all() ]
                     if len(data) > 0: 
                         serializer =  CommonDropdownSerializer(data=data, many=True)
