@@ -60,11 +60,21 @@ class lead_managerBlSerializer_bd(serializers.Serializer):
     # associate = serializers.CharField()
     assigned_status = serializers.CharField()
     payment_approval = serializers.CharField()
-    mou_approval = serializers.CharField()
+    # mou_approval = serializers.CharField()
     commercial_approval = serializers.DictField()
     commercial = serializers.CharField()
     status = serializers.CharField()
     follow_up = serializers.ListField()
+    request_id = serializers.CharField()
+    provider_id = serializers.CharField()
+    requester_id = serializers.CharField()
+    requester_location = serializers.CharField()
+    requester_sell_in_country = serializers.CharField()
+    service_requester_type = serializers.CharField()
+    lead_manager = serializers.DictField()
+
+
+
 
 
 

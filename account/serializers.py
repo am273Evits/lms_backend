@@ -48,6 +48,8 @@ def registrationValidation(self):
         pass
     elif not Segment.objects.filter(id=self.validated_data.get('segment')).exists():
         raise serializers.ValidationError("invalid field segment")
+    
+    
     if self.validated_data.get('user_manager') == None:
         pass
     elif not UserAccount.objects.filter(id=self.validated_data.get('user_manager')).exists():
@@ -65,23 +67,30 @@ def registrationValidation(self):
         raise serializers.ValidationError("invalid field director id")
     
     
-    # print(self.validated_data.get('service'))
-    if len(self.validated_data.get('service')) > 0:
+    if self.validated_data.get('service') == None:
+        pass
+    elif len(self.validated_data.get('service')) > 0:
         for s in self.validated_data.get('service'):
             if not Service.objects.filter(id=s).exists():
                 raise serializers.ValidationError('invalid service id')
-            
-    if len(self.validated_data.get('marketplace')) > 0:
+    
+    if self.validated_data.get('marketplace') == None:
+        pass
+    elif len(self.validated_data.get('marketplace')) > 0:
         for s in self.validated_data.get('marketplace'):
             if not Marketplace.objects.filter(id=s).exists():
                 raise serializers.ValidationError('invalid marketplace id')
             
-    if len(self.validated_data.get('program')) > 0:
+    if self.validated_data.get('program') == None:
+        pass
+    elif len(self.validated_data.get('program')) > 0:
         for s in self.validated_data.get('program'):
             if not Program.objects.filter(id=s).exists():
                 raise serializers.ValidationError('invalid program id')
-            
-    if len(self.validated_data.get('sub_program')) > 0:
+
+    if self.validated_data.get('sub_program') == None:
+        pass
+    elif len(self.validated_data.get('sub_program')) > 0:
         for s in self.validated_data.get('sub_program'):
             if not Sub_Program.objects.filter(id=s).exists():
                 raise serializers.ValidationError('invalid sub_program id')
@@ -108,19 +117,20 @@ def registrationSave(self):
     # password = 'admin#manager@123'
     # user.set_password(password)
     user.save()
-    if len(self.validated_data['service']) > 0:
+
+    if self.validated_data['service'] and len(self.validated_data['service']) > 0:
         for s in self.validated_data['service']:
             user.service.add(s)
 
-    if len(self.validated_data['marketplace']) > 0:
+    if self.validated_data['marketplace'] and len(self.validated_data['marketplace']) > 0:
         for s in self.validated_data['marketplace']:
             user.marketplace.add(s)
 
-    if len(self.validated_data['program']) > 0:
+    if self.validated_data['program'] and len(self.validated_data['program']) > 0:
         for s in self.validated_data['program']:
             user.program.add(s)
     
-    if len(self.validated_data['sub_program']) > 0:
+    if self.validated_data['sub_program'] and len(self.validated_data['sub_program']) > 0:
         for s in self.validated_data['sub_program']:
             user.sub_program.add(s)
     
@@ -132,10 +142,10 @@ class AdminRegistrationSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     email = serializers.EmailField()
     employee_id = serializers.CharField()
-    service = serializers.ListField()
-    marketplace = serializers.ListField()
-    program = serializers.ListField()
-    sub_program = serializers.ListField()
+    service = serializers.ListField(allow_null=True)
+    marketplace = serializers.ListField(allow_null=True)
+    program = serializers.ListField(allow_null=True)
+    sub_program = serializers.ListField(allow_null=True)
     department = serializers.IntegerField()
     designation = serializers.IntegerField(allow_null=True)
     segment = serializers.IntegerField(allow_null=True)

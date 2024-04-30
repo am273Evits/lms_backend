@@ -152,7 +152,9 @@ urlpatterns = [
             path('ask_for_details_email', AskForDetailEmail.as_view()),
 
             path('preview_mou/<str:lead_id>', preview_mou.as_view()),
-            path('email_mou', email_mou.as_view()),
+            path('email_mou/<str:lead_id>', email_mou.as_view()),
+            path('mou_for_approval/<str:lead_id>', upload_mou_approval.as_view()),
+            path('payment_proof_for_approval/<str:lead_id>', upload_payment_proof_approval.as_view()),
 
 
             # path('field_add_new_service', fieldsAddNewServiceCountry.as_view()),

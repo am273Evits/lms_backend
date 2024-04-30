@@ -550,7 +550,7 @@ def viewLeadFun(leadsData, department):
                             "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
                             "assigned_status": 'assigned' if s.associate != None else "not assigned", 
                             "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
-                            "mou_approval": s.mou_approval if s.mou_approval != None else "-",
+                            # "mou_approval": s.mou_approval if s.mou_approval != None else "-",
                             "commercial_approval": {"status": s.commercial_approval.status, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
                             "commercial": s.pricing.commercials if s.pricing else "-",
                             "status": s.status_history_all.all().order_by('-id').first().status.title if s.status_history_all.all().exists() else "-",
@@ -568,6 +568,13 @@ def viewLeadFun(leadsData, department):
                     "business_category" : sd.business_category.title if sd.business_category else '-',
                     "firm_type" : sd.firm_type.title if sd.firm_type else '-',
                     "contact_preferences" : sd.contact_preferences.title if sd.contact_preferences else '-',
+                    "request_id": sd.request_id if sd.request_id else '-',
+                    "provider_id": sd.provider_id if sd.provider_id else '-',
+                    "requester_id": sd.requester_id if sd.requester_id else '-',
+                    "requester_location": sd.requester_location if sd.requester_location else '-',
+                    "requester_sell_in_country": sd.requester_sell_in_country if sd.requester_sell_in_country else '-',
+                    "service_requester_type": sd.service_requester_type if sd.service_requester_type else '-',
+                    "lead_manager": { 'id': sd.lead_owner.name, 'name': sd.lead_owner.name} if sd.lead_owner else { 'id': None , 'name': '-' },
                     # "followup" : sd.followup.followup_date if sd.followup else '-',
                     # "country" : sd.country.title if sd.country else '-',
                     # "state" : sd.state.title if sd.state else '-',
@@ -750,6 +757,8 @@ class viewAllLeads(GenericAPIView):
         data = []
         pagecount = 1
 
+        print(user.department, user.designation)
+
         if str(user.department) == 'director' or (str(user.department) == 'admin' and str(user.designation) == 'lead_manager'):
             leadsData = Leads.objects.select_related().filter(visibility = True).all()[offset : offset + limit]
 
@@ -776,6 +785,10 @@ class viewAllLeads(GenericAPIView):
 
             elif user.designation.title == 'team_member':
                 res = resFun(status.HTTP_204_NO_CONTENT, 'no data', [])
+        
+        elif user.department.title == 'accounts' and user.designation.title == 'payment_followup' :
+            res = resFun(status.HTTP_204_NO_CONTENT, 'payment followup working', [])
+
             
         #     product = getProduct(user.id)
         #     # print(product)
@@ -2440,85 +2453,70 @@ class AskForDetailEmail(GenericAPIView):
     
 
 
+def generate_mou_validation(service_category_instance, lead_instance):
+    error_data = []
+    if service_category_instance.pricing == None:
+        error_data.append('commercial')
+    if lead_instance.client_name == None:
+        error_data.append('client name')
+    if lead_instance.contact_number == None:
+        error_data.append('contact number')
+    if lead_instance.email_id == None:
+        error_data.append('email id')   
+    if lead_instance.business_name == None:
+        error_data.append('business name')
+    if lead_instance.brand_name == None:
+        error_data.append('brand name')
+    if lead_instance.gst == None:
+        error_data.append('gst')
+    if lead_instance.seller_address == None:
+        error_data.append('seller address')
+    if lead_instance.client_designation == None:
+        error_data.append('client designation')
+    return error_data
 
-def generate_mou(lead_id):
-    try:
-        service_category_instance = Service_category.objects.get(lead_id=lead_id)
-    except:
-        service_category_instance = None
-    if service_category_instance != None:
-        error_data = []
-        try:
-            lead_instance = Leads.objects.get(service_category_all__id=service_category_instance.id)
-        except:
-            lead_instance = None
-        if lead_instance != None:
-            if service_category_instance.pricing == None:
-                error_data.append('commercial')
-            if lead_instance.client_name == None:
-                error_data.append('client name')
-            if lead_instance.contact_number == None:
-                error_data.append('contact number')
-            if lead_instance.email_id == None:
-                error_data.append('email id')   
-            if lead_instance.business_name == None:
-                error_data.append('business name')
-            if lead_instance.brand_name == None:
-                error_data.append('brand name')
-            if lead_instance.gst == None:
-                error_data.append('gst')
-            if lead_instance.seller_address == None:
-                error_data.append('seller address')
-            if lead_instance.client_designation == None:
-                error_data.append('client designation')
-            if len(error_data) > 0:
-                return resFun(status.HTTP_400_BAD_REQUEST,', '.join(error_data)+', these fields are required, please update the seller details', [])
-            else:
-                    client_name = lead_instance.client_name.capitalize()
-                    email_id = lead_instance.email_id
-                    phone_number = lead_instance.contact_number
-                    business_name = lead_instance.business_name.capitalize()
-                    brand_name = lead_instance.brand_name
-                    name_for_mou = client_name.capitalize()
-                    designation = lead_instance.client_designation.title.capitalize()
-                    gst = lead_instance.gst.upper()
-                    seller_address = lead_instance.seller_address
-                    commercial = service_category_instance.pricing.commercials.capitalize()
-                    template = get_template('mou/mou.html')
-                    date = datetime.now()
-                    date = f"{date.strftime('%d')}/{date.strftime('%m')}/{date.strftime('%Y')}"
-                    context = {
-                        'current_date': date,
-                        'business_name': business_name, 
-                        'brand_name': brand_name, 
-                        'business_address': seller_address, 
-                        "service_name": service_category_instance.service.service.service, 
-                        "fees_slab": commercial, 
-                        "name_for_mou": name_for_mou, 
-                        'designation': designation, 
-                        'requester_name': client_name, 
-                        "email_id": email_id, 
-                        "gst": gst, 
-                        "phone_number": phone_number
-                        }
-                    html = template.render(context)
-                    res = BytesIO()
-                    result = pisa.CreatePDF(html, dest=res)
-                    if result.err:
-                        return Response({
-                            'status': status.HTTP_400_BAD_REQUEST,
-                            'error': 'error generating pdf',
-                            'data': []
-                            })
-                    service_category_instance.status = drp_lead_status(title='mou generated')
-                    res.seek(0)
-                    # return FileResponse(res, content_type='application/pdf', as_attachment=True, filename=f'{business_name}.pdf')
-        else:
-            res = resFun(status.HTTP_200_OK, 'something went wrong', [])
-    else:
-        res = resFun(status.HTTP_200_OK, 'invalid lead id', [])
 
-    return res
+
+def generate_mou(service_category_instance, lead_instance ):
+    client_name = lead_instance.client_name.capitalize()
+    email_id = lead_instance.email_id
+    phone_number = lead_instance.contact_number
+    business_name = lead_instance.business_name.capitalize()
+    brand_name = lead_instance.brand_name
+    name_for_mou = client_name.capitalize()
+    designation = lead_instance.client_designation.title.capitalize()
+    gst = lead_instance.gst.upper()
+    seller_address = lead_instance.seller_address
+    commercial = service_category_instance.pricing.commercials.capitalize()
+    template = get_template('mou/mou.html')
+    date = datetime.now()
+    date = f"{date.strftime('%d')}/{date.strftime('%m')}/{date.strftime('%Y')}"
+    context = {
+        'current_date': date,
+        'business_name': business_name, 
+        'brand_name': brand_name, 
+        'business_address': seller_address, 
+        "service_name": service_category_instance.service.service.service, 
+        "fees_slab": commercial, 
+        "name_for_mou": name_for_mou, 
+        'designation': designation, 
+        'requester_name': client_name, 
+        "email_id": email_id, 
+        "gst": gst, 
+        "phone_number": phone_number
+        }
+    html = template.render(context)
+    res = BytesIO()
+    result = pisa.CreatePDF(html, dest=res)
+    if result.err:
+        return Response({
+            'status': status.HTTP_400_BAD_REQUEST,
+            'error': 'error generating pdf',
+            'data': []
+            })
+    service_category_instance.status = drp_lead_status(title='mou generated')
+    res.seek(0)
+    return {'file': res, 'service_category_instance': service_category_instance,  'lead_instance': lead_instance }
 
         
 
@@ -2526,95 +2524,37 @@ class preview_mou(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = preview_mouSerializer
     def get(self, request, lead_id):
-        pass
-
-        # try:
-
-
+        try:
             # return FileResponse(file, content_type='application/pdf', as_attachment=True, filename=f'{business_name}.pdf')
+            try:
+                service_category_instance = Service_category.objects.get(lead_id=lead_id)
+            except:
+                service_category_instance = None
 
-            # try:
-            #     service_category_instance = Service_category.objects.get(lead_id=lead_id)
-            # except:
-            #     service_category_instance = None
+            if service_category_instance != None:
 
-            # if service_category_instance != None:
-            #     error_data = []
+                try:
+                    lead_instance = Leads.objects.get(service_category_all__id=service_category_instance.id)
+                except:
+                    lead_instance = None
 
-            #     try:
-            #         lead_instance = Leads.objects.get(service_category_all__id=service_category_instance.id)
-            #     except:
-            #         lead_instance = None
+                if lead_instance != None:
 
-            #     if lead_instance != None:
+                    error_data = generate_mou_validation(service_category_instance, lead_instance)
 
-            #         if service_category_instance.pricing == None:
-            #             error_data.append('commercial')
-            #         if lead_instance.client_name == None:
-            #             error_data.append('client name')
-            #         if lead_instance.contact_number == None:
-            #             error_data.append('contact number')
-            #         if lead_instance.email_id == None:
-            #             error_data.append('email id')   
-            #         if lead_instance.business_name == None:
-            #             error_data.append('business name')
-            #         if lead_instance.brand_name == None:
-            #             error_data.append('brand name')
-            #         if lead_instance.gst == None:
-            #             error_data.append('gst')
-            #         if lead_instance.seller_address == None:
-            #             error_data.append('seller address')
-            #         if lead_instance.client_designation == None:
-            #             error_data.append('client designation')
+                    if len(error_data) > 0:
+                        return resFun(status.HTTP_400_BAD_REQUEST,', '.join(error_data)+', these fields are required, please update the seller details', [])
+                    else:
+                        res = generate_mou(service_category_instance, lead_instance)
+                        print('res',res)
+                        return FileResponse(res['file'], content_type='application/pdf', as_attachment=True, filename=f'{res['lead_instance'].business_name}.pdf')
+                else:
+                    return resFun(status.HTTP_400_BAD_REQUEST, 'something went wrong', [])
+            else:
+                return resFun(status.HTTP_400_BAD_REQUEST, 'invalid lead id', [])
 
-            #         if len(error_data) > 0:
-            #             return resFun(status.HTTP_400_BAD_REQUEST,', '.join(error_data)+', these fields are required, please update the seller details', [])
-            #         else:
-
-            #                 client_name = lead_instance.client_name.capitalize()
-            #                 email_id = lead_instance.email_id
-            #                 phone_number = lead_instance.contact_number
-            #                 business_name = lead_instance.business_name.capitalize()
-            #                 brand_name = lead_instance.brand_name
-            #                 name_for_mou = client_name.capitalize()
-            #                 designation = lead_instance.client_designation.title.capitalize()
-            #                 gst = lead_instance.gst.upper()
-            #                 seller_address = lead_instance.seller_address
-            #                 commercial = service_category_instance.pricing.commercials.capitalize()
-
-            #                 template = get_template('mou/mou.html')
-            #                 date = datetime.now()
-            #                 date = f"{date.strftime('%d')}/{date.strftime('%m')}/{date.strftime('%Y')}"
-            #                 context = {
-            #                     'current_date': date,
-            #                     'business_name': business_name, 
-            #                     'brand_name': brand_name, 
-            #                     'business_address': seller_address, 
-            #                     "service_name": service_category_instance.service.service.service, 
-            #                     "fees_slab": commercial, 
-            #                     "name_for_mou": name_for_mou, 
-            #                     'designation': designation, 
-            #                     'requester_name': client_name, 
-            #                     "email_id": email_id, 
-            #                     "gst": gst, 
-            #                     "phone_number": phone_number
-            #                     }
-            #                 html = template.render(context)
-            #                 res = BytesIO()
-            #                 result = pisa.CreatePDF(html, dest=res)
-            #                 if result.err:
-            #                     return Response({
-            #                         'status': status.HTTP_400_BAD_REQUEST,
-            #                         'error': 'error generating pdf',
-            #                         'data': []
-            #                         })
-
-            #                 service_category_instance.status = drp_lead_status(title='mou generated')
-            #                 res.seek(0)
-                            # return FileResponse(res, content_type='application/pdf', as_attachment=True, filename=f'{business_name}.pdf')
-
-        # except:
-        #     return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
             
 
 
@@ -2624,9 +2564,136 @@ class email_mou(GenericAPIView):
     serializer_class = email_mouSerializer
     def get(self, request, lead_id):
         try:
-            pass
+            try:
+                service_category_instance = Service_category.objects.get(lead_id=lead_id)
+            except:
+                service_category_instance = None
+
+            if service_category_instance != None:
+
+                try:
+                    lead_instance = Leads.objects.get(service_category_all__id=service_category_instance.id)
+                except:
+                    lead_instance = None
+
+                if lead_instance != None:
+
+                    error_data = generate_mou_validation(service_category_instance, lead_instance)
+
+                    if len(error_data) > 0:
+                        return resFun(status.HTTP_400_BAD_REQUEST,', '.join(error_data)+', these fields are required, please update the seller details', [])
+                    else:
+                        res = generate_mou(service_category_instance, lead_instance)
+                        # print('res',res['lead_instance'].business_name.replace(' ', '_'))
+
+                        email = lead_instance.email_id
+
+                        subject = f'MOU for {service_category_instance.service.service.service} with evitamin!'
+                        text = 'PFA'
+                        from_email = 'akshatnigamcfl@gmail.com'
+                        recipient = [email]
+
+                        email = EmailMultiAlternatives(subject, text, from_email, recipient)
+                        email.attach_alternative('<h1>Hello</h1></br><p>Please seal & sign this MOU and revert back to the same email.</p>', 'text/html')
+                        # email.attach(filename = res[f'{res['lead_instance'].business_name.replace(' ', '_')}_{res['service_category_instance'].service.service.service}'], content = res['file'], mimetype='application/pdf')
+
+                        email.attach(f'{res['lead_instance'].business_name}', res['file'].read(), 'application/pdf')
+
+
+                        email.send()
+
+                        if email.send():
+
+                            # print('getLeadStatusInst', getLeadStatusInst('pending payment proof'))
+                            # service.objects.filter(lead_id__lead_id=lead_id, lead_id__visibility=True).update(lead_status = getLeadStatusInst('pending payment proof'))
+
+                            service_category_instance.status = drp_lead_status.objects.get(title='pending for mou')
+                            service_category_instance.save()
+
+                            res = resFun(status.HTTP_200_OK,'email sent', [] )
+                        else:
+                            res = resFun(status.HTTP_400_BAD_REQUEST,'email not sent', [] )
+
+                    return res
+
+                        # return FileResponse(res['file'], content_type='application/pdf', as_attachment=True, filename=f'{res['business_name']}.pdf')
+                else:
+                    return resFun(status.HTTP_400_BAD_REQUEST, 'something went wrong', [])
+            else:
+                return resFun(status.HTTP_400_BAD_REQUEST, 'invalid lead id', [])
+
         except:
-            return resFun(status.HTTP_200_OK, 'request failed', [])
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+
+
+
+
+class upload_mou_approval(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    serializer_class = uploadFileSerializer
+    def post(self, request, lead_id):
+        try:
+            if request.FILES:
+                try:
+                    service_category_instance = Service_category.objects.get(lead_id=lead_id)
+                except:
+                    service_category_instance = None
+
+                if service_category_instance != None:
+                    file = request.FILES['file']
+                    service_category_instance.mou = file
+                    # service_category_instance.mou_approval = False
+
+                    service_category_instance.status = drp_lead_status.objects.get(title='pending for mou')
+                    service_category_instance.save()
+
+                    res = resFun(status.HTTP_200_OK, 'request successful', [])
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid lead id', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'file required to upload', [])
+            return res
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+
+            
+
+
+class upload_payment_proof_approval(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    serializer_class = uploadFileSerializer
+    def post(self, request, lead_id):
+        try:
+            if request.FILES:
+                try:
+                    service_category_instance = Service_category.objects.get(lead_id=lead_id)
+                except:
+                    service_category_instance = None
+
+                if service_category_instance != None:
+                    file = request.FILES['file']
+                    service_category_instance.payment_proof = file
+                    # service_category_instance.payment_approval = False
+                    service_category_instance.status = drp_lead_status.objects.get(title='pending for mou')
+                    service_category_instance.save()
+
+                    res = resFun(status.HTTP_200_OK, 'request successful', [])
+                else:
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid lead id', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'file required to upload', [])
+            return res
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+
+    
+
+
+
+
+
 
     
 

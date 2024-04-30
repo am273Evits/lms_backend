@@ -162,14 +162,10 @@ class user_restore(models.Model):
     def __str__(self): return str(self.user.name)
 
 
-class File(models.Model):
-    file = models.FileField(upload_to='files')
+# class File(models.Model):
+#     file = models.FileField(upload_to='files')
 
-class mouFile(models.Model):
-    file = models.FileField(upload_to='mou')
 
-class paymentProofFile(models.Model):
-    file = models.FileField(upload_to='payment_proof')
 
 
 

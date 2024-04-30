@@ -8,6 +8,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from leads.views import *
 
+from django.conf import settings
+from django.conf.urls.static import static
+
+
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -39,5 +43,8 @@ urlpatterns = [
     path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', jwt_views.TokenVerifyView.as_view(), name='verify_token'),
 ]
+
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

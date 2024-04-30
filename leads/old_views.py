@@ -2022,55 +2022,55 @@ class apiSubmitEmailAskForDetails(GenericAPIView):
 #                 return res
 
 
-class emailMouFun(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    def post(self, request, lead_id, format=None, *args, **kwargs):
-        # print(lead_id)
-        if request.method == 'POST':
-            file = request.FILES.get('file')
-            # print(file)
+# class emailMouFun(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     def post(self, request, lead_id, format=None, *args, **kwargs):
+#         # print(lead_id)
+#         if request.method == 'POST':
+#             file = request.FILES.get('file')
+#             # print(file)
     
-        email = all_identifiers.objects.get(lead_id=lead_id, visibility=True)
-        res = Response()
-        if email:
-            email = email.email_id
+#         email = all_identifiers.objects.get(lead_id=lead_id, visibility=True)
+#         res = Response()
+#         if email:
+#             email = email.email_id
 
-            subject = 'Test email with attachment'
-            text = 'PFA'
-            from_email = 'akshatnigamcfl@gmail.com'
-            recipient = [email]
+#             subject = 'Test email with attachment'
+#             text = 'PFA'
+#             from_email = 'akshatnigamcfl@gmail.com'
+#             recipient = [email]
 
-            email = EmailMultiAlternatives(subject, text, from_email, recipient)
-            email.attach_alternative('<h1>Test email with attachment</h1>', 'text/html')
-            email.attach(filename = file.name, content = file.read(), mimetype='application/pdf')
+#             email = EmailMultiAlternatives(subject, text, from_email, recipient)
+#             email.attach_alternative('<h1>Test email with attachment</h1>', 'text/html')
+#             email.attach(filename = file.name, content = file.read(), mimetype='application/pdf')
 
-            email.send()
+#             email.send()
 
-            if email.send():
-                print('getLeadStatusInst', getLeadStatusInst('pending payment proof'))
-                service.objects.filter(lead_id__lead_id=lead_id, lead_id__visibility=True).update(lead_status = getLeadStatusInst('pending payment proof'))
+#             if email.send():
+#                 print('getLeadStatusInst', getLeadStatusInst('pending payment proof'))
+#                 service.objects.filter(lead_id__lead_id=lead_id, lead_id__visibility=True).update(lead_status = getLeadStatusInst('pending payment proof'))
 
-                res.status_code = status.HTTP_200_OK
-                res.data = {
-                    'status': status.HTTP_200_OK,
-                    'email': 'email sent',
-                    'data': []
-                    }
-            else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    'email': 'email not sent',
-                    'data': []
-                    }
-        else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'status': status.HTTP_400_BAD_REQUEST,
-                'email': 'invalid lead id',
-                'data': []
-                }
-        return res
+#                 res.status_code = status.HTTP_200_OK
+#                 res.data = {
+#                     'status': status.HTTP_200_OK,
+#                     'email': 'email sent',
+#                     'data': []
+#                     }
+#             else:
+#                 res.status_code = status.HTTP_400_BAD_REQUEST
+#                 res.data = {
+#                     'status': status.HTTP_400_BAD_REQUEST,
+#                     'email': 'email not sent',
+#                     'data': []
+#                     }
+#         else:
+#             res.status_code = status.HTTP_400_BAD_REQUEST
+#             res.data = {
+#                 'status': status.HTTP_400_BAD_REQUEST,
+#                 'email': 'invalid lead id',
+#                 'data': []
+#                 }
+#         return res
     
 
 

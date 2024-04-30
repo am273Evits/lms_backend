@@ -301,6 +301,14 @@ class Commercial_Approval(models.Model):
   status = models.BooleanField(default=False)
 
 
+# class mouFile(models.Model):
+#     file = models.FileField(upload_to='mou')
+
+# class paymentProofFile(models.Model):
+#     file = models.FileField(upload_to='payment_proof')
+
+
+
 class Service_category(models.Model):
   lead_id = models.CharField(max_length=100, blank=True, default='')
   associate = models.ForeignKey(UserAccount , on_delete=models.CASCADE, null=True, blank=True)
@@ -309,13 +317,14 @@ class Service_category(models.Model):
   followup = models.ManyToManyField(Followup_history) # ForeignKey(Followup_history, on_delete=models.CASCADE, null=True, blank=True)
   status = models.ForeignKey(drp_lead_status, on_delete=models.CASCADE, null=True, blank=True)
   payment_approval = models.BooleanField(null=True, blank=True, default='')
-  mou_approval = models.BooleanField(null=True, blank=True, default='')
+  # mou_approval = models.BooleanField(null=True, blank=True, default='')
   commercial_approval = models.ForeignKey(Commercial_Approval, on_delete=models.CASCADE, null=True, blank=True)
   not_interested_reason = models.ForeignKey("dropdown.not_interested", on_delete=models.CASCADE, null=True, blank=True)
   unresponsive_reason = models.ForeignKey("dropdown.unresponsive", on_delete=models.CASCADE, null=True, blank=True)
   status_history_all = models.ManyToManyField(Status_history)
+  mou = models.FileField(upload_to='mou', max_length=100, null=True, blank=True,  default='')
+  payment_proof = models.FileField(upload_to='payment_proof', max_length=100, null=True, blank=True,  default='' )
   def __str__(self): return str(self.service)
-
 
 
 
