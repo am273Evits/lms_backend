@@ -494,7 +494,7 @@ def viewLeadFun(leadsData, department):
                         "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
                         "assigned_status": 'assigned' if s.associate != None else "not assigned", 
                         "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
-                        "mou_approval": s.mou_approval if s.mou_approval != None else "-",
+                        # "mou_approval": s.mou_approval if s.mou_approval != None else "-",
                         "commercial_approval": {"status": s.commercial_approval.status, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
                         "commercial": s.pricing.commercials if s.pricing else "-",
                         "status": s.status_history_all.all().order_by('-id').first().status.title if s.status_history_all.all().exists() else "-",
@@ -578,13 +578,33 @@ def viewLeadFun(leadsData, department):
                     "requester_location": sd.requester_location if sd.requester_location else '-',
                     "requester_sell_in_country": sd.requester_sell_in_country if sd.requester_sell_in_country else '-',
                     "service_requester_type": sd.service_requester_type if sd.service_requester_type else '-',
-                    "lead_manager": { 'id': sd.lead_owner.name, 'name': sd.lead_owner.name} if sd.lead_owner else { 'id': None , 'name': '-' },
+                    "lead_owner": { 'id': sd.lead_owner.name, 'name': sd.lead_owner.name} if sd.lead_owner else { 'id': None , 'name': '-' },
                     # "followup" : sd.followup.followup_date if sd.followup else '-',
                     # "country" : sd.country.title if sd.country else '-',
                     # "state" : sd.state.title if sd.state else '-',
                     # "city" : sd.city.title if sd.city else '-'
                     "hot_lead" : sd.hot_lead
                     })
+        elif department == 'accounts':
+            for s in sd.service_category_all.all():
+                data.append({
+                'id' : sd.id ,
+                 "client_id" : sd.client_id,
+                 "lead_id" : s.lead_id,
+                 "client_name" : sd.client_name,
+                 "contact_number" : sd.contact_number,
+                 "email_id" : sd.email_id,
+                 "status" : s.status_history_all.all().order_by('-id').first().status.title if s.status_history_all.all().exists() else "-",
+                 "segment" : s.service.segment.segment if s.service and s.service.segment else '-',
+                 "service" : s.service.service.service if s.service and s.service.service else '-',
+                 "marketplace" : s.service.marketplace.marketplace if s.service and s.service.marketplace else '-',
+                 "program" : s.service.program.program if s.service and s.service.program else '-',
+                 "sub_program" : s.service.sub_program.sub_program if s.service and s.service.sub_program else '-',
+                 "associate" : {'id': s.associate.id, 'name': s.associate.name} if s.associate else {'id': None, 'name': None},
+                 "team_leader" : {'id': s.associate.team_leader.id, 'name': s.associate.team_leader.name} if s.associate else {'id': None, 'name': None},
+                 "payment_proof" : str(s.payment_proof) if s.payment_proof else '-',
+                 "mou" : str(s.mou) if s.mou else '-'
+                })
         
         # print([[f.followup_time for f in s.followup.all()] for s in sd.service_category_all.all()][0])
 
@@ -624,8 +644,8 @@ def viewLeadBd_tl(user, offset, limit, page, client_id, department):
                 visibility = True
                 ).all()[offset : offset + limit]
         
-        print(leadsData)
-        print('leadsData',leadsData)
+        # print(leadsData)
+        # print('leadsData',leadsData)
 
     else:
         if len(user.sub_program.all()) == 0:
@@ -667,63 +687,7 @@ def viewLeadBd_tl(user, offset, limit, page, client_id, department):
                     service_category_all__service__marketplace__in= user.marketplace.all(),  
                     service_category_all__service__program__in= user.program.all(),
                     service_category_all__service__sub_program__in= user.sub_program.all(),
-                    visibility = True).count()/limit)
-                
-        # FLATTEN_DATA = []
-        
-
-        # for d in data:
-        #     ser_len = len(d['service_category'])
-        #     if ser_len == 0:
-        #         ser_len = 1
-        #     for i in range(ser_len):
-        #         FLATTEN_DATA.append({
-
-        #             'id' : d['id'],
-        #             'client_id' : d['client_id'] , 
-        #             'client_name': d['client_name'], 
-        #             'contact_number': d['contact_number'],
-        #             'alternate_contact_number': d['alternate_contact_number'] if d["alternate_contact_number else '-'"],
-        #             'email_id': d['email_id'],
-        #             'alternate_email_id': d['alternate_email_id if d['alternate_email_id else '-',
-        #             # 'service_category': d['service_category.service_name, 
-        #             # 'assigned_to': d['service_category_all(), 
-        #             # 'status': d['status.title if d['status else '-', 
-        #             'upload_date': upload_date , 
-        #             'deadline': deadline,
-        #             # "assigned_status": ,
-        #             # "associate" : d['associate.name if d['associate else '-',
-        #             "service_category" : [
-        #                 { 
-        #                     'service': s.service.service.service, 
-        #                     "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
-        #                     "assigned_status": 'assigned' if s.associate != None else "not assigned", 
-        #                     "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
-        #                     "mou_approval": s.mou_approval if s.mou_approval != None else "-",
-        #                     "commercial_approval": s.commercial_approval if s.commercial_approval != None else "-",
-        #                     "commercial": s.pricing if s.pricing else "-",
-        #                     "status": s.status.title if s.status else "-",
-        #                     "follow_up": [ {
-        #                         'date':f.followup_date if f.followup_date else '-', 
-        #                         'time': f.followup_time if f.followup_time else '-', 
-        #                         'notes': f.followup_notes if f.followup_notes else '-', 
-        #                         'created_by': f.created_by.name if f.created_by else '-' } for f in s.followup.all()],
-        #                     } for s in d['service_category_all.all()] if d['service_category_all else [],
-        #             # "commercials" : d['commercials.price_for_mou if d['commercials else '-',
-        #             # "status" : d['status.title if d['status else '-',
-        #             "client_turnover" : d['client_turnover.title if d['client_turnover else '-',
-        #             "business_name" : d['business_name if d['business_name else '-',
-        #             "business_type" : d['business_type.title if d['business_type else '-',
-        #             "business_category" : d['business_category.title if d['business_category else '-',
-        #             "firm_type" : d['firm_type.title if d['firm_type else '-',
-        #             "contact_preferences" : d['contact_preferences.title if d['contact_preferences else '-',
-        #             "followup" : d['followup.followup_date if d['followup else '-',
-        #             # "country" : d['country.title if d['country else '-',
-        #             # "state" : d['state.title if d['state else '-',
-        #             # "city" : d['city.title if d['city else '-'
-        #             "hot_lead" : d['hot_lead
-
-        #         })
+                    visibility = True).count()/limit)        
 
                 
         if department == 'admin':
@@ -748,6 +712,53 @@ def viewLeadBd_tl(user, offset, limit, page, client_id, department):
         else:
             res = resFun(status.HTTP_204_NO_CONTENT, 'no data found', [] )
     return res
+
+
+
+
+def viewLeadAccount(user,offset,limit,page, client_id, department):
+
+    # print(user,offset,limit,page, client_id, department)
+    
+    if offset != None:
+        leadsData = Leads.objects.select_related().filter(service_category_all__status__title = 'pending for payment validation', visibility = True).all()[offset : offset + limit]
+    else:
+        leadsData = Leads.objects.select_related().filter(service_category_all__status__title = 'pending for payment validation', client_id=client_id, visibility = True).all()[offset : offset + limit]
+
+    data = viewLeadFun(leadsData, department)
+
+    if len(data) > 0:
+        if offset != None:
+            pagecount = math.ceil(Leads.objects.filter(service_category_all__status__title = 'pending for payment validation', visibility = True).count()/limit)
+        else:
+            pagecount = math.ceil(Leads.objects.filter(service_category_all__status__title = 'pending for payment validation', client_id=client_id, visibility = True).count()/limit)
+
+
+
+        print('data', data)
+        serializer = lead_managerBlSerializer_account(data=data, many=True)
+        serializer.is_valid(raise_exception=True)
+
+        print('data', serializer.errors)
+
+        if offset!=None:
+            if int(page) <= pagecount:
+                res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'total_pages': pagecount, "current_page": page})
+            else :
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'the page is unavailable', {'data': [], 'total_pages': pagecount, "current_page": page} )
+        else:
+            res = resFun(status.HTTP_200_OK,'successful',serializer.data)
+
+    else:
+        if offset!=None:
+            res = resFun(status.HTTP_204_NO_CONTENT, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
+        else:
+            res = resFun(status.HTTP_204_NO_CONTENT, 'no data found', [] )
+    return res 
+    
+
+    
+
 
 
 
@@ -791,7 +802,10 @@ class viewAllLeads(GenericAPIView):
                 res = resFun(status.HTTP_204_NO_CONTENT, 'no data', [])
         
         elif user.department.title == 'accounts' and user.designation.title == 'payment_followup' :
-            res = resFun(status.HTTP_204_NO_CONTENT, 'payment followup working', [])
+
+            res = viewLeadAccount(user, offset, limit, page, None, user.department.title)
+
+            # res = resFun(status.HTTP_200_OK, 'payment followup working', {'data': data, 'total_pages': pagecount, "current_page": page})
 
             
         #     product = getProduct(user.id)
@@ -2680,7 +2694,7 @@ class upload_payment_proof_approval(GenericAPIView):
                     file = request.FILES['file']
                     service_category_instance.payment_proof = file
                     # service_category_instance.payment_approval = False
-                    service_category_instance.status = drp_lead_status.objects.get(title='pending for mou')
+                    service_category_instance.status = drp_lead_status.objects.get(title='pending for payment validation')
                     service_category_instance.save()
 
                     res = resFun(status.HTTP_200_OK, 'request successful', [])

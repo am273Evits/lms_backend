@@ -28,7 +28,7 @@ from .main_functions import getClientId
 
 
 class lead_managerBlSerializer_bd(serializers.Serializer):
-    id = serializers.CharField()
+    id = serializers.IntegerField()
     client_id = serializers.CharField()
     lead_id = serializers.CharField()
     client_name = serializers.CharField()
@@ -75,9 +75,27 @@ class lead_managerBlSerializer_bd(serializers.Serializer):
     requester_location = serializers.CharField()
     requester_sell_in_country = serializers.CharField()
     service_requester_type = serializers.CharField()
-    lead_manager = serializers.DictField()
+    lead_owner = serializers.DictField()
 
 
+
+class lead_managerBlSerializer_account(serializers.Serializer):
+    id = serializers.IntegerField()
+    lead_id = serializers.CharField()
+    client_id = serializers.CharField()
+    client_name = serializers.CharField()
+    contact_number = serializers.CharField()
+    email_id = serializers.EmailField()
+    status = serializers.CharField()
+    segment = serializers.CharField()
+    service = serializers.CharField()
+    marketplace = serializers.CharField()
+    program = serializers.CharField()
+    sub_program = serializers.CharField()
+    associate = serializers.DictField()
+    team_leader = serializers.DictField()
+    payment_proof = serializers.CharField()
+    mou = serializers.CharField()
 
 
 
