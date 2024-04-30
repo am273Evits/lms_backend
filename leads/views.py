@@ -555,7 +555,7 @@ def viewLeadFun(leadsData, department):
                             # "mou_approval": s.mou_approval if s.mou_approval != None else "-",
                             "commercial_approval": {"status": s.commercial_approval.status, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
                             "commercial": s.pricing.commercials if s.pricing else "-",
-                            "status": s.status_history_all.all().order_by('-id').first().status.title if s.status_history_all.all().exists() else "-",
+                            "status": {'id': s.status_history_all.all().order_by('-id').first().status.id, 'value': s.status_history_all.all().order_by('-id').first().status.title} if s.status_history_all.all().exists() else {"id": None, 'value': None},
                             "follow_up": [ {
                                 'date':f.date if f.date else '-', 
                                 'time': f.time if f.time else '-', 
@@ -594,7 +594,7 @@ def viewLeadFun(leadsData, department):
                  "client_name" : sd.client_name,
                  "contact_number" : sd.contact_number,
                  "email_id" : sd.email_id,
-                 "status" : s.status_history_all.all().order_by('-id').first().status.title if s.status_history_all.all().exists() else "-",
+                 "status" : {'id': s.status_history_all.all().order_by('-id').first().status.id, 'value': s.status_history_all.all().order_by('-id').first().status.title} if s.status_history_all.all().exists() else {"id": None, 'value': None},
                  "segment" : s.service.segment.segment if s.service and s.service.segment else '-',
                  "service" : s.service.service.service if s.service and s.service.service else '-',
                  "marketplace" : s.service.marketplace.marketplace if s.service and s.service.marketplace else '-',
@@ -602,8 +602,8 @@ def viewLeadFun(leadsData, department):
                  "sub_program" : s.service.sub_program.sub_program if s.service and s.service.sub_program else '-',
                  "associate" : {'id': s.associate.id, 'name': s.associate.name} if s.associate else {'id': None, 'name': None},
                  "team_leader" : {'id': s.associate.team_leader.id, 'name': s.associate.team_leader.name} if s.associate else {'id': None, 'name': None},
-                 "payment_proof" : str(s.payment_proof) if s.payment_proof else '-',
-                 "mou" : str(s.mou) if s.mou else '-'
+                 "payment_proof" : f'/media/{str(s.payment_proof)}' if s.payment_proof else '-',
+                 "mou" : f'/media/{str(s.mou)}' if s.mou else '-'
                 })
         
         # print([[f.followup_time for f in s.followup.all()] for s in sd.service_category_all.all()][0])
