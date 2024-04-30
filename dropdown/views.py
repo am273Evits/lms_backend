@@ -217,6 +217,8 @@ class get_commercials(GenericAPIView):
                 if ld.lead_id == lead_id:
                     data=[{"id": l.id, "value": l.commercials} for l in ld.service.commercials.all()]
                     data.append({"id": None, "value": 'others'})
+                    if ld.commercial_approval.status == True:
+                        print('working')
                     if len(data) > 0: 
                         serializer =  CommonDropdownSerializer(data=data, many=True)
                         serializer.is_valid(raise_exception=True)

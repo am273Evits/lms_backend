@@ -467,7 +467,7 @@ def viewLeadFun(leadsData, department):
         # print('deadline', deadline)
 
 
-        if department == 'admin' or department == 'director' :
+        if department == 'admin':
             data.append({
                 'id' : sd.id , 
                 'client_id' : sd.client_id , 
@@ -529,7 +529,7 @@ def viewLeadFun(leadsData, department):
                 "hot_lead" : sd.hot_lead
                 })
 
-        elif department == 'business_development':
+        elif department == 'business_development' or department == 'director':
             for s in sd.service_category_all.all():
                 data.append({
                     'id' : sd.id , 
@@ -811,9 +811,10 @@ class viewAllLeadsApproval(GenericAPIView):
             if str(user.department) == 'director':
                 leadsData = Leads.objects.filter(Q(service_category_all__commercial_approval__isnull=False) & Q(visibility = True)).all()[offset : offset + limit]
                 data = viewLeadFun(leadsData, user.department.title)
+                print(data)
                 if len(data) > 0:
                     pagecount = math.ceil(Leads.objects.filter(visibility = True).count()/limit)
-                    serializer = lead_managerBlSerializer_admin(data=data, many=True)
+                    serializer = lead_managerBlSerializer_bd(data=data, many=True)
                     serializer.is_valid(raise_exception=True)
                     if int(page) <= pagecount:
                         res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'total_pages': pagecount, "current_page": page})
