@@ -479,6 +479,7 @@ def viewLeadFun(leadsData, department):
                 'upload_date': upload_date , 
                 'deadline': deadline,
                 'gst': sd.gst if sd.gst else '-',
+                # 'lead_manager': sd.lead_manager.name if sd.lead_manager else '-',
                 'seller_address': sd.seller_address if sd.seller_address else '-',
                 'services': [s.service.service.service for s in sd.service_category_all.all() if s.service ],
                 # "assigned_status": ,
@@ -2525,9 +2526,13 @@ class preview_mou(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = preview_mouSerializer
     def get(self, request, lead_id):
+        pass
 
-        try:
-            pass
+        # try:
+
+
+            # return FileResponse(file, content_type='application/pdf', as_attachment=True, filename=f'{business_name}.pdf')
+
             # try:
             #     service_category_instance = Service_category.objects.get(lead_id=lead_id)
             # except:
@@ -2608,10 +2613,8 @@ class preview_mou(GenericAPIView):
             #                 res.seek(0)
                             # return FileResponse(res, content_type='application/pdf', as_attachment=True, filename=f'{business_name}.pdf')
 
-
-
-        except:
-            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+        # except:
+        #     return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
             
 
 
