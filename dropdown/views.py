@@ -211,25 +211,30 @@ class get_commercials(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CommonDropdownSerializer
     def get(self, request, client_id, lead_id, format=None, *args, **kwargs):
-        try:
+        # try:
             lead_instance = Leads.objects.get(client_id=client_id, visibility=True)
-            for ld in lead_instance.service_category_all.all():
-                if ld.lead_id == lead_id:
-                    data=[{"id": l.id, "value": l.commercials} for l in ld.service.commercials.all()]
-                    data.append({"id": 0, "value": 'others'})
-                    if len(data) > 0: 
-                        serializer =  CommonDropdownSerializer(data=data, many=True)
-                        serializer.is_valid(raise_exception=True)
+            # print(lead_instance.service_category_all.all())
+            service_category_instance = lead_instance.service_category_all.filter(lead_id=lead_id)
+            print('service_category_instance',service_category_instance)
 
-                        res =  resFun(status.HTTP_200_OK, 'request successful', serializer.data)
-                    else:
-                        res =  resFun(status.HTTP_204_NO_CONTENT, 'no data found, contact director to create commercials for this service', [])
-
+            if service_category_instance.exists():
+                # lead_id =
+                # print(ld.lead_id)
+                # if ld.lead_id == lead_id:
+                data=[{"id": l.id, "value": l.commercials} for l in service_category_instance.first().service.commercials.all()]
+                data.append({"id": 0, "value": 'others'})
+                if len(data) > 0: 
+                    serializer =  CommonDropdownSerializer(data=data, many=True)
+                    serializer.is_valid(raise_exception=True)
+                    res =  resFun(status.HTTP_200_OK, 'request successful', serializer.data)
                 else:
-                    res =  resFun(status.HTTP_204_NO_CONTENT, 'no data', [])
-                return res
-        except:
-            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+                    res =  resFun(status.HTTP_204_NO_CONTENT, 'no data found, contact director to create commercials for this service', [])
+
+            else:
+                res =  resFun(status.HTTP_204_NO_CONTENT, 'no data', [])
+            return res
+        # except:
+        #     return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
             
 
 
