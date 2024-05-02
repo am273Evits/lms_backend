@@ -164,8 +164,6 @@ urlpatterns = [
 
             path('foc_approval', foc_approval.as_view()),
 
-            path('foc_test', foc_approval.as_view()),
-
 
             # path('field_add_new_service', fieldsAddNewServiceCountry.as_view()),
             # path('field_add_new_service/<str:country>', fieldsAddNewServiceMarketplace.as_view()),
