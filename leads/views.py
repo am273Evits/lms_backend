@@ -2239,8 +2239,11 @@ class reasonSubmit(GenericAPIView):
         try:
             model = apps.get_model('dropdown', table)
 
-            if not request.data.get('status_id'):
-                return resFun(status.HTTP_400_BAD_REQUEST, 'id field is mandatory', [])
+            if request.data.get('status_id') == 0:
+                pass
+            else:
+                if not request.data.get('status_id'):
+                    return resFun(status.HTTP_400_BAD_REQUEST, 'id field is mandatory', [])
             
             if not request.data.get('client_id'):
                 return resFun(status.HTTP_400_BAD_REQUEST, 'client id field is mandatory', [])
@@ -2305,8 +2308,11 @@ class LeadStatusUpdate(GenericAPIView):
                 return resFun(status.HTTP_400_BAD_REQUEST, 'client id is required',[])
             if not request.data.get('lead_id'):
                 return resFun(status.HTTP_400_BAD_REQUEST, 'lead id is required',[])
-            if not request.data.get('lead_status_id'):
-                return resFun(status.HTTP_400_BAD_REQUEST, 'lead status id is required',[])
+            if request.data.get('lead_status_id') == 0:
+                pass
+            else:
+                if not request.data.get('lead_status_id'):
+                    return resFun(status.HTTP_400_BAD_REQUEST, 'lead status id is required',[])
             
             lead_instance = Leads.objects.get(client_id=request.data.get('client_id'))
             for ld in lead_instance.service_category_all.all():
