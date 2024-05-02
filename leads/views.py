@@ -2313,7 +2313,7 @@ class apiSubmitEmailProposal(GenericAPIView):
         try:
             client_id = request.data.get('client_id')
             commercial_id = request.data.get('commercial_id')
-            if commercial_id == None:
+            if commercial_id == 0:
 
                 if not request.data.get('lead_id'):
                     return resFun(status.HTTP_400_BAD_REQUEST, 'lead id is required', [])
@@ -2698,6 +2698,27 @@ class upload_payment_proof_approval(GenericAPIView):
     
 
 
+
+class foc_approval(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = foc_approvalSerializer
+    def post(self, request):
+        
+        if not request.data.get('lead_id'):
+            return resFun(status.HTTP_400_BAD_REQUEST, 'lead id is a required field', [])
+        try:
+            lead_instance = Service_category.objects.get(lead_id=request.data.get('lead_id'))
+        except:
+            lead_instance = None
+
+        if lead_instance != None:
+            commercial_approval_instance = Commercial_Approval.objects.create(**{'commercial': '0', 'approval_type': Approval_type.objects.get(title='foc')})
+            lead_instance.commercial_approval = commercial_approval_instance
+            lead_instance.save()
+            res = resFun(status.HTTP_200_OK, 'request successful', [])
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid lead id', [])
+        return res
 
 
 

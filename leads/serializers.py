@@ -569,6 +569,9 @@ class uploadFileSerializer(serializers.Serializer):
         # models=all_identifiers
         fields=["file"]
 
+class foc_approvalSerializer(serializers.Serializer):
+    title = serializers.CharField()
+
 class reasonSubmitSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     client_id = serializers.IntegerField()

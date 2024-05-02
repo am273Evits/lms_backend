@@ -162,6 +162,9 @@ urlpatterns = [
             path('payment_proof_for_approval/<str:lead_id>', upload_payment_proof_approval.as_view()),
 
 
+            path('foc_approval', foc_approval.as_view()),
+
+
             # path('field_add_new_service', fieldsAddNewServiceCountry.as_view()),
             # path('field_add_new_service/<str:country>', fieldsAddNewServiceMarketplace.as_view()),
             # path('field_add_new_service/<str:country>/<str:marketplace>', fieldsAddNewServiceServices.as_view()),

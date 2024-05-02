@@ -296,9 +296,13 @@ class Remark_history(models.Model):
 #   email_id = models.CharField(max_length=100, blank=True, default='')
 
 
+class Approval_type(models.Model):
+  title = models.CharField(max_length=50)
+
 class Commercial_Approval(models.Model):
   commercial = models.CharField(max_length=100)
   status = models.BooleanField(default=False)
+  approval_type = models.ForeignKey(Approval_type, on_delete=models.CASCADE, null=True, blank=True)
 
 
 # class mouFile(models.Model):
