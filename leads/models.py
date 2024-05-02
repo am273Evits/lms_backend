@@ -299,10 +299,13 @@ class Remark_history(models.Model):
 class Approval_type(models.Model):
   title = models.CharField(max_length=50)
 
+
 class Commercial_Approval(models.Model):
   commercial = models.CharField(max_length=100)
-  status = models.BooleanField(default=False)
+  status = models.ForeignKey("dropdown.approval_status", on_delete=models.CASCADE, null=True, blank=True)
   approval_type = models.ForeignKey(Approval_type, on_delete=models.CASCADE, null=True, blank=True)
+  def __str__(self): return str(self.commercial)
+
 
 
 # class mouFile(models.Model):
@@ -328,7 +331,7 @@ class Service_category(models.Model):
   status_history_all = models.ManyToManyField(Status_history)
   mou = models.FileField(upload_to='mou', max_length=100, null=True, blank=True,  default='')
   payment_proof = models.FileField(upload_to='payment_proof', max_length=100, null=True, blank=True,  default='' )
-  def __str__(self): return str(self.service)
+  def __str__(self): return str(self.lead_id)
 
 
 

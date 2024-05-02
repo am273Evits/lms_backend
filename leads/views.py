@@ -467,7 +467,7 @@ def viewLeadFun(leadsData, department):
         # print('deadline', deadline)
 
 
-        if department == 'admin':
+        if department == 'admin' or department == 'director':
             data.append({
                 'id' : sd.id , 
                 'client_id' : sd.client_id , 
@@ -498,7 +498,7 @@ def viewLeadFun(leadsData, department):
                         "assigned_status": 'assigned' if s.associate != None else "not assigned", 
                         "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
                         # "mou_approval": s.mou_approval if s.mou_approval != None else "-",
-                        "commercial_approval": {"status": s.commercial_approval.status, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
+                        "commercial_approval": {"status": s.commercial_approval.status.title, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
                         "commercial": s.pricing.commercials if s.pricing else "-",
                         "status": s.status_history_all.all().order_by('-id').first().status.title if s.status_history_all.all().exists() else "-",
                         "follow_up": [ {
@@ -529,7 +529,7 @@ def viewLeadFun(leadsData, department):
                 "hot_lead" : sd.hot_lead
                 })
 
-        elif department == 'business_development' or department == 'director':
+        elif department == 'business_development':
             for s in sd.service_category_all.all():
                 data.append({
                     'id' : sd.id , 
@@ -556,7 +556,7 @@ def viewLeadFun(leadsData, department):
                             "assigned_status": 'assigned' if s.associate != None else "not assigned", 
                             "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
                             # "mou_approval": s.mou_approval if s.mou_approval != None else "-",
-                            "commercial_approval": {"status": s.commercial_approval.status, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
+                            "commercial_approval": {"status": s.commercial_approval.status.title, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
                             "commercial": s.pricing.commercials if s.pricing else "-",
                             "status": {'id': s.status_history_all.all().order_by('-id').first().status.id, 'value': s.status_history_all.all().order_by('-id').first().status.title} if s.status_history_all.all().exists() else {"id": None, 'value': None},
                             "follow_up": [ {
@@ -797,45 +797,208 @@ class viewAllLeads(GenericAPIView):
 
 
 
+def viewLeadAppoval(leadsData):
+    data=[]
+
+    for sd in leadsData:
+        tat = Turn_Arround_Time.objects.all().first()
+        today = datetime.now()
+        upload_date = datetime.strptime(str(sd.upload_date),"%Y-%m-%d %H:%M:%S.%f%z")
+        upload_date = upload_date.replace(tzinfo=None)
+        # upload_date = upload_date.strftime("%Y-%m-%d %H:%M:%S.%f")
+        deadline = (today - upload_date).total_seconds()
+        deadline = (math.ceil((int(tat.duration_in_hrs) - math.floor(int(deadline // (3600)))) / 24) -1 )
+
+
+        for s in sd.service_category_all.all():
+            if s.commercial_approval != None:
+                print('working till here')
+                data.append({
+                    'id' : sd.id , 
+                    'client_id' : sd.client_id , 
+                    'client_name': sd.client_name, 
+                    'contact_number': sd.contact_number,
+                    'alternate_contact_number': sd.alternate_contact_number if sd.alternate_contact_number else '-',
+                    'email_id': sd.email_id,
+                    'alternate_email_id': sd.alternate_email_id if sd.alternate_email_id else '-',
+                    'gst': sd.gst if sd.gst else '-',
+                    'seller_address': sd.seller_address if sd.seller_address else '-',
+                    # 'service_category': sd.service_category.service_name, 
+                    # 'assigned_to': sd.service_category_all(), 
+                    # 'status': sd.status.title if sd.status else '-', 
+                    'upload_date': upload_date , 
+                    'deadline': deadline,
+                    # "assigned_status": ,
+                    # "associate" : sd.associate.name if sd.associate else '-',
+                    # "service_category" : [
+                        # { 
+                            "lead_id": s.lead_id,
+                            'service': s.service.service.service if s.service else '-', 
+                            "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
+                            "assigned_status": 'assigned' if s.associate != None else "not assigned", 
+                            "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
+                            # "mou_approval": s.mou_approval if s.mou_approval != None else "-",
+                            "commercial_approval": {"status": s.commercial_approval.status.title, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
+                            "commercial": s.pricing.commercials if s.pricing else "-",
+                            "status": {'id': s.status_history_all.all().order_by('-id').first().status.id, 'value': s.status_history_all.all().order_by('-id').first().status.title} if s.status_history_all.all().exists() else {"id": None, 'value': None},
+                            "follow_up": [ {
+                                'date':f.date if f.date else '-', 
+                                'time': f.time if f.time else '-', 
+                                'notes': f.notes if f.notes else '-', 
+                                'created_by': f.created_by.name if f.created_by else '-' } for f in s.followup.all()],
+                            # } for s in sd.service_category_all.all()] if sd.service_category_all else [],
+                    # "commercials" : sd.commercials.price_for_mou if sd.commercials else '-',
+                    # "status" : sd.status.title if sd.status else '-',
+                    # "client_turnover" : sd.client_turnover.title if sd.client_turnover else '-',
+                    "client_turnover" : sd.client_turnover.id if sd.client_turnover else None,
+                    "business_name" : sd.business_name if sd.business_name else '-',
+                    "business_type" : sd.business_type.title if sd.business_type else '-',
+                    "business_category" : sd.business_category.id if sd.business_category else None,
+                    # "business_category" : sd.business_category.title if sd.business_category else '-',
+                    "firm_type" : sd.firm_type.title if sd.firm_type else '-',
+                    "contact_preferences" : sd.contact_preferences.title if sd.contact_preferences else '-',
+                    "request_id": sd.request_id if sd.request_id else '-',
+                    "provider_id": sd.provider_id if sd.provider_id else '-',
+                    "requester_id": sd.requester_id if sd.requester_id else '-',
+                    "requester_location": sd.requester_location if sd.requester_location else '-',
+                    "requester_sell_in_country": sd.requester_sell_in_country if sd.requester_sell_in_country else '-',
+                    "service_requester_type": sd.service_requester_type if sd.service_requester_type else '-',
+                    "lead_owner": { 'id': sd.lead_owner.name, 'name': sd.lead_owner.name} if sd.lead_owner else { 'id': None , 'name': '-' },
+                    # "followup" : sd.followup.followup_date if sd.followup else '-',
+                    # "country" : sd.country.title if sd.country else '-',
+                    # "state" : sd.state.title if sd.state else '-',
+                    # "city" : sd.city.title if sd.city else '-'
+                    "hot_lead" : sd.hot_lead
+                    })
+    return data
+
+
+
+def leadAppovalDir(request, page, approval_type, lead_id):
+    if page !=None:
+        limit = 10
+        user = request.user
+        offset = int((page - 1) * limit)
+        data = []
+        pagecount = 1
+
+    if request.user.department.title == 'director':
+        print('working till here')
+        if page != None:
+            leadsData = Leads.objects.prefetch_related('service_category_all__commercial_approval').filter(Q(service_category_all__commercial_approval__isnull=False) & Q(service_category_all__commercial_approval__approval_type__title=approval_type)  & Q(visibility = True)).all()[offset : offset + limit]
+        else:
+            leadsData = Leads.objects.prefetch_related('service_category_all__commercial_approval').filter(Q(service_category_all__commercial_approval__isnull=False) & Q(service_category_all__commercial_approval__approval_type__title=approval_type) & Q(service_category_all__lead_id=lead_id)  & Q(visibility = True))
+        # print('leadsData',leadsData)
+        data = viewLeadAppoval(leadsData)
+        print(data)
+        if len(data) > 0:
+            if page != None:
+                pagecount = math.ceil(Leads.objects.prefetch_related('service_category_all__commercial_approval').filter(Q(service_category_all__commercial_approval__isnull=False) & Q(service_category_all__commercial_approval__approval_type__title=approval_type)  & Q(visibility = True)).count()/limit)
+            # else:
+            #     pagecount = math.ceil(Leads.objects.prefetch_related('service_category_all__commercial_approval').filter(Q(service_category_all__commercial_approval__isnull=False) & Q(service_category_all__commercial_approval__approval_type__title=approval_type) & Q(service_category_all__lead_id=lead_id) & Q(visibility = True)).count()/limit)
+            
+            serializer = lead_managerBlSerializer_bd(data=data, many=True)
+            serializer.is_valid(raise_exception=True)
+
+
+            if page != None:
+                if int(page) <= pagecount:
+                    res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'total_pages': pagecount, "current_page": page})
+                else :
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'the page is unavailable', {'data': [], 'total_pages': pagecount, "current_page": page} )
+            else:
+                res = resFun(status.HTTP_200_OK,'successful',serializer.data)        
+        
+        else:
+            if page != None:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
+            else:
+                res = resFun(status.HTTP_200_OK,'successful',serializer.data)
+
+        return res
+        pass
+    else:
+        res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', {'data': [], 'total_pages': pagecount, "current_page": page} )
+    return res
+
+
+
+
 class viewAllLeadsApproval(GenericAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = viewAllLeadsApprovalSerializer
+    serializer_class = lead_managerBlSerializer_bd
     def get(self, request, approval_type, page):
-        # try:
-            user = request.user
-            limit = 10
-            offset = int((page - 1) * limit)
-            data = []
-            pagecount = 1
-
-            if str(user.department) == 'director':
-                leadsData = Leads.objects.filter(Q(service_category_all__commercial_approval__isnull=False) & Q(visibility = True)).all()[offset : offset + limit]
-                data = viewLeadFun(leadsData, user.department.title)
-                print(data)
-                if len(data) > 0:
-                    pagecount = math.ceil(Leads.objects.filter(visibility = True).count()/limit)
-                    serializer = lead_managerBlSerializer_bd(data=data, many=True)
-                    serializer.is_valid(raise_exception=True)
-                    if int(page) <= pagecount:
-                        res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'total_pages': pagecount, "current_page": page})
-                    else :
-                        res = resFun(status.HTTP_400_BAD_REQUEST, 'the page is unavailable', {'data': [], 'total_pages': pagecount, "current_page": page} )
-                else:   
-                    res = resFun(status.HTTP_400_BAD_REQUEST, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
-                return res
-
-                pass
-            else:
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', {'data': [], 'total_pages': pagecount, "current_page": page} )
-            return res
-        # except:
-        #         return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
+        try:
+            data = leadAppovalDir(request, page, approval_type)
+            return data
+        except:
+                return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
 
 
 
 
 class viewAllLeadsApprovalSearch(GenericAPIView):
-    pass
+    permission_classes = [IsAuthenticated]
+    serializer_class = lead_managerBlSerializer_bd
+    def get(self, request, approval_type, lead_id):
+        try:
+            data = leadAppovalDir(request, None, approval_type, lead_id)
+            return data
+        except:
+                return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
+        
+
+
+
+def commercialApproval(request, approval_type , approvalStatus):
+
+    if not request.data.get('lead_id'):
+        return resFun(status.HTTP_400_BAD_REQUEST, 'lead id is a required field', [])
+    
+    lead_id = request.data.get('lead_id')
+    try:
+        service_category_instance = Service_category.objects.get(commercial_approval__approval_type__title = approval_type, lead_id=lead_id)
+    except:
+        service_category_instance = None
+    
+    if service_category_instance != None:
+        if approvalStatus == 'approved':
+            service_category_instance.commercial_approval.status = approval_status.objects.get(title='approved')
+        elif approvalStatus == 'rejected':
+            service_category_instance.commercial_approval.status = approval_status.objects.get(title='rejected')
+
+        service_category_instance.commercial_approval.save()
+        res =  resFun(status.HTTP_200_OK, 'request successful', [])
+    else:
+        res =  resFun(status.HTTP_400_BAD_REQUEST, 'invalid lead id', [])
+    
+    return res
+
+
+
+
+
+
+
+class approveCommercial(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = approveCommercialSerializer
+    def put(self, request, approval_type):
+        # try:
+            return commercialApproval(request, approval_type, 'approved')
+        # except:
+        #     return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+
+
+
+class rejectCommercial(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = rejectCommercialSerializer
+    def put(self, request, approval_type):
+        try:
+            return commercialApproval(request, approval_type, 'rejected')
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
 
 
 
@@ -2076,7 +2239,7 @@ class reasonSubmit(GenericAPIView):
         try:
             model = apps.get_model('dropdown', table)
 
-            if not request.data.get('id'):
+            if not request.data.get('status_id'):
                 return resFun(status.HTTP_400_BAD_REQUEST, 'id field is mandatory', [])
             
             if not request.data.get('client_id'):
@@ -2086,7 +2249,7 @@ class reasonSubmit(GenericAPIView):
                 return resFun(status.HTTP_400_BAD_REQUEST, 'lead id field is mandatory', [])
 
 
-            id = request.data.get('id')
+            id = request.data.get('status_id')
             client_id = request.data.get('client_id')
             lead_id = request.data.get('lead_id')
 
@@ -2322,9 +2485,9 @@ class apiSubmitEmailProposal(GenericAPIView):
                 
 
                 service_category_instance = Service_category.objects.get(lead_id=request.data.get('lead_id'))
-                commercial_approval_instance = Commercial_Approval.objects.create(**{"commercial": request.data.get('custom_commercial')})
+                commercial_approval_instance = Commercial_Approval.objects.create(**{"commercial": request.data.get('custom_commercial'), 'status': approval_status.objects.get(title='pending'), 'approval_type': Approval_type.objects.get(title='foc') })
                 service_category_instance.commercial_approval = commercial_approval_instance
-                # service_category_instance.save()
+                service_category_instance.save()
 
                 SendEmail([request.user.director.email], 'Commercial Approval Pending', f'''<h3>Hello {request.user.director.name},</h3></br><p><b>{request.user.name}</b> from <b>{request.user.department}</b> has requested you to approve a commercial. Check commercial details below</p></br>
                         <table class="table table-zebra" style="border: 1px solid black; border-collapse:collapse" border="1>
@@ -2712,7 +2875,7 @@ class foc_approval(GenericAPIView):
             lead_instance = None
 
         if lead_instance != None:
-            commercial_approval_instance = Commercial_Approval.objects.create(**{'commercial': '0', 'approval_type': Approval_type.objects.get(title='foc')})
+            commercial_approval_instance = Commercial_Approval.objects.create(**{'commercial': '0', 'status': approval_status.objects.get(title='pending'), 'approval_type': Approval_type.objects.get(title='foc')})
             lead_instance.commercial_approval = commercial_approval_instance
             lead_instance.save()
             res = resFun(status.HTTP_200_OK, 'request successful', [])

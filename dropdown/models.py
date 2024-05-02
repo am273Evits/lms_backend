@@ -189,6 +189,12 @@ class unresponsive(models.Model):
     def __str__ (self): return self.title
 
 
+class approval_status(models.Model):
+    title = models.CharField(max_length=50)
+    def __str__ (self): return self.title
+
+
+
 # class list_business_leads(models.Model):
 #     table_name = models.CharField(max_length=500, blank=True, default='')
 #     table_type = models.CharField(max_length=500, blank=True, default='')

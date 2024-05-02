@@ -139,6 +139,14 @@ class lead_managerBlSerializer_admin(serializers.Serializer):
 
 
 
+class approveCommercialSerializer(serializers.Serializer):
+    lead_id = serializers.CharField()
+
+class rejectCommercialSerializer(serializers.Serializer):
+    lead_id = serializers.CharField()
+
+
+
 class viewAllLeadsApprovalSerializer(serializers.Serializer):
     lead_id = serializers.CharField()
 
