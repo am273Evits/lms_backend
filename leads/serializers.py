@@ -600,8 +600,9 @@ def serializer_validation(self, attrs, method):
         if attrs.get('email_id'):
             data['email_id'] = attrs.get('email_id')
         if attrs.get('contact_number'):
+            print("attrs.get('contact_number')", attrs.get('contact_number'))
             if attrs.get('contact_number') and len(attrs.get('contact_number')) < 9:
-                raise serializers.ValidationError('phone number is not valid')
+                raise serializers.ValidationError('contact number is not valid')
             data['contact_number'] = attrs.get('contact_number')
         if attrs.get('business_name'):
             data['business_name'] = attrs.get('business_name')

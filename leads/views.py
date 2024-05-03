@@ -68,28 +68,229 @@ def resFun(status,message,data):
 class dashboard(GenericAPIView):
     serializer_class = dashboardSerializer
     permission_classes = [IsAuthenticated]
-    def get(self, request, format=None, *args, **kwargs):
+    def get(self, request, type , duration_from, duration_to, main_data_type,format=None, *args, **kwargs):
         user = request.user
-        res = Response()
-        if str(user.department) == 'director':
 
-            status_history = Status_history.objects.filter(status_date = datetime.now()).distinct()
-            print(status_history)
+        if type == 'this_month':
+            main_date = datetime.now().month
+            print('main_date',main_date)
+        if type == 'last_week':
+            today = datetime.now().date()
+            start_date = today - timedelta(days=today.weekday() + 7)
+            last_date = today - timedelta(days=today.weekday() + 1)
+        if type == 'last_month':
+            main_date = datetime.now().month-1
+        if type == 'last_7_days':
+            start_date = datetime.now().date() - timedelta(days=6)
+            last_date = datetime.now()
+        if type == 'last_30_days':
+            start_date = datetime.now().date() - timedelta(days=29)
+        if type == 'last_60_days':
+            start_date = datetime.now().date() - timedelta(days=59)
+            last_date = datetime.now()
+        if type == 'custom':
+            start_date = datetime.strptime(duration_from, "%Y-%m-%d").date()
+            last_date = datetime.strptime(duration_to, "%Y-%m-%d").date()
+            # print(start_date, last_date)
 
-            res.status_code = status.HTTP_200_OK
-            res.data = {
-                "status": status.HTTP_200_OK,
-                "message": 'request successful',
-                "data": list(status_history.values())
-                }
+
+            # current_month = datetime.now().month()
+        open_leads_intance = Service_category.objects.filter(Q(status_history_all__status__title='closed') | Q(status_history_all__status__title='not interested'))
+        
+        if type == 'this_month' or type == 'last_month':
+            service_category_intance = Service_category.objects.filter(created_date__month=main_date)
+            # open_leads_intance = Service_category.objects.filter( Q(status_history_all__status_date__month=main_date) )
 
         else:
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                "status": status.HTTP_400_BAD_REQUEST,
-                "message": 'you are not authorized to view this data',
-                "data": { 'data': [] }
-                }
+            service_category_intance = Service_category.objects.filter(created_date__range=[start_date, last_date])
+            # open_leads_intance = Service_category.objects.filter(Q(status_history_all__status_date__range = [start_date, last_date]))
+        
+        print('open_leads_intance',len(service_category_intance))
+        print('open_leads_intance',len(open_leads_intance))
+
+        if user.department.title == 'director':
+            all_leads = [s for s in service_category_intance]
+            total_open_leads = [ s for s in open_leads_intance ]
+            assigned_leads = []
+            status_data = []
+            yet_to_contact = []
+            pitch_in_progress = []
+            closed = []
+            proposal_email_sent = []
+            Not_interested = []
+            Unresponsive = []
+            follow_up = []
+            mou_generated = []
+            pending_for_mou = []
+            pending_for_mou_validation = []
+            pending_for_payment = []
+            pending_for_payment_validation = []
+            assign_service_associate_pending = []
+            final_data = {}
+            # assigned_leads = [s.lead_id for s in service_category_intance]
+
+            for al in all_leads:
+                assigned_leads.append(al.lead_id)
+
+            for al in total_open_leads:
+                print('al', al)
+                if type == 'this_month' or type == 'last_month':
+                    print(al.status_history_all.filter(status_date__month=main_date))
+                    status_data.append({ 'lead_id': al.lead_id, 'status': al.status_history_all.filter(status_date__month=main_date).order_by('-id').first().status.title if al.status_history_all.filter(status_date__month=main_date).exists() else None, 'associate': {"id": al.associate.id if al.associate else None,"name": al.associate.name if al.associate else None }})
+                else:   
+                    status_data.append({ 'lead_id': al.lead_id, 'status': al.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first().status.title if al.status_history_all.filter(status_date__range=[start_date, last_date]).exists() else None  , 'associate': {"id": al.associate.id if al.associate else None,"name": al.associate.name if al.associate else None }})
+
+                    # overall_performance
+
+            user_instance = UserAccount.objects.filter(department__title='business_development', designation__title='team_leader')
+
+            if main_data_type == 'overall_performance' or main_data_type == 'associate_level_performance':
+                overall_performance_data = []
+
+                for sd in status_data:
+                    if sd['status'] == 'yet to contact':
+                        yet_to_contact.append(sd['lead_id'])
+                    if sd['status'] == 'pitch in progress':
+                        pitch_in_progress.append(sd['lead_id'])
+                    if sd['status'] == 'closed':
+                        closed.append(sd['lead_id'])
+                    if sd['status'] == 'proposal email sent':
+                        proposal_email_sent.append(sd['lead_id'])
+                    if sd['status'] == 'not interested':
+                        Not_interested.append(sd['lead_id'])
+                    if sd['status'] == 'unresponsive':
+                        Unresponsive.append(sd['lead_id'])
+                    if sd['status'] == 'follow up':
+                        follow_up.append(sd['lead_id'])
+                    if sd['status'] == 'mou generated':
+                        mou_generated.append(sd['lead_id'])
+                    if sd['status'] == 'pending for mou':
+                        pending_for_mou.append(sd['lead_id'])
+                    if sd['status'] == 'pending for mou validation':
+                        pending_for_mou_validation.append(sd['lead_id'])
+                    if sd['status'] == 'pending for payment':
+                        pending_for_payment.append(sd['lead_id'])
+                    if sd['status'] == 'pending for payment validation':
+                        pending_for_payment_validation.append(sd['lead_id'])
+                    if sd['status'] == 'assign service associate pending':
+                        assign_service_associate_pending.append(sd['lead_id'])
+
+                print('status_data',status_data)
+
+
+                for u in user_instance:
+                    tl_total_assigned_leads = []
+                    tl_not_interested_leads = []
+                    tl_unresponsive_leads = []
+                    tl_closed_leads = []
+                    tl_open_leads = []
+                    team_member_instance = UserAccount.objects.filter(team_leader=u.id)
+                    team_members_data = []
+                    for tm in team_member_instance:
+                        total_assigned_leads = []
+                        not_interested_leads = []
+                        unresponsive_leads = []
+                        closed_leads = []
+                        open_leads = []
+                        for sd in status_data:
+                            if sd['associate']['id'] != None and tm.id == sd['associate']['id']:
+                                print(sd)
+                                # print('***')
+                                total_assigned_leads.append(sd['lead_id'])
+                                tl_total_assigned_leads.append(sd['lead_id'])
+                                if sd['lead_id'] in Not_interested:
+                                    not_interested_leads.append(sd['lead_id'])
+                                    tl_not_interested_leads.append(sd['lead_id'])
+                                elif sd['lead_id'] in Unresponsive:
+                                    unresponsive_leads.append(sd['lead_id'])
+                                    tl_unresponsive_leads.append(sd['lead_id'])
+                                elif sd['lead_id'] in closed:
+                                    closed_leads.append(sd['lead_id'])
+                                    tl_closed_leads.append(sd['lead_id'])
+                                else:
+                                    open_leads.append(sd['lead_id'])
+                                    tl_open_leads.append(sd['lead_id'])
+
+                        if len(open_leads) == 0:
+                            conversion_rate = 0
+                        else:
+                            print(closed_leads, len(closed_leads))
+                            print(open_leads, len(open_leads))
+                            conversion_rate = (len(closed_leads) * 100) / len(open_leads)
+
+                        team_members_data.append({ 'id': tm.id, 'name': tm.name, 
+                                                  'total_assigned_leads': total_assigned_leads, 'open': open_leads, 'not_interested': not_interested_leads, 'unresponsive': unresponsive_leads , 'closed': closed_leads , 'open': open_leads, 'conversion_rate': conversion_rate 
+                                                })
+                    
+                        if len(tl_open_leads) == 0:
+                            tl_conversion_rate = 0
+                        else:
+                            # print(len(closed_leads))
+                            tl_conversion_rate = (len(tl_closed_leads) * 100) / len(tl_open_leads)
+
+                    overall_performance_data.append({'name': u.name, 'total_assigned_leads': tl_total_assigned_leads, 'open': tl_open_leads, 'not_interested': tl_not_interested_leads, 'unresponsive': tl_unresponsive_leads , 'closed': tl_closed_leads , 'open': tl_open_leads, 'conversion_rate': tl_conversion_rate , 'team_members' : team_members_data })
+                final_data['overall_performance'] = overall_performance_data
+
+                for o in overall_performance_data:
+                    print(o['team_members'])
+
+
+            # elif main_data_type == 'associate_level_performance':
+
+
+                        # if len(o['team_members']) == 0:
+                        #     print(None)
+                        # else:
+                        #     print(o['team_member'])
+                
+                # print('team_member',overall_performance_data)
+
+                # for a in all_leads:
+                #     team_member_instance = a.associate
+                #     print('team_member_instance', team_member_instance)
+
+            
+            cards_data = {
+                "assigned_leads" : assigned_leads,
+                "pitch_in_progress" : pitch_in_progress,
+                "yet_to_contact" : yet_to_contact,
+                "closed" : closed,
+                "proposal_email_sent" : proposal_email_sent,
+                "Not_interested" : Not_interested,
+                "Unresponsive" : Unresponsive,
+                "follow_up" : follow_up,
+                "mou_generated" : mou_generated,
+                "pending_for_mou" : pending_for_mou,
+                "pending_for_mou_validation" : pending_for_mou_validation,
+                "pending_for_payment" : pending_for_payment,
+                "pending_for_payment_validation" : pending_for_payment_validation,
+                "assign_service_associate_pending" : assign_service_associate_pending
+            }
+
+            final_data['cards'] = cards_data
+
+
+
+
+            # for s in service_category_intance:
+                # print(s.id)
+                # print(s.status_history_all.all().order_by('-id').first().status.title if s.status_history_all.all().exists())
+            #     status_list = []
+            #     for l in  ld.service_category_all.all()
+
+
+
+            # status_history = Status_history.objects.filter(status_date = datetime.now()).distinct()
+
+            res = resFun(status.HTTP_200_OK, 'request successful', final_data)
+
+        elif user.department.title == 'admin':
+            pass
+        elif user.department.title == 'business_developement':
+            pass
+
+        else:
+            res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', [])
         return res
 
 
@@ -496,7 +697,7 @@ def viewLeadFun(leadsData, department):
                         'sub_program': s.service.sub_program.sub_program if s.service.sub_program else '-' if s.service else '-',
                         "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
                         "assigned_status": 'assigned' if s.associate != None else "not assigned", 
-                        "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
+                        "payment_approval": s.payment_approval.title if s.payment_approval != None else "-", 
                         # "mou_approval": s.mou_approval if s.mou_approval != None else "-",
                         "commercial_approval": {"status": s.commercial_approval.status.title, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
                         "commercial": s.pricing.commercials if s.pricing else "-",
@@ -554,7 +755,7 @@ def viewLeadFun(leadsData, department):
                             'service': s.service.service.service if s.service else '-', 
                             "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
                             "assigned_status": 'assigned' if s.associate != None else "not assigned", 
-                            "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
+                            "payment_approval": s.payment_approval.title if s.payment_approval != None else "-", 
                             # "mou_approval": s.mou_approval if s.mou_approval != None else "-",
                             "commercial_approval": {"status": s.commercial_approval.status.title, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
                             "commercial": s.pricing.commercials if s.pricing else "-",
@@ -836,7 +1037,7 @@ def viewLeadAppoval(leadsData):
                             'service': s.service.service.service if s.service else '-', 
                             "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
                             "assigned_status": 'assigned' if s.associate != None else "not assigned", 
-                            "payment_approval": s.payment_approval if s.payment_approval != None else "-", 
+                            "payment_approval": s.payment_approval.title if s.payment_approval != None else "-", 
                             # "mou_approval": s.mou_approval if s.mou_approval != None else "-",
                             "commercial_approval": {"status": s.commercial_approval.status.title, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
                             "commercial": s.pricing.commercials if s.pricing else "-",
@@ -950,12 +1151,12 @@ class viewAllLeadsApprovalSearch(GenericAPIView):
 
 
 
-def commercialApproval(request, approval_type , approvalStatus):
+def commercialApproval(request, approval_type, lead_id, approvalStatus):
 
-    if not request.data.get('lead_id'):
-        return resFun(status.HTTP_400_BAD_REQUEST, 'lead id is a required field', [])
+    # if not request.data.get('lead_id'):
+    #     return resFun(status.HTTP_400_BAD_REQUEST, 'lead id is a required field', [])
     
-    lead_id = request.data.get('lead_id')
+    # lead_id = request.data.get('lead_id')
     try:
         service_category_instance = Service_category.objects.get(commercial_approval__approval_type__title = approval_type, lead_id=lead_id)
     except:
@@ -983,9 +1184,9 @@ def commercialApproval(request, approval_type , approvalStatus):
 class approveCommercial(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = approveCommercialSerializer
-    def put(self, request, approval_type):
+    def put(self, request, approval_type, lead_id):
         # try:
-            return commercialApproval(request, approval_type, 'approved')
+            return commercialApproval(request, approval_type, lead_id, 'approved')
         # except:
         #     return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
 
@@ -994,9 +1195,9 @@ class approveCommercial(GenericAPIView):
 class rejectCommercial(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = rejectCommercialSerializer
-    def put(self, request, approval_type):
+    def put(self, request, approval_type, lead_id):
         try:
-            return commercialApproval(request, approval_type, 'rejected')
+            return commercialApproval(request, approval_type, lead_id, 'rejected')
         except:
             return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
 
@@ -2479,7 +2680,7 @@ class apiSubmitEmailProposal(GenericAPIView):
     permission_classes = [IsAuthenticated]
     def post(self, request, format=None, *args, **kwargs):
         # print(commercial_id)
-        try:
+        # try:
             client_id = request.data.get('client_id')
             commercial_id = request.data.get('commercial_id')
             if commercial_id == 0:
@@ -2489,8 +2690,10 @@ class apiSubmitEmailProposal(GenericAPIView):
                 if not request.data.get('custom_commercial'):
                     return resFun(status.HTTP_400_BAD_REQUEST, 'custom commercial is required', [])
                 
+                lead_id = request.data.get('lead_id')
+                
 
-                service_category_instance = Service_category.objects.get(lead_id=request.data.get('lead_id'))
+                service_category_instance = Service_category.objects.get(lead_id=lead_id)
                 commercial_approval_instance = Commercial_Approval.objects.create(**{"commercial": request.data.get('custom_commercial'), 'status': approval_status.objects.get(title='pending'), 'approval_type': Approval_type.objects.get(title='foc') })
                 service_category_instance.commercial_approval = commercial_approval_instance
                 service_category_instance.save()
@@ -2518,7 +2721,7 @@ class apiSubmitEmailProposal(GenericAPIView):
                             </table>
                             </br>
                             <p>Please click link below to approve commercial</p>
-                            <a href="#"><button>Approve</button></a>
+                            <a href="/leads/approve_commercial/commercial/{lead_id}"><button>Approve</button></a>
                             <p><b>Regards,</b></p>
                           ''')
 
@@ -2538,11 +2741,11 @@ class apiSubmitEmailProposal(GenericAPIView):
                 if service != None:
                     message = Proposal_Email.objects.get(service__id = service.id)
                     message = message.email
-                    bank_details = ev_bank_details.objects.all().first()
-                    account_name = bank_details.account_name
-                    bank_name = bank_details.bank_name
-                    account_number = bank_details.account_number
-                    ifsc = bank_details.ifsc
+                    # bank_details = ev_bank_details.objects.all().first()
+                    # account_name = bank_details.account_name
+                    # bank_name = bank_details.bank_name
+                    # account_number = bank_details.account_number
+                    # ifsc = bank_details.ifsc
 
                     # print(message)
 
@@ -2592,9 +2795,9 @@ class apiSubmitEmailProposal(GenericAPIView):
                     res = resFun(status.HTTP_204_NO_CONTENT, 'no email found against the service id', [] )
                 return res
         
-        except:
-            res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
-            return res
+        # except:
+        #     res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
+        #     return res
         
 
 
@@ -2840,8 +3043,8 @@ class upload_payment_proof_approval(GenericAPIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
     serializer_class = uploadFileSerializer
-    def post(self, request, lead_id):
-        try:
+    def post(self, request, lead_id, main_subscription_type):
+        # try:
             if request.FILES:
                 try:
                     service_category_instance = Service_category.objects.get(lead_id=lead_id)
@@ -2851,7 +3054,8 @@ class upload_payment_proof_approval(GenericAPIView):
                 if service_category_instance != None:
                     file = request.FILES['file']
                     service_category_instance.payment_proof = file
-                    # service_category_instance.payment_approval = False
+                    service_category_instance.payment_approval = approval_status.objects.get(title='pending')
+                    service_category_instance.subscription_type = subscription_type.objects.filter(id=main_subscription_type).first()
                     service_category_instance.status = drp_lead_status.objects.get(title='pending for payment validation')
                     service_category_instance.save()
 
@@ -2861,8 +3065,8 @@ class upload_payment_proof_approval(GenericAPIView):
             else:
                 res = resFun(status.HTTP_400_BAD_REQUEST, 'file required to upload', [])
             return res
-        except:
-            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+        # except:
+        #     return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
 
     
 

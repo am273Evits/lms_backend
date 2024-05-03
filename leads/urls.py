@@ -11,7 +11,7 @@ urlpatterns = [
             # path('update', updateBusinessLeads.as_view()), #file upload
             path('create_lead_manual', createLeadManual.as_view()), #file upload
 
-            path('dashboard', dashboard.as_view()), #file upload
+            path('dashboard/<str:type>/<str:duration_from>/<str:duration_to>/<str:main_data_type>', dashboard.as_view()), #file upload
 
             path('view_lead_search/<str:client_id>', viewAllLeadsSearch.as_view()), #view_all_leads
             path('view_all_leads/<int:page>', viewAllLeads.as_view()), #view_all_leads
@@ -24,7 +24,7 @@ urlpatterns = [
 
             path('view_lead_search/approval/<str:approval_type>/<str:lead_id>', viewAllLeadsApprovalSearch.as_view()), #view_all_leads
             path('view_all_leads/approval/<str:approval_type>/<int:page>', viewAllLeadsApproval.as_view()), #view_all_leads
-            path('approve_commercial/<str:approval_type>', approveCommercial.as_view()), #view_all_leads
+            path('approve_commercial/<str:approval_type>/<str:lead_id>', approveCommercial.as_view()), #view_all_leads
             path('reject_commercial/<str:approval_type>', rejectCommercial.as_view()), #view_all_leads
 
 
@@ -121,8 +121,6 @@ urlpatterns = [
             path('add_new_service_category', AddNewServiceCategory.as_view()), #all tables submit
             path('create_followup', CreateFollowUp.as_view()), #all tables submit
 
-
-
             
             # path('email_ask_for_details/<str:lead_id>', apiSubmitEmailAskForDetails.as_view()),
             # path('generate_mou/<str:lead_id>', mouFun.as_view()),
@@ -161,7 +159,7 @@ urlpatterns = [
             path('preview_mou/<str:lead_id>', preview_mou.as_view()),
             path('email_mou/<str:lead_id>', email_mou.as_view()),
             path('mou_for_approval/<str:lead_id>', upload_mou_approval.as_view()),
-            path('payment_proof_for_approval/<str:lead_id>', upload_payment_proof_approval.as_view()),
+            path('payment_proof_for_approval/<str:lead_id>/<str:main_subscription_type>', upload_payment_proof_approval.as_view()),
 
 
             path('foc_approval', foc_approval.as_view()),

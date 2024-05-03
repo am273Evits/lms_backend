@@ -248,14 +248,15 @@ class dropdownOption(GenericAPIView):
     permissions_classes = [IsAuthenticated]
     def get(self, request, table, format=None, *args, **kwargs):
 
-        # try:
+        try:
             main_app = 'dropdown'
-            if not( table == 'not_interested' or table == 'unresponsive'): 
+            print(main_app)
+            if not(table == 'approval_status' or table == 'not_interested' or table == 'unresponsive'): 
                 main_app = 'leads'
 
             model = apps.get_model(main_app, table)
             # if not model:
-            #     print('else working')
+            #     print('else working') 
 
             data = model.objects.all().order_by('title')
             main_data = [{"id": d.id, "title": d.title } for d in data]
@@ -263,8 +264,8 @@ class dropdownOption(GenericAPIView):
             serializer.is_valid(raise_exception=True)
             res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'table_name': table})
             return res
-        # except:
-        #     return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
     
 
 class leadStatusList(GenericAPIView):
