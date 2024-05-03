@@ -95,22 +95,21 @@ class dashboard(GenericAPIView):
 
 
             # current_month = datetime.now().month()
-        open_leads_intance = Service_category.objects.filter(Q(status_history_all__status__title='closed') | Q(status_history_all__status__title='not interested'))
+        open_leads_intance = Service_category.objects.exclude(Q(status_history_all__status__title='closed') | Q(status_history_all__status__title='not interested'))
         
         if type == 'this_month' or type == 'last_month':
-            service_category_intance = Service_category.objects.filter(created_date__month=main_date)
-            # open_leads_intance = Service_category.objects.filter( Q(status_history_all__status_date__month=main_date) )
+            fresh_assigned_intance = Service_category.objects.filter(created_date__month=main_date)
+            # open_leads_intance = Service_category.objects.filter( Q(status_history_all__status_date__month=main_date))
 
         else:
-            service_category_intance = Service_category.objects.filter(created_date__range=[start_date, last_date])
+            fresh_assigned_intance = Service_category.objects.filter(created_date__range=[start_date, last_date])
             # open_leads_intance = Service_category.objects.filter(Q(status_history_all__status_date__range = [start_date, last_date]))
         
-        print('open_leads_intance',len(service_category_intance))
-        print('open_leads_intance',len(open_leads_intance))
+        # print('open_leads_intance',len(fresh_assigned_intance))
 
         if user.department.title == 'director':
-            all_leads = [s for s in service_category_intance]
-            total_open_leads = [ s for s in open_leads_intance ]
+            fresh_assigned_intance = [s for s in fresh_assigned_intance]
+            total_open_leads = [ s for s in open_leads_intance]
             assigned_leads = []
             status_data = []
             yet_to_contact = []
@@ -129,11 +128,12 @@ class dashboard(GenericAPIView):
             final_data = {}
             # assigned_leads = [s.lead_id for s in service_category_intance]
 
-            for al in all_leads:
+            for al in fresh_assigned_intance:
                 assigned_leads.append(al.lead_id)
 
+
             for al in total_open_leads:
-                print('al', al)
+                service_category_inst = Service_category.objects.filter(lead_id=al.lead_id).first()
                 if type == 'this_month' or type == 'last_month':
                     print(al.status_history_all.filter(status_date__month=main_date))
                     status_data.append({ 'lead_id': al.lead_id, 'status': al.status_history_all.filter(status_date__month=main_date).order_by('-id').first().status.title if al.status_history_all.filter(status_date__month=main_date).exists() else None, 'associate': {"id": al.associate.id if al.associate else None,"name": al.associate.name if al.associate else None }})
@@ -141,6 +141,7 @@ class dashboard(GenericAPIView):
                     status_data.append({ 'lead_id': al.lead_id, 'status': al.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first().status.title if al.status_history_all.filter(status_date__range=[start_date, last_date]).exists() else None  , 'associate': {"id": al.associate.id if al.associate else None,"name": al.associate.name if al.associate else None }})
 
                     # overall_performance
+
 
             user_instance = UserAccount.objects.filter(department__title='business_development', designation__title='team_leader')
 
@@ -150,7 +151,7 @@ class dashboard(GenericAPIView):
                 for sd in status_data:
                     if sd['status'] == 'yet to contact':
                         yet_to_contact.append(sd['lead_id'])
-                    if sd['status'] == 'pitch in progress':
+                    if sd['status'] == 'pitch in progress': 
                         pitch_in_progress.append(sd['lead_id'])
                     if sd['status'] == 'closed':
                         closed.append(sd['lead_id'])
@@ -175,7 +176,6 @@ class dashboard(GenericAPIView):
                     if sd['status'] == 'assign service associate pending':
                         assign_service_associate_pending.append(sd['lead_id'])
 
-                print('status_data',status_data)
 
 
                 for u in user_instance:
@@ -228,7 +228,7 @@ class dashboard(GenericAPIView):
                             # print(len(closed_leads))
                             tl_conversion_rate = (len(tl_closed_leads) * 100) / len(tl_open_leads)
 
-                    overall_performance_data.append({'name': u.name, 'total_assigned_leads': tl_total_assigned_leads, 'open': tl_open_leads, 'not_interested': tl_not_interested_leads, 'unresponsive': tl_unresponsive_leads , 'closed': tl_closed_leads , 'open': tl_open_leads, 'conversion_rate': tl_conversion_rate , 'team_members' : team_members_data })
+                    overall_performance_data.append({'name': u.name, 'total_assigned_leads': tl_total_assigned_leads, 'not_interested': tl_not_interested_leads, 'unresponsive': tl_unresponsive_leads , 'closed': tl_closed_leads , 'open': [ t.lead_id for t in total_open_leads], 'conversion_rate': tl_conversion_rate , 'team_members' : team_members_data })
                 final_data['overall_performance'] = overall_performance_data
 
                 for o in overall_performance_data:
@@ -245,7 +245,7 @@ class dashboard(GenericAPIView):
                 
                 # print('team_member',overall_performance_data)
 
-                # for a in all_leads:
+                # for a in fresh_assigned_intance:
                 #     team_member_instance = a.associate
                 #     print('team_member_instance', team_member_instance)
 
@@ -2696,6 +2696,9 @@ class apiSubmitEmailProposal(GenericAPIView):
                 service_category_instance = Service_category.objects.get(lead_id=lead_id)
                 commercial_approval_instance = Commercial_Approval.objects.create(**{"commercial": request.data.get('custom_commercial'), 'status': approval_status.objects.get(title='pending'), 'approval_type': Approval_type.objects.get(title='foc') })
                 service_category_instance.commercial_approval = commercial_approval_instance
+                service_category_instance.status_history_all.add(Status_history.objects.create(**{'status': drp_lead_status.objects.filter(title='pending for commercial approval').first(), 'updated_by': request.user }))
+                # service_category_instance.status = Status_history.objects.create(**{'status': drp_lead_status.objects.filter(title='pending for commercial approval'), 'updated_by': request.user.name })
+
                 service_category_instance.save()
 
                 SendEmail([request.user.director.email], 'Commercial Approval Pending', f'''<h3>Hello {request.user.director.name},</h3></br><p><b>{request.user.name}</b> from <b>{request.user.department}</b> has requested you to approve a commercial. Check commercial details below</p></br>
@@ -3056,7 +3059,8 @@ class upload_payment_proof_approval(GenericAPIView):
                     service_category_instance.payment_proof = file
                     service_category_instance.payment_approval = approval_status.objects.get(title='pending')
                     service_category_instance.subscription_type = subscription_type.objects.filter(id=main_subscription_type).first()
-                    service_category_instance.status = drp_lead_status.objects.get(title='pending for payment validation')
+                    service_category_instance.status_history_all.add(Status_history.objects.create(**{'status': drp_lead_status.objects.filter(title='pending for payment validation').first(), 'updated_by': request.user }))
+                    # service_category_instance.status = drp_lead_status.objects.get(title=)
                     service_category_instance.save()
 
                     res = resFun(status.HTTP_200_OK, 'request successful', [])
@@ -3087,6 +3091,7 @@ class foc_approval(GenericAPIView):
         if lead_instance != None:
             commercial_approval_instance = Commercial_Approval.objects.create(**{'commercial': '0', 'status': approval_status.objects.get(title='pending'), 'approval_type': Approval_type.objects.get(title='foc')})
             lead_instance.commercial_approval = commercial_approval_instance
+            lead_instance.status_history_all.add(Status_history.objects.create(**{'status': drp_lead_status.objects.filter(title='pending for commercial approval').first(), 'updated_by': request.user }))
             lead_instance.save()
             res = resFun(status.HTTP_200_OK, 'request successful', [])
         else:
