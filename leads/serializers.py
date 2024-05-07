@@ -27,7 +27,7 @@ from .main_functions import getClientId
 
 
 
-class lead_managerBlSerializer_bd(serializers.Serializer):
+class lead_managerBlSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     client_id = serializers.CharField()
     lead_id = serializers.CharField()
@@ -66,7 +66,7 @@ class lead_managerBlSerializer_bd(serializers.Serializer):
     payment_approval = serializers.CharField()
     # mou_approval = serializers.CharField()
     commercial_approval = serializers.DictField()
-    commercial = serializers.IntegerField(allow_null=True)
+    # commercial = serializers.IntegerField(allow_null=True)
     status = serializers.DictField()
     follow_up = serializers.ListField()
     request_id = serializers.CharField()
@@ -78,6 +78,14 @@ class lead_managerBlSerializer_bd(serializers.Serializer):
     lead_owner = serializers.DictField()
     client_designation = serializers.IntegerField(allow_null=True)
     brand_name = serializers.CharField()
+
+
+class lead_managerBlSerializer_bd(lead_managerBlSerializer):
+    commercial = serializers.IntegerField(allow_null=True)
+
+
+class viewAllLeadsApprovalAdmin(lead_managerBlSerializer_bd):
+    commercial = serializers.CharField()
 
 
 

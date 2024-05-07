@@ -1072,6 +1072,9 @@ def viewLeadAppoval(leadsData):
                     # "client_turnover" : sd.client_turnover.title if sd.client_turnover else '-',
                     "client_turnover" : sd.client_turnover.id if sd.client_turnover else None,
                     "business_name" : sd.business_name if sd.business_name else '-',
+                    "brand_name" : sd.brand_name if sd.brand_name else '-',
+                    # "client_designation" : sd.client_designation.id if sd.client_designation else None,
+                    "client_designation" : sd.client_designation.id if sd.client_designation else None,
                     "business_type" : sd.business_type.title if sd.business_type else '-',
                     "business_category" : sd.business_category.id if sd.business_category else None,
                     # "business_category" : sd.business_category.title if sd.business_category else '-',
@@ -1117,7 +1120,7 @@ def leadAppovalDir(request, page, approval_type, lead_id):
             # else:
             #     pagecount = math.ceil(Leads.objects.prefetch_related('service_category_all__commercial_approval').filter(Q(service_category_all__commercial_approval__isnull=False) & Q(service_category_all__commercial_approval__approval_type__title=approval_type) & Q(service_category_all__lead_id=lead_id) & Q(visibility = True)).count()/limit)
             
-            serializer = lead_managerBlSerializer_bd(data=data, many=True)
+            serializer = viewAllLeadsApprovalAdmin(data=data, many=True)
             serializer.is_valid(raise_exception=True)
 
 
@@ -1148,11 +1151,11 @@ class viewAllLeadsApproval(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = lead_managerBlSerializer_bd
     def get(self, request, approval_type, page):
-        try:
-            data = leadAppovalDir(request, page, approval_type)
+        # try:
+            data = leadAppovalDir(request, page, approval_type, '')
             return data
-        except:
-                return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
+        # except:
+        #         return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [] )
 
 
 
