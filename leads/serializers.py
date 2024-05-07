@@ -76,7 +76,7 @@ class lead_managerBlSerializer_bd(serializers.Serializer):
     requester_sell_in_country = serializers.CharField()
     service_requester_type = serializers.CharField()
     lead_owner = serializers.DictField()
-    client_designation = serializers.ListField()
+    client_designation = serializers.IntegerField(allow_null=True)
     brand_name = serializers.CharField()
 
 

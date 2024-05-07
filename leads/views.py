@@ -745,10 +745,6 @@ def viewLeadFun(leadsData, department):
                 })
 
         elif department == 'business_development':
-            for s in sd.service_category_all.all():
-                client_designation =[]
-                if sd.client_designation:
-                    client_designation.append(sd.client_designation.id)
 
                 data.append({
                     'id' : sd.id , 
@@ -790,7 +786,7 @@ def viewLeadFun(leadsData, department):
                     "client_turnover" : sd.client_turnover.id if sd.client_turnover else None,
                     "business_name" : sd.business_name if sd.business_name else '-',
                     "brand_name" : sd.brand_name if sd.brand_name else '-',
-                    "client_designation" : client_designation ,
+                    "client_designation" : sd.client_designation.id if sd.client_designation else None ,
                     "business_type" : sd.business_type.title if sd.business_type else '-',
                     "business_category" : sd.business_category.id if sd.business_category else None,
                     # "business_category" : sd.business_category.title if sd.business_category else '-',
