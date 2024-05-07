@@ -1054,7 +1054,10 @@ def viewLeadAppoval(leadsData):
                         # { 
                             "lead_id": s.lead_id,
                             'service': s.service.service.service if s.service else '-', 
-                            "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
+                            "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" },
+                            "team_leader": {"id": s.associate.team_leader.id if s.associate and s.associate.team_leader else None , "name": s.associate.team_leader.name if s.associate and s.associate.team_leader else None },
+                            "department": s.associate.department.title if s.associate and s.associate.department else None,
+                            "designation": s.associate.designation.title if s.associate and s.associate.designation else None,
                             "assigned_status": 'assigned' if s.associate != None else "not assigned", 
                             "payment_approval": s.payment_approval.title if s.payment_approval != None else "-", 
                             # "mou_approval": s.mou_approval if s.mou_approval != None else "-",

@@ -86,6 +86,9 @@ class lead_managerBlSerializer_bd(lead_managerBlSerializer):
 
 class viewAllLeadsApprovalAdmin(lead_managerBlSerializer_bd):
     commercial = serializers.CharField()
+    department = serializers.CharField()
+    designation = serializers.CharField()
+    team_leader = serializers.DictField()
 
 
 
