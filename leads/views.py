@@ -772,7 +772,7 @@ def viewLeadFun(leadsData, department):
                             "payment_approval": s.payment_approval.title if s.payment_approval != None else "-", 
                             # "mou_approval": s.mou_approval if s.mou_approval != None else "-",
                             "commercial_approval": {"status": s.commercial_approval.status.title, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
-                            "commercial": s.pricing.commercials if s.pricing else "-",
+                            "commercial": s.pricing.id if s.pricing else None,
                             "status": {'id': s.status_history_all.all().order_by('-id').first().status.id, 'value': s.status_history_all.all().order_by('-id').first().status.title} if s.status_history_all.all().exists() else {"id": None, 'value': None},
                             "follow_up": [ {
                                 'date':f.date if f.date else '-', 

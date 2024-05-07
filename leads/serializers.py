@@ -66,7 +66,7 @@ class lead_managerBlSerializer_bd(serializers.Serializer):
     payment_approval = serializers.CharField()
     # mou_approval = serializers.CharField()
     commercial_approval = serializers.DictField()
-    commercial = serializers.CharField()
+    commercial = serializers.IntegerField(allow_null=True)
     status = serializers.DictField()
     follow_up = serializers.ListField()
     request_id = serializers.CharField()
