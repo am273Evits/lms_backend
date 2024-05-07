@@ -1126,22 +1126,22 @@ def leadAppovalDir(request, page, approval_type, lead_id):
 
             if page != None:
                 if int(page) <= pagecount:
-                    res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'total_pages': pagecount, "current_page": page})
+                    res = resFun(status.HTTP_200_OK, 'successful', {'data': serializer.data, 'total_pages': pagecount, "current_page": page, 'approval_type': approval_type})
                 else :
-                    res = resFun(status.HTTP_400_BAD_REQUEST, 'the page is unavailable', {'data': [], 'total_pages': pagecount, "current_page": page} )
+                    res = resFun(status.HTTP_400_BAD_REQUEST, 'the page is unavailable', {'data': [], 'total_pages': pagecount, "current_page": page , 'approval_type': approval_type} )
             else:
                 res = resFun(status.HTTP_200_OK,'successful',serializer.data)        
         
         else:
             if page != None:
-                res = resFun(status.HTTP_400_BAD_REQUEST, 'no data found', {'data': [], 'total_pages': [], "current_page": page} )
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'no data found', {'data': [], 'total_pages': 1, "current_page": page, 'approval_type': approval_type} )
             else:
                 res = resFun(status.HTTP_200_OK,'successful',serializer.data)
 
         return res
         pass
     else:
-        res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', {'data': [], 'total_pages': pagecount, "current_page": page} )
+        res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', {'data': [], 'total_pages': pagecount, "current_page": page, 'approval_type': approval_type} )
     return res
 
 
