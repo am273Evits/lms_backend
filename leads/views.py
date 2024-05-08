@@ -1046,7 +1046,7 @@ def viewLeadAppoval(leadsData):
                     # 'service_category': sd.service_category.service_name, 
                     # 'assigned_to': sd.service_category_all(), 
                     # 'status': sd.status.title if sd.status else '-', 
-                    'upload_date': upload_date , 
+                    'upload_date': upload_date, 
                     'deadline': deadline,
                     # "assigned_status": ,
                     # "associate" : sd.associate.name if sd.associate else '-',
@@ -1358,7 +1358,7 @@ class UpdateLeads(GenericAPIView):
             lead_instance = None
 
         if lead_instance != None:
-            if request.user.department.title == 'admin' and request.user.designation.title == 'lead_manager':
+            if request.user.department.title == 'director' or  request.user.department.title == 'admin' and request.user.designation.title == 'lead_manager':
 
                 serializer = UpdateLeadsSerializer_ADMIN(lead_instance, data=request.data, partial=True)
                 # pass
