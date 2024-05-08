@@ -158,6 +158,21 @@ class approveCommercialSerializer(serializers.Serializer):
 class rejectCommercialSerializer(serializers.Serializer):
     lead_id = serializers.CharField()
 
+class viewAllServiceSerializer(serializers.Serializer):
+    lead_id = serializers.CharField()
+    segment = serializers.DictField()
+    service = serializers.DictField()
+    marketplace = serializers.DictField()
+    program = serializers.DictField()
+    sub_program = serializers.DictField()
+    associate = serializers.DictField()
+    assigned_status = serializers.CharField()
+    payment_approval = serializers.CharField()
+    commercial_approval = serializers.DictField()
+    commercial = serializers.CharField()
+    status = serializers.CharField()
+    follow_up = serializers.ListField()
+
 
 
 class viewAllLeadsApprovalSerializer(serializers.Serializer):

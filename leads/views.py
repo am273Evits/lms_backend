@@ -1230,6 +1230,68 @@ class rejectCommercial(GenericAPIView):
 
 
 
+class viewAllservices(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = viewAllServiceSerializer
+    def get(self, request, client_id):
+        # try:
+            user = request.user
+            # if str(user.department) == 'director' or (str(user.department) == 'admin' and str(user.designation) == 'lead_manager'):
+            leadsData = Leads.objects.select_related().filter(visibility = True).all()
+
+            data = []
+            for sd in leadsData:
+                for s in sd.service_category_all.all():
+                    d = { 
+                            "lead_id": s.lead_id,
+                            'segment': {'id': s.service.segment.id, "value": s.service.segment.segment }  if s.service else {'id': None, "value": None },
+                            'service': {'id': s.service.service.id, "value": s.service.service.service }  if s.service else {'id': None, "value": None },
+                            'marketplace': {'id': s.service.marketplace.id, "value": s.service.marketplace.marketplace } if s.service else {'id': None, "value": None },
+                            'program': {'id': s.service.program.id, "value": s.service.program.program } if s.service else {'id': None, "value": None },
+                            'sub_program': {'id': s.service.sub_program.id, "value": s.service.sub_program.sub_program } if s.service.sub_program else {'id': None, "value": None } if s.service else {'id': None, "value": None },
+                            "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
+                            "assigned_status": 'assigned' if s.associate != None else "not assigned", 
+                            "payment_approval": s.payment_approval.title if s.payment_approval != None else "-", 
+                            "commercial_approval": {"status": s.commercial_approval.status.title, "commercial": s.commercial_approval.commercial} if s.commercial_approval != None else {"status": '-', "commercial": '-'},
+                            "commercial": s.pricing.commercials if s.pricing else "-",
+                            "status": s.status_history_all.all().order_by('-id').first().status.title if s.status_history_all.all().exists() else "-",
+                            "follow_up": [ {
+                                'date':f.date if f.date else '-', 
+                                'time': f.time if f.time else '-', 
+                                'notes': f.notes if f.notes else '-', 
+                                'created_by': f.created_by.name if f.created_by else '-' } for f in s.followup.all()],
+                            } 
+                # if sd.service_category_all else []
+                
+                data.append(d)
+
+
+
+            # data = viewLeadFun(leadsData, user.department.title)
+            # fin_data = []
+            
+            
+            # for d in data:
+            #     fin_data.append(d.get('service_category'))
+
+            print('data',data)
+            # data = data
+
+            # if len(data) > 0:
+                # pagecount = math.ceil(Leads.objects.filter(visibility = True).count()/limit)
+            serializer = viewAllServiceSerializer(data=data, many=True)
+            serializer.is_valid(raise_exception=True)
+            res = resFun(status.HTTP_200_OK, 'request successful', serializer.data )
+            return res
+
+            # else :
+                # res =  resFun(status.HTTP_400_BAD_REQUEST, 'request failed',[])
+            # return res
+        # except:
+        #     return resFun(status.HTTP_400_BAD_REQUEST, 'request failed',[])
+
+
+
 
     
 
