@@ -331,6 +331,23 @@ class userUnarchiveSerializer(serializers.ModelSerializer):
         fields = ['visibility']
 
 
+class my_infoSerializer(serializers.Serializer):
+    employee_id = serializers.CharField()
+    name = serializers.CharField()
+    email = serializers.EmailField()
+    department = serializers.CharField(allow_null=True)
+    designation = serializers.CharField(allow_null=True)
+    director = serializers.DictField(allow_null=True)
+    user_manager = serializers.DictField(allow_null=True)
+    lead_manager = serializers.DictField(allow_null=True)
+    team_leader = serializers.DictField(allow_null=True)
+    employee_status = serializers.CharField()
+
+    class Meta:
+        model = UserAccount
+        fields = ['employee_id', 'name', 'email','department','designation','director','user_manager','lead_manager','team_leader','employee_status']
+
+
 class userDeleteSerializer(serializers.ModelSerializer):
     visibility = serializers.BooleanField()
     class Meta:

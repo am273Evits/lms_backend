@@ -765,6 +765,7 @@ def viewLeadFun(leadsData, department):
                     # "associate" : sd.associate.name if sd.associate else '-',
                     # "service_category" : [
                         # { 
+                            "program": { 'id': s.service.program.id, 'value': s.service.program.program} if s.service else { 'id': None, 'value': None},
                             "lead_id": s.lead_id,
                             'service': s.service.service.service if s.service else '-', 
                             "associate": {"id": s.associate.id if s.associate else None , "name": s.associate.name if s.associate else "-" }, 
@@ -1189,11 +1190,37 @@ def commercialApproval(request, approval_type, lead_id, approvalStatus):
     
     if service_category_instance != None:
         if approvalStatus == 'approved':
-            commercial_instance = Commercials.objects.create(**{"commercials":service_category_instance.commercial_approval.commercial})
-            service_category_instance.service.commercials.add(commercial_instance)
+
+            commercials_check_instance = Commercials.objects.filter(commercials=service_category_instance.commercial_approval.commercial)
+            commercials_check_instance = commercials_check_instance.first()
+            
+            if not commercials_check_instance:
+                commercials_check_instance = Commercials.objects.create(**{"commercials":service_category_instance.commercial_approval.commercial })
+
+            commercial_lead_instance = commercials_check_instance.lead_id.filter(lead_id=service_category_instance.lead_id)
+
+            if not commercial_lead_instance.exists():
+                commercials_check_instance.lead_id.add(service_category_instance)
+
+            service_category_instance.service.commercials.add(commercials_check_instance)
+
             service_category_instance.commercial_approval.status = approval_status.objects.get(title='approved')
+            status_instance = Status_history.objects.create(status=drp_lead_status.objects.get(title='assign service associate pending'), updated_by=service_category_instance.associate )
+            service_category_instance.status_history_all.add(status_instance)
+
+            subject = f'commercial approved for lead id {service_category_instance.lead_id}'
+            message = f'<h2>Hello {service_category_instance.associate.name}</h2></br><p>Commercial has been approved for lead id {service_category_instance.lead_id}. <a href="http://10.20.52.37:3000/lead_management">Click here to proceed further</a>.</p>'
+                        
         elif approvalStatus == 'rejected':
             service_category_instance.commercial_approval.status = approval_status.objects.get(title='rejected')
+            status_instance = Status_history.objects.create(status=drp_lead_status.objects.get(title='commercial rejected'), updated_by=service_category_instance.associate )
+            service_category_instance.status_history_all.add(status_instance)
+
+            subject = f'commercial rejected for lead id {service_category_instance.lead_id}'
+            message = f'<h2>Hello {service_category_instance.associate.name}</h2></br><p>Commercial has been approved for lead id {service_category_instance.lead_id}. <a href="http://10.20.52.37:3000/lead_management">Click here to proceed further</a>.</p>'
+
+
+        SendEmail([service_category_instance.associate.email], subject, message)
 
         service_category_instance.commercial_approval.save()
         res =  resFun(status.HTTP_200_OK, 'request successful', [])
@@ -3176,13 +3203,29 @@ class foc_approval(GenericAPIView):
             lead_instance = Service_category.objects.get(lead_id=request.data.get('lead_id'))
         except:
             lead_instance = None
+        
 
         if lead_instance != None:
-            commercial_approval_instance = Commercial_Approval.objects.create(**{'commercial': '0', 'status': approval_status.objects.get(title='pending'), 'approval_type': Approval_type.objects.get(title='foc')})
-            lead_instance.commercial_approval = commercial_approval_instance
-            lead_instance.status_history_all.add(Status_history.objects.create(**{'status': drp_lead_status.objects.filter(title='pending for commercial approval').first(), 'updated_by': request.user }))
-            lead_instance.save()
-            res = resFun(status.HTTP_200_OK, 'request successful', [])
+            create_new = True
+
+
+            if lead_instance.commercial_approval != None:
+                create_new = False
+
+                if lead_instance.commercial_approval.status.title == 'pending':
+                    res = resFun(status.HTTP_208_ALREADY_REPORTED, 'already submitted', [])
+                elif lead_instance.commercial_approval.status.title == 'approved':
+                    res = resFun(status.HTTP_200_OK, 'already approved', [])
+                else:
+                    create_new = True
+
+            if create_new:
+                commercial_approval_instance = Commercial_Approval.objects.create(**{'commercial': 'foc', 'status': approval_status.objects.get(title='pending'), 'approval_type': Approval_type.objects.get(title='foc')})
+                lead_instance.commercial_approval = commercial_approval_instance
+                lead_instance.status_history_all.add(Status_history.objects.create(**{'status': drp_lead_status.objects.filter(title='pending for commercial approval').first(), 'updated_by': request.user }))
+                lead_instance.save()
+                res = resFun(status.HTTP_200_OK, 'request successful', [])
+
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid lead id', [])
         return res

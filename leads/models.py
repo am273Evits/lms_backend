@@ -119,6 +119,7 @@ class Sub_Program(models.Model):
 
 class Commercials(models.Model):
   commercials = models.CharField(max_length=100)
+  lead_id = models.ManyToManyField("leads.service_category")
   visibility = models.BooleanField(default=True)
   def __str__(self): return str(self.commercials)
   # visibility

@@ -221,7 +221,16 @@ class get_commercials(GenericAPIView):
                 # lead_id =
                 # print(ld.lead_id)
                 # if ld.lead_id == lead_id:
-                data=[{"id": l.id, "value": l.commercials} for l in service_category_instance.first().service.commercials.all()]
+                data=[{"id": l.id, "value": l.commercials} for l in service_category_instance.first().service.commercials.all() if not len(l.lead_id.all())>0 ]
+                # data2 = [{"id": l.id, "value": l.commercials} for l in service_category_instance.first().service.commercials.all() if l.lead_id.filter(lead_id=service_category_instance.first().id).exists() ]
+
+                for s in service_category_instance.first().service.commercials.all():
+                    if s.lead_id.all().exists():
+                        # data=[{"id": l.id, "value": l.commercials} for l in service_category_instance.first().service.commercials.all()]
+                        if s.lead_id.filter(id = service_category_instance.first().id).exists() and service_category_instance.first().commercial_approval !=None and service_category_instance.first().commercial_approval.status.title =='approved':
+                            data.append({"id": s.id, "value": s.commercials})
+
+                # print('data2',data2)
                 data.append({"id": 0, "value": 'others'})
                 if len(data) > 0: 
                     serializer =  CommonDropdownSerializer(data=data, many=True)

@@ -742,6 +742,38 @@ class unarchive_user(GenericAPIView):
     
 
 
+
+class my_info(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = my_infoSerializer
+    def get(self, request):
+
+        # try:
+            # fields = ['employee_id', 'name', 'email_id','department','designation','director','user_manager','lead_manager','team_leader','employee_status']
+            data={
+                'employee_id' : request.user.employee_id if request.user.employee_id else None  ,
+                'name' : request.user.name if request.user.name else None  ,
+                'email' : request.user.email if request.user.email else None  ,
+                'department' : request.user.department.title if request.user.department else None  ,
+                'designation' : request.user.designation.title if request.user.designation else None  ,
+                'director' : { 'id': request.user.director.id, 'value': request.user.director.name } if request.user.director else { 'id': None, 'value': None } ,
+                'user_manager' : { 'id': request.user.user_manager.id, 'value': request.user.user_manager.name} if request.user.user_manager else { 'id': None, 'value': None } ,
+                'lead_manager' : { 'id': request.user.lead_manager.id, 'value': request.user.lead_manager.name} if request.user.lead_manager else { 'id': None, 'value': None } ,
+                'team_leader' : { 'id': request.user.team_leader.id, 'value': request.user.team_leader.name} if request.user.team_leader else { 'id': None, 'value': None } ,
+                'employee_status' : request.user.employee_status.title if request.user.employee_status else None
+                }
+            serializer = my_infoSerializer(data=data, many=False)
+            if serializer.is_valid():
+                res = resFun(status.HTTP_200_OK, 'request successful', serializer.data)
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', serializer.errors)
+            return res
+
+        # except:
+        #     return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+
+
+
 # def UserLinks(user_id):
 #     department = UserAccount.objects.filter(id = user_id).first()
 #     usr_role = usr_role.user_role

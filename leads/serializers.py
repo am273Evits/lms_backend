@@ -61,7 +61,6 @@ class lead_managerBlSerializer(serializers.Serializer):
     # state = serializers.CharField()
     # city = serializers.CharField()
     service = serializers.CharField()
-    # associate = serializers.CharField()
     assigned_status = serializers.CharField()
     payment_approval = serializers.CharField()
     # mou_approval = serializers.CharField()
@@ -82,6 +81,7 @@ class lead_managerBlSerializer(serializers.Serializer):
 
 class lead_managerBlSerializer_bd(lead_managerBlSerializer):
     commercial = serializers.IntegerField(allow_null=True)
+    program = serializers.DictField()
 
 
 class viewAllLeadsApprovalAdmin(lead_managerBlSerializer_bd):
