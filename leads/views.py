@@ -1234,10 +1234,10 @@ class viewAllservices(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = viewAllServiceSerializer
     def get(self, request, client_id):
-        # try:
+        try:
             user = request.user
             # if str(user.department) == 'director' or (str(user.department) == 'admin' and str(user.designation) == 'lead_manager'):
-            leadsData = Leads.objects.select_related().filter(visibility = True).all()
+            leadsData = Leads.objects.select_related().filter(client_id=client_id, visibility = True).all()
 
             data = []
             for sd in leadsData:
@@ -1274,7 +1274,7 @@ class viewAllservices(GenericAPIView):
             # for d in data:
             #     fin_data.append(d.get('service_category'))
 
-            print('data',data)
+            # print('data',data)
             # data = data
 
             # if len(data) > 0:
@@ -1287,8 +1287,8 @@ class viewAllservices(GenericAPIView):
             # else :
                 # res =  resFun(status.HTTP_400_BAD_REQUEST, 'request failed',[])
             # return res
-        # except:
-        #     return resFun(status.HTTP_400_BAD_REQUEST, 'request failed',[])
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed',[])
 
 
 
