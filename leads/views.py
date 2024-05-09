@@ -1109,14 +1109,14 @@ def leadAppovalDir(request, page, approval_type, lead_id):
         pagecount = 1
 
     if request.user.department.title == 'director':
-        print('working till here')
+        print('working till here', approval_type)
         if page != None:
-            leadsData = Leads.objects.prefetch_related('service_category_all__commercial_approval').filter(Q(service_category_all__commercial_approval__isnull=False) & Q(service_category_all__commercial_approval__approval_type__title=approval_type)  & Q(visibility = True)).all()[offset : offset + limit]
+            leadsData = Leads.objects.prefetch_related('service_category_all__commercial_approval').filter(Q(service_category_all__commercial_approval__isnull=False) & Q(service_category_all__commercial_approval__approval_type__title=approval_type) & Q(visibility = True)).exclude(Q(service_category_all__commercial_approval__status__title='approved')).all()[offset : offset + limit]
         else:
-            leadsData = Leads.objects.prefetch_related('service_category_all__commercial_approval').filter(Q(service_category_all__commercial_approval__isnull=False) & Q(service_category_all__commercial_approval__approval_type__title=approval_type) & Q(service_category_all__lead_id=lead_id)  & Q(visibility = True))
-        # print('leadsData',leadsData)
+            leadsData = Leads.objects.prefetch_related('service_category_all__commercial_approval').filter(Q(service_category_all__commercial_approval__isnull=False) & Q(service_category_all__commercial_approval__approval_type__title=approval_type) & Q(service_category_all__lead_id=lead_id)  & Q(visibility = True)).exclude(Q(service_category_all__commercial_approval__status__title='approved'))
+        print('leadsData',leadsData)
         data = viewLeadAppoval(leadsData)
-        print(data)
+        # print(data)
         if len(data) > 0:
             if page != None:
                 pagecount = math.ceil(Leads.objects.prefetch_related('service_category_all__commercial_approval').filter(Q(service_category_all__commercial_approval__isnull=False) & Q(service_category_all__commercial_approval__approval_type__title=approval_type)  & Q(visibility = True)).count()/limit)
