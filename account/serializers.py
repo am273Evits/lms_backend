@@ -361,6 +361,9 @@ class viewLeaveSerializer(serializers.Serializer):
     notes = serializers.CharField()
     status = serializers.DictField()
 
+class viewAllLeaveSerializer(viewLeaveSerializer):
+    employee = serializers.DictField()
+
 
 class userDeleteSerializer(serializers.ModelSerializer):
     visibility = serializers.BooleanField()

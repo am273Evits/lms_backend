@@ -29,7 +29,9 @@ urlpatterns = [
       path('edit_leave/<int:leave_id>',views.edit_leave.as_view()),
       path('cancel_leave/<int:leave_id>',views.cancel_leave.as_view()),
 
-      path('cancel_leave/<int:leave_id>',views.cancel_leave.as_view()),
+      path('view_all_leaves/<int:page>',views.view_all_leaves.as_view()),
+      path('approve_leave/<int:leave_id>',views.approve_leave.as_view()),
+      path('reject_leave/<int:leave_id>',views.reject_leave.as_view()),
 
       path('generate_password/<int:id>/<str:token>', views.GeneratePassword),
 ]

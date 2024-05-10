@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from .serializers import *
 from leads.views import resFun
 from leads.models import Leads, drp_lead_status
+from datetime import datetime
 # from dropdown.models import ev_department, ev_designation, user_role_list
 # from dropdown.models import list_employee
 # from business_leads.serializers import allIdentifiersSerializer 
@@ -155,7 +156,18 @@ def employeeListFun(searchData, searchAtr):
     elif searchData.exists():
         data =[]
         for d in searchData:
-            data.append({'id': d.id, 'value': d.name})
+            if searchAtr == 'team_member':
+
+                employee_leave_instance = Employee_leaves.objects.filter(employee=d.id, status__title='approved')
+                if employee_leave_instance.exists():
+                    for em in employee_leave_instance:
+                        today = datetime.now().date()
+                        if not em.date_from <= today <= em.date_to:
+                            data.append({'id': d.id, 'value': d.name})
+                else:
+                    data.append({'id': d.id, 'value': d.name})
+            else:    
+                data.append({'id': d.id, 'value': d.name})
 
         serializer = CommonDropdownSerializer(data=data, many=True)
         serializer.is_valid(raise_exception=True)
@@ -192,9 +204,11 @@ class employee_list(GenericAPIView):
         elif (user.department.title == 'business_development' and user.designation.title == 'team_leader'):
             try:
                 if searchAtr == 'team_member':
-                    print('searchData',user.id)
+                    
+                    # print('searchData',user.id)
+
                     searchData = UserAccount.objects.filter(team_leader__id = user.id).distinct()
-                    print('searchData',searchData)
+                    # print('searchData',searchData)
 
                 res = employeeListFun(searchData, searchAtr)
             except:

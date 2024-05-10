@@ -894,6 +894,83 @@ class cancel_leave(GenericAPIView):
 
 
 
+class view_all_leaves(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = viewAllLeaveSerializer    
+    def get(self, request, page):
+        try:
+            limit = 10
+            offset = int((page - 1) * 10)
+
+            employee_leave_instance = Employee_leaves.objects.filter(status__title='pending', employee__team_leader__id=request.user.id).values()[offset:offset+limit]
+            page_count = math.ceil(Employee_leaves.objects.filter(status__title='pending', employee__team_leader__id=request.user.id).count() / limit)
+
+            fin_data = []
+            for d in employee_leave_instance:
+                a={}
+                for k,v in d.items():
+                    if k == 'status_id':
+                        status_instance = employee_leave_status.objects.get(id=v)
+                        a['status'] = { 'id': status_instance.id, 'value': status_instance.title }
+                    elif k == 'employee_id':
+                        account_instance = UserAccount.objects.get(id=v)
+                        a['employee'] = { 'id': account_instance.id, 'value': account_instance.name, 'department': account_instance.department.title , 'designation': account_instance.designation.title }
+                    else:
+                        a[k] = v
+
+                fin_data.append(a)
+            serializer = viewAllLeaveSerializer(data=fin_data, many=True)
+            serializer.is_valid(raise_exception=True)
+            res = resFun(status.HTTP_200_OK, 'request successful', { 'data': serializer.data, 'current_page': page, 'total_pages': page_count })
+            # print('employee_leave_instance',employee_leave_instance.first().date_from, employee_leave_instance.first().date_to)
+            # return resFun(status.HTTP_200_OK, 'request successful', [])
+            return res
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+
+
+class approve_leave(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = applyForLeaveSerializer
+    def put(self, request, leave_id):
+        try:
+            try:
+                employee_leave_instance = Employee_leaves.objects.get(id=leave_id)
+            except:
+                employee_leave_instance = None
+
+            if employee_leave_instance != None:
+                employee_leave_instance.status = employee_leave_status.objects.get(title='approved')
+                employee_leave_instance.save()
+                res = resFun(status.HTTP_200_OK, 'request successful', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid leave id', [])
+            return res 
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+        
+
+
+class reject_leave(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = applyForLeaveSerializer
+    def put(self, request, leave_id):
+        try:
+            try:
+                employee_leave_instance = Employee_leaves.objects.get(id=leave_id)
+            except:
+                employee_leave_instance = None
+
+            if employee_leave_instance != None:
+                employee_leave_instance.status = employee_leave_status.objects.get(title='rejected')
+                employee_leave_instance.save()
+                res = resFun(status.HTTP_200_OK, 'request successful', [])
+            else:
+                res = resFun(status.HTTP_400_BAD_REQUEST, 'invalid leave id', [])
+            return res 
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+
 
 # def UserLinks(user_id):
 #     department = UserAccount.objects.filter(id = user_id).first()
