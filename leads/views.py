@@ -306,7 +306,7 @@ class dashboard(GenericAPIView):
             if user.designation.title == 'team_leader':
                 pass
             elif user.designation.title == 'team_member':
-
+                
                 service_category_instance = Service_category.objects.filter(associate=request.user, created_date__range = [start_date, last_date])
                 assigned_leads = [s.lead_id for s in service_category_instance]
                 
@@ -1036,9 +1036,10 @@ class viewAllLeads(GenericAPIView):
         elif user.department.title == 'business_development':
             if user.designation.title == 'team_leader':
                 res = viewLeadBd_tl(user,offset,limit,page, None,user.department.title)
-                print('res',res)
+                # print('res',res)
             elif user.designation.title == 'team_member':
-                res = resFun(status.HTTP_204_NO_CONTENT, 'no data', [])
+                res = viewLeadBd_tl(user,offset,limit,page, None,user.department.title)
+                # res = resFun(status.HTTP_204_NO_CONTENT, 'no data', [])
         
         elif user.department.title == 'accounts' and user.designation.title == 'payment_followup' :
             res = viewLeadAccount(user, offset, limit, page, None, user.department.title)
