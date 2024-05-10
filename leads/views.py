@@ -94,215 +94,248 @@ class dashboard(GenericAPIView):
             # print(start_date, last_date)
 
 
-            # current_month = datetime.now().month()
-        open_leads_intance = Service_category.objects.all()
-        # for ol in open_leads_intance:
-            # print(ol.status_history_all.all().order_by('-id').first().status.title)
-        open_leads_intance = [ {'lead_id': ol.lead_id, 'status': ol.status_history_all.all().order_by('-id').first().status.title, 'associate': {'id': ol.associate.id if ol.associate !=None else None, 'name': ol.associate.name if ol.associate !=None else None}} for ol in open_leads_intance if ol.status_history_all.all().order_by('-id').first().status.title != 'closed' if ol.status_history_all.all().order_by('-id').first().status.title != 'not interested'  ]
 
-
-        print(len(open_leads_intance))
-        for ol in open_leads_intance:
-            print(ol)
-
-        # open_leads_intance = Service_category.objects.exclude(Q(status_history_all__status__title='closed') | Q(status_history_all__status__title='not interested'))
-        
-        # if type == 'this_month' or type == 'last_month':
-        #     fresh_assigned_intance = Service_category.objects.filter(created_date__month=main_date)
-            # open_leads_intance = Service_category.objects.filter( Q(status_history_all__status_date__month=main_date))
-        # else:
-            # fresh_assigned_intance = Service_category.objects.filter(created_date__range=[start_date, last_date])
-            # open_leads_intance = Service_category.objects.filter(Q(status_history_all__status_date__range = [start_date, last_date]))
-        # print('open_leads_intance',len(fresh_assigned_intance))
 
         if user.department.title == 'director':
-            # fresh_assigned_intance = [s for s in fresh_assigned_intance]
-            # total_open_leads = [ s['lead_id'] for s in open_leads_intance]
-            # assigned_leads = []
-            # status_data = []
-            # yet_to_contact = []
-            # pitch_in_progress = []
-            # closed = []
-            # proposal_email_sent = []
-            # Not_interested = []
-            # Unresponsive = []
-            # follow_up = []
-            # mou_generated = []
-            # pending_for_mou = []
-            # pending_for_mou_validation = []
-            # pending_for_payment = []
-            # pending_for_payment_validation = []
-            # assign_service_associate_pending = []
-            # final_data = {}
-            # assigned_leads = [s.lead_id for s in service_category_intance]
 
-            # print(len(total_open_leads))
-
-            # for al in fresh_assigned_intance:
-            #     assigned_leads.append(al.lead_id)
+                # current_month = datetime.now().month()
+            open_leads_intance = Service_category.objects.all()
+            # for ol in open_leads_intance:
+                # print(ol.status_history_all.all().order_by('-id').first().status.title)
+            open_leads_intance = [ {'lead_id': ol.lead_id, 'status': ol.status_history_all.all().order_by('-id').first().status.title, 'associate': {'id': ol.associate.id if ol.associate !=None else None, 'name': ol.associate.name if ol.associate !=None else None}} for ol in open_leads_intance if ol.status_history_all.all().order_by('-id').first().status.title != 'closed' if ol.status_history_all.all().order_by('-id').first().status.title != 'not interested'  ]
 
 
-            # for al in total_open_leads:
-            #     print('al',al)
-            #     service_category_inst = Service_category.objects.filter(lead_id=al).first()
-            #     # print(service_category_inst)
-            #     if type == 'this_month' or type == 'last_month':
-            #         status_data.append({ 'lead_id': al.lead_id, 'status': al.status_history_all.filter(status_date__month=main_date).order_by('-id').first().status.title if al.status_history_all.filter(status_date__month=main_date).exists() else None, 'associate': {"id": al.associate.id if al.associate else None,"name": al.associate.name if al.associate else None }})
-            #     else:   
-            #         print(al.status_history_all.all().order_by('-id').first().status.title)
-            #         status_data.append({ 'lead_id': al.lead_id, 'status': al.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first().status.title if al.status_history_all.filter(status_date__range=[start_date, last_date]).exists() else None  , 'associate': {"id": al.associate.id if al.associate else None,"name": al.associate.name if al.associate else None }})
+            print(len(open_leads_intance))
+            for ol in open_leads_intance:
+                print(ol)
 
-            #         # overall_performance
+            # open_leads_intance = Service_category.objects.exclude(Q(status_history_all__status__title='closed') | Q(status_history_all__status__title='not interested'))
 
+            # if type == 'this_month' or type == 'last_month':
+            #     fresh_assigned_intance = Service_category.objects.filter(created_date__month=main_date)
+                # open_leads_intance = Service_category.objects.filter( Q(status_history_all__status_date__month=main_date))
+            # else:
+                # fresh_assigned_intance = Service_category.objects.filter(created_date__range=[start_date, last_date])
+                # open_leads_intance = Service_category.objects.filter(Q(status_history_all__status_date__range = [start_date, last_date]))
+            # print('open_leads_intance',len(fresh_assigned_intance))
 
-            user_instance = UserAccount.objects.filter(department__title='business_development', designation__title='team_leader')
+            # if user.department.title == 'director':
+                # fresh_assigned_intance = [s for s in fresh_assigned_intance]
+                # total_open_leads = [ s['lead_id'] for s in open_leads_intance]
+                # assigned_leads = []
+                # status_data = []
+                # yet_to_contact = []
+                # pitch_in_progress = []
+                # closed = []
+                # proposal_email_sent = []
+                # Not_interested = []
+                # Unresponsive = []
+                # follow_up = []
+                # mou_generated = []
+                # pending_for_mou = []
+                # pending_for_mou_validation = []
+                # pending_for_payment = []
+                # pending_for_payment_validation = []
+                # assign_service_associate_pending = []
+                # final_data = {}
+                # assigned_leads = [s.lead_id for s in service_category_intance]
 
+                # print(len(total_open_leads))
 
-            if main_data_type == 'overall_performance' or main_data_type == 'associate_level_performance':
-                overall_performance_data = []
-
-                # for sd in status_data:
-                #     if sd['status'] == 'yet to contact':
-                #         yet_to_contact.append(sd['lead_id'])
-                #     if sd['status'] == 'pitch in progress': 
-                #         pitch_in_progress.append(sd['lead_id'])
-                #     if sd['status'] == 'closed':
-                #         closed.append(sd['lead_id'])
-                #     if sd['status'] == 'proposal email sent':
-                #         proposal_email_sent.append(sd['lead_id'])
-                #     if sd['status'] == 'not interested':
-                #         Not_interested.append(sd['lead_id'])
-                #     if sd['status'] == 'unresponsive':
-                #         Unresponsive.append(sd['lead_id'])
-                #     if sd['status'] == 'follow up':
-                #         follow_up.append(sd['lead_id'])
-                #     if sd['status'] == 'mou generated':
-                #         mou_generated.append(sd['lead_id'])
-                #     if sd['status'] == 'pending for mou':
-                #         pending_for_mou.append(sd['lead_id'])
-                #     if sd['status'] == 'pending for mou validation':
-                #         pending_for_mou_validation.append(sd['lead_id'])
-                #     if sd['status'] == 'pending for payment':
-                #         pending_for_payment.append(sd['lead_id'])
-                #     if sd['status'] == 'pending for payment validation':
-                #         pending_for_payment_validation.append(sd['lead_id'])
-                #     if sd['status'] == 'assign service associate pending':
-                #         assign_service_associate_pending.append(sd['lead_id'])
+                # for al in fresh_assigned_intance:
+                #     assigned_leads.append(al.lead_id)
 
 
+                # for al in total_open_leads:
+                #     print('al',al)
+                #     service_category_inst = Service_category.objects.filter(lead_id=al).first()
+                #     # print(service_category_inst)
+                #     if type == 'this_month' or type == 'last_month':
+                #         status_data.append({ 'lead_id': al.lead_id, 'status': al.status_history_all.filter(status_date__month=main_date).order_by('-id').first().status.title if al.status_history_all.filter(status_date__month=main_date).exists() else None, 'associate': {"id": al.associate.id if al.associate else None,"name": al.associate.name if al.associate else None }})
+                #     else:   
+                #         print(al.status_history_all.all().order_by('-id').first().status.title)
+                #         status_data.append({ 'lead_id': al.lead_id, 'status': al.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first().status.title if al.status_history_all.filter(status_date__range=[start_date, last_date]).exists() else None  , 'associate': {"id": al.associate.id if al.associate else None,"name": al.associate.name if al.associate else None }})
 
-                for u in user_instance:
-                    tl_total_assigned_leads = []
-                    tl_not_interested_leads = []
-                    tl_unresponsive_leads = []
-                    tl_closed_leads = []
-                    tl_open_leads = []
-                    team_member_instance = UserAccount.objects.filter(team_leader=u.id)
-                    team_members_data = []
-                    for tm in team_member_instance:
-                        total_assigned_leads = []
-                        not_interested_leads = []
-                        unresponsive_leads = []
-                        closed_leads = []
-                        open_leads = []
-                        # for sd in status_data:
-                        #     if sd['associate']['id'] != None and tm.id == sd['associate']['id']:
-                        #         print(sd)
-                        #         # print('***')
-                        #         total_assigned_leads.append(sd['lead_id'])
-                        #         tl_total_assigned_leads.append(sd['lead_id'])
-                        #         if sd['lead_id'] in Not_interested:
-                        #             not_interested_leads.append(sd['lead_id'])
-                        #             tl_not_interested_leads.append(sd['lead_id'])
-                        #         elif sd['lead_id'] in Unresponsive:
-                        #             unresponsive_leads.append(sd['lead_id'])
-                        #             tl_unresponsive_leads.append(sd['lead_id'])
-                        #         elif sd['lead_id'] in closed:
-                        #             closed_leads.append(sd['lead_id'])
-                        #             tl_closed_leads.append(sd['lead_id'])
-                        #         else:
-                        #             open_leads.append(sd['lead_id'])
-                        #             tl_open_leads.append(sd['lead_id'])
+                #         # overall_performance
 
-                        if len(open_leads) == 0:
-                            conversion_rate = 0
-                        else:
-                            # print(closed_leads, len(closed_leads))
-                            # print(open_leads, len(open_leads))
-                            conversion_rate = (len(closed_leads) * 100) / len(open_leads)
 
-                        team_members_data.append({ 'id': tm.id, 'name': tm.name, 
-                                                  'total_assigned_leads': total_assigned_leads, 'open': open_leads, 'not_interested': not_interested_leads, 'unresponsive': unresponsive_leads , 'closed': closed_leads , 'open': open_leads, 'conversion_rate': conversion_rate 
-                                                })
-                    
-                        if len(tl_open_leads) == 0:
-                            tl_conversion_rate = 0
-                        else:
-                            # print(len(closed_leads))
-                            tl_conversion_rate = (len(tl_closed_leads) * 100) / len(tl_open_leads)
+                user_instance = UserAccount.objects.filter(department__title='business_development', designation__title='team_leader')
 
-                    overall_performance_data.append({'name': u.name, 'total_assigned_leads': tl_total_assigned_leads, 'not_interested': tl_not_interested_leads, 'unresponsive': tl_unresponsive_leads , 'closed': tl_closed_leads , 'open': '', 'conversion_rate': tl_conversion_rate , 'team_members' : team_members_data })
+
+                if main_data_type == 'overall_performance' or main_data_type == 'associate_level_performance':
+                    overall_performance_data = []
+
+                    # for sd in status_data:
+                    #     if sd['status'] == 'yet to contact':
+                    #         yet_to_contact.append(sd['lead_id'])
+                    #     if sd['status'] == 'pitch in progress': 
+                    #         pitch_in_progress.append(sd['lead_id'])
+                    #     if sd['status'] == 'closed':
+                    #         closed.append(sd['lead_id'])
+                    #     if sd['status'] == 'proposal email sent':
+                    #         proposal_email_sent.append(sd['lead_id'])
+                    #     if sd['status'] == 'not interested':
+                    #         Not_interested.append(sd['lead_id'])
+                    #     if sd['status'] == 'unresponsive':
+                    #         Unresponsive.append(sd['lead_id'])
+                    #     if sd['status'] == 'follow up':
+                    #         follow_up.append(sd['lead_id'])
+                    #     if sd['status'] == 'mou generated':
+                    #         mou_generated.append(sd['lead_id'])
+                    #     if sd['status'] == 'pending for mou':
+                    #         pending_for_mou.append(sd['lead_id'])
+                    #     if sd['status'] == 'pending for mou validation':
+                    #         pending_for_mou_validation.append(sd['lead_id'])
+                    #     if sd['status'] == 'pending for payment':
+                    #         pending_for_payment.append(sd['lead_id'])
+                    #     if sd['status'] == 'pending for payment validation':
+                    #         pending_for_payment_validation.append(sd['lead_id'])
+                    #     if sd['status'] == 'assign service associate pending':
+                    #         assign_service_associate_pending.append(sd['lead_id'])
+
+
+
+                    for u in user_instance:
+                        tl_total_assigned_leads = []
+                        tl_not_interested_leads = []
+                        tl_unresponsive_leads = []
+                        tl_closed_leads = []
+                        tl_open_leads = []
+                        team_member_instance = UserAccount.objects.filter(team_leader=u.id)
+                        team_members_data = []
+                        for tm in team_member_instance:
+                            total_assigned_leads = []
+                            not_interested_leads = []
+                            unresponsive_leads = []
+                            closed_leads = []
+                            open_leads = []
+                            # for sd in status_data:
+                            #     if sd['associate']['id'] != None and tm.id == sd['associate']['id']:
+                            #         print(sd)
+                            #         # print('***')
+                            #         total_assigned_leads.append(sd['lead_id'])
+                            #         tl_total_assigned_leads.append(sd['lead_id'])
+                            #         if sd['lead_id'] in Not_interested:
+                            #             not_interested_leads.append(sd['lead_id'])
+                            #             tl_not_interested_leads.append(sd['lead_id'])
+                            #         elif sd['lead_id'] in Unresponsive:
+                            #             unresponsive_leads.append(sd['lead_id'])
+                            #             tl_unresponsive_leads.append(sd['lead_id'])
+                            #         elif sd['lead_id'] in closed:
+                            #             closed_leads.append(sd['lead_id'])
+                            #             tl_closed_leads.append(sd['lead_id'])
+                            #         else:
+                            #             open_leads.append(sd['lead_id'])
+                            #             tl_open_leads.append(sd['lead_id'])
+
+                            if len(open_leads) == 0:
+                                conversion_rate = 0
+                            else:
+                                # print(closed_leads, len(closed_leads))
+                                # print(open_leads, len(open_leads))
+                                conversion_rate = (len(closed_leads) * 100) / len(open_leads)
+
+                            team_members_data.append({ 'id': tm.id, 'name': tm.name, 
+                                                      'total_assigned_leads': total_assigned_leads, 'open': open_leads, 'not_interested': not_interested_leads, 'unresponsive': unresponsive_leads , 'closed': closed_leads , 'open': open_leads, 'conversion_rate': conversion_rate 
+                                                    })
+
+                            if len(tl_open_leads) == 0:
+                                tl_conversion_rate = 0
+                            else:
+                                # print(len(closed_leads))
+                                tl_conversion_rate = (len(tl_closed_leads) * 100) / len(tl_open_leads)
+
+                        overall_performance_data.append({'name': u.name, 'total_assigned_leads': tl_total_assigned_leads, 'not_interested': tl_not_interested_leads, 'unresponsive': tl_unresponsive_leads , 'closed': tl_closed_leads , 'open': '', 'conversion_rate': tl_conversion_rate , 'team_members' : team_members_data })
+
+                    # final_data['overall_performance'] = overall_performance_data
+
+                    # for o in overall_performance_data:
+                    #     print(o['team_members'])
+
+
+                # elif main_data_type == 'associate_level_performance':
+
+
+                            # if len(o['team_members']) == 0:
+                            #     print(None)
+                            # else:
+                            #     print(o['team_member'])
+
+                    # print('team_member',overall_performance_data)
+
+                    # for a in fresh_assigned_intance:
+                    #     team_member_instance = a.associate
+                    #     print('team_member_instance', team_member_instance)
+
+
+                # cards_data = {
+                #     "assigned_leads" : assigned_leads,
+                #     "pitch_in_progress" : pitch_in_progress,
+                #     "yet_to_contact" : yet_to_contact,
+                #     "closed" : closed,
+                #     "proposal_email_sent" : proposal_email_sent,
+                #     "Not_interested" : Not_interested,
+                #     "Unresponsive" : Unresponsive,
+                #     "follow_up" : follow_up,
+                #     "mou_generated" : mou_generated,
+                #     "pending_for_mou" : pending_for_mou,
+                #     "pending_for_mou_validation" : pending_for_mou_validation,
+                #     "pending_for_payment" : pending_for_payment,
+                #     "pending_for_payment_validation" : pending_for_payment_validation,
+                #     "assign_service_associate_pending" : assign_service_associate_pending
+                # }
+
+                # final_data['cards'] = cards_data
+
+
+
+
+                # for s in service_category_intance:
+                    # print(s.id)
+                    # print(s.status_history_all.all().order_by('-id').first().status.title if s.status_history_all.all().exists())
+                #     status_list = []
+                #     for l in  ld.service_category_all.all()
+
+
+
+                # status_history = Status_history.objects.filter(status_date = datetime.now()).distinct()
+
+        elif user.department.title == 'admin':
+            pass
+        elif user.department.title == 'business_development':
+            if user.designation.title == 'team_leader':
+                pass
+            elif user.designation.title == 'team_member':
+
+                service_category_instance = Service_category.objects.filter(associate=request.user, created_date__range = [start_date, last_date])
+                assigned_leads = [s.lead_id for s in service_category_instance]
                 
-                # final_data['overall_performance'] = overall_performance_data
-
-                # for o in overall_performance_data:
-                #     print(o['team_members'])
-
-
-            # elif main_data_type == 'associate_level_performance':
-
-
-                        # if len(o['team_members']) == 0:
-                        #     print(None)
-                        # else:
-                        #     print(o['team_member'])
+                service_category_instance_2 = Service_category.objects.filter(associate=request.user, status_history_all__status_date__range=[start_date, last_date]).distinct()
                 
-                # print('team_member',overall_performance_data)
+                print('service_category_instance',service_category_instance_2)
+                # print('service_category_instance_2',[ s.lead_id for s in service_category_instance_2])
 
-                # for a in fresh_assigned_intance:
-                #     team_member_instance = a.associate
-                #     print('team_member_instance', team_member_instance)
+                service_category_instance_3 = Service_category.objects.filter(status_history_all__status_date__lte=start_date, status_history_all__status__title='closed').distinct()
+                print('service_category_instance_3',service_category_instance_3)
 
-            
-            # cards_data = {
-            #     "assigned_leads" : assigned_leads,
-            #     "pitch_in_progress" : pitch_in_progress,
-            #     "yet_to_contact" : yet_to_contact,
-            #     "closed" : closed,
-            #     "proposal_email_sent" : proposal_email_sent,
-            #     "Not_interested" : Not_interested,
-            #     "Unresponsive" : Unresponsive,
-            #     "follow_up" : follow_up,
-            #     "mou_generated" : mou_generated,
-            #     "pending_for_mou" : pending_for_mou,
-            #     "pending_for_mou_validation" : pending_for_mou_validation,
-            #     "pending_for_payment" : pending_for_payment,
-            #     "pending_for_payment_validation" : pending_for_payment_validation,
-            #     "assign_service_associate_pending" : assign_service_associate_pending
-            # }
+                closed_leads = []
+                for s in service_category_instance_2:
+                    if s.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first().status.title == 'closed':
+                        closed_leads.append(s.lead_id)
 
-            # final_data['cards'] = cards_data
+                print('closed_leads', closed_leads)
 
 
 
 
-            # for s in service_category_intance:
-                # print(s.id)
-                # print(s.status_history_all.all().order_by('-id').first().status.title if s.status_history_all.all().exists())
-            #     status_list = []
-            #     for l in  ld.service_category_all.all()
+                # assigned_leads = [service_category_instance.filter()]
+                # assigned_leads = [service_category_instance.filter(status_history_all__status_date__range = [start_date, last_date])]
 
-
-
-            # status_history = Status_history.objects.filter(status_date = datetime.now()).distinct()
-
-            res = resFun(status.HTTP_200_OK, 'request successful', overall_performance_data)
-
+            res = resFun(status.HTTP_200_OK, 'request successful', [])
         elif user.department.title == 'admin':
             pass
         elif user.department.title == 'business_developement':
             pass
-
         else:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'you are not authorized to view this data', [])
         return res

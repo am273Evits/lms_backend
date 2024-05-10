@@ -1747,74 +1747,74 @@ class assignAssociate(GenericAPIView):
 
 
 
-class apiSubmitEmailAskForDetails(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    def post(self, request, lead_id, format=None, *args, **kwargs):
-        # user = cookieAuth(request)
-        # employee_id = user.employee_id
-        product = getProduct(request.user.id)
-        user_role = getUserRole(request.user.id)
-        res =  Response()
-        if user_role == 'bd_tl' or 'bd_t_member': 
+# class apiSubmitEmailAskForDetails(GenericAPIView):
+#     permission_classes = [IsAuthenticated]
+#     def post(self, request, lead_id, format=None, *args, **kwargs):
+#         # user = cookieAuth(request)
+#         # employee_id = user.employee_id
+#         product = getProduct(request.user.id)
+#         user_role = getUserRole(request.user.id)
+#         res =  Response()
+#         if user_role == 'bd_tl' or 'bd_t_member': 
     
-            message = email_ask_for_details.objects.filter(service = product).first()
-            message = message.email
-            message = message.replace('{***sender***}', request.user.name)
+#             message = email_ask_for_details.objects.filter(service = product).first()
+#             message = message.email
+#             message = message.replace('{***sender***}', request.user.name)
 
-            data_basic = all_identifiers.objects.get(lead_id=lead_id, lead_id__visibility = True)
-            if data_basic:
-                email = data_basic.email_id
+#             data_basic = all_identifiers.objects.get(lead_id=lead_id, lead_id__visibility = True)
+#             if data_basic:
+#                 email = data_basic.email_id
 
-                subject = 'details required to proceed further'
-                text = ''
-                from_email = 'akshatnigamcfl@gmail.com'
-                recipient = [email]
+#                 subject = 'details required to proceed further'
+#                 text = ''
+#                 from_email = 'akshatnigamcfl@gmail.com'
+#                 recipient = [email]
 
-                email = EmailMultiAlternatives(subject, text, from_email, recipient)
-                email.attach_alternative(message, 'text/html')
-                email = email.send()
-                if email:
+#                 email = EmailMultiAlternatives(subject, text, from_email, recipient)
+#                 email.attach_alternative(message, 'text/html')
+#                 email = email.send()
+#                 if email:
 
-                    statusData = getLeadStatusInst(title = 'asked for details')
-                    print('status', statusData.id)
+#                     statusData = getLeadStatusInst(title = 'asked for details')
+#                     print('status', statusData.id)
 
-                    status_update = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = statusData.id)
-                    print(status_update)
-                    AI_INST = all_identifiers.objects.filter(lead_id = lead_id).first()
-                    # print("AI_INST",AI_INST)
+#                     status_update = service.objects.filter(lead_id__lead_id=lead_id).update(lead_status = statusData.id)
+#                     print(status_update)
+#                     AI_INST = all_identifiers.objects.filter(lead_id = lead_id).first()
+#                     # print("AI_INST",AI_INST)
 
 
-                    lead_status_instance = lead_status.objects.get(title = 'asked for details')
-                    # print('lead_status_instance', lead_status_instance)
-                    lead_status_record.objects.create(**{'lead_id': AI_INST, 'status': lead_status_instance})
+#                     lead_status_instance = lead_status.objects.get(title = 'asked for details')
+#                     # print('lead_status_instance', lead_status_instance)
+#                     lead_status_record.objects.create(**{'lead_id': AI_INST, 'status': lead_status_instance})
 
-                    res.status_code = status.HTTP_200_OK
-                    res.data = {
-                        'status': status.HTTP_200_OK,
-                        'message': 'email sent',
-                        'data': []}
-                else:
-                    res.status_code = status.HTTP_400_BAD_REQUEST
-                    res.data = {
-                        'status': status.HTTP_400_BAD_REQUEST,
-                        'message': 'email not sent sent',
-                        'data': []
-                        }
-            else:
-                res.status_code = status.HTTP_400_BAD_REQUEST
-                res.data = {
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    'message': 'invalid lead id',
-                    'data': []
-                    }
-            return res
-        else :
-            res.status_code = status.HTTP_400_BAD_REQUEST
-            res.data = {
-                'status': status.HTTP_400_BAD_REQUEST,
-                'message': 'you are not authorized for this action',
-                'data' : []
-            }
+#                     res.status_code = status.HTTP_200_OK
+#                     res.data = {
+#                         'status': status.HTTP_200_OK,
+#                         'message': 'email sent',
+#                         'data': []}
+#                 else:
+#                     res.status_code = status.HTTP_400_BAD_REQUEST
+#                     res.data = {
+#                         'status': status.HTTP_400_BAD_REQUEST,
+#                         'message': 'email not sent sent',
+#                         'data': []
+#                         }
+#             else:
+#                 res.status_code = status.HTTP_400_BAD_REQUEST
+#                 res.data = {
+#                     'status': status.HTTP_400_BAD_REQUEST,
+#                     'message': 'invalid lead id',
+#                     'data': []
+#                     }
+#             return res
+#         else :
+#             res.status_code = status.HTTP_400_BAD_REQUEST
+#             res.data = {
+#                 'status': status.HTTP_400_BAD_REQUEST,
+#                 'message': 'you are not authorized for this action',
+#                 'data' : []
+#             }
 
 
 # class mouFun(GenericAPIView):
