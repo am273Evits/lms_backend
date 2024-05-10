@@ -72,6 +72,18 @@ class Employee_status(models.Model):
 #     title = models.CharField(max_length=100, blank=True, default='')
 
 
+class employee_leave_status(models.Model):
+    title = models.CharField(max_length=50)
+
+
+class Employee_leaves(models.Model):
+    date_from = models.DateField()
+    date_to = models.DateField()
+    notes = models.CharField(max_length=300)
+    status = models.ForeignKey(employee_leave_status, on_delete=models.CASCADE)
+    employee = models.ForeignKey("account.useraccount", related_name='employee_leave' ,on_delete=models.CASCADE)
+
+
 
 class UserAccountManager(BaseUserManager):
 	def create_user(self , email , password = None):
@@ -99,8 +111,6 @@ class UserAccountManager(BaseUserManager):
 		return user
       
 
-
-	
 class UserAccount(AbstractBaseUser):
     email = models.EmailField(max_length = 200 , unique = True)
     name = models.CharField(max_length=100, null=False)
@@ -134,6 +144,7 @@ class UserAccount(AbstractBaseUser):
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey('self', related_name = 'creator_of', on_delete=models.CASCADE, null=True, blank=True)
     user_pwd_token = models.CharField(max_length=300, blank=True, default='')
+    employee_leaves = models.ManyToManyField(Employee_leaves, related_name='user_accounts')
     visibility = models.BooleanField(default=True)
     objects = UserAccountManager()
 

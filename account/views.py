@@ -200,7 +200,7 @@ class registration_VF(GenericAPIView):
             return res
 
 
-        print('working ', (userDepartment), userDesignation)
+        # print('working ', (userDepartment), userDesignation)
         
         if userDepartment == None:
             res = resFun(status.HTTP_400_BAD_REQUEST, 'User Department not set, please contact admin', [])
@@ -748,7 +748,7 @@ class my_info(GenericAPIView):
     serializer_class = my_infoSerializer
     def get(self, request):
 
-        # try:
+        try:
             # fields = ['employee_id', 'name', 'email_id','department','designation','director','user_manager','lead_manager','team_leader','employee_status']
             data={
                 'employee_id' : request.user.employee_id if request.user.employee_id else None  ,
@@ -769,8 +769,129 @@ class my_info(GenericAPIView):
                 res = resFun(status.HTTP_400_BAD_REQUEST, 'request failed', serializer.errors)
             return res
 
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+        
+
+
+def leavesValidationFun(request):
+    if not request.data.get('date_from'):
+        return resFun(status.HTTP_400_BAD_REQUEST, "'date_from' field is required ", [])
+    if not request.data.get('date_to'):
+        return resFun(status.HTTP_400_BAD_REQUEST, "'date_to' field is required ", [])
+    if not request.data.get('notes'):
+        return resFun(status.HTTP_400_BAD_REQUEST, "'notes' field is required ", [])
+    
+
+
+
+class apply_for_leave(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = applyForLeaveSerializer
+    def post(self, request):
+        # try:
+
+            leavesValidationFun(request)
+            leave_check_instance = request.user.employee_leaves.filter(date_from=request.data.get('date_from'),date_to=request.data.get('date_to'))
+
+            if leave_check_instance.exists():
+                res = resFun(status.HTTP_208_ALREADY_REPORTED, 'already submitted, you can edit', [])
+            else:
+
+                data = request.data
+                data['employee'] = request.user.id
+                data['status'] = employee_leave_status.objects.get(title='pending').id
+
+                serializer = applyForLeaveSerializer(data=request.data, many=False)
+                serializer.is_valid(raise_exception=True)
+                # print(serializer.data)
+                serializer.save()
+                request.user.employee_leaves.add(serializer.instance)
+                request.user.save()
+                res = resFun(status.HTTP_200_OK, 'request successful', [])
+            return res
+            # Employee_leaves.objects.create(date_from=request.data.get('from'), date_to=request.data.get('to'), notes=request.data.get('notes'))
+
         # except:
         #     return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+
+
+class view_leave(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = viewLeaveSerializer
+    def get(self, request):
+        try:
+
+            data = request.user.employee_leaves.all().values()
+            fin_data = []
+            for d in data:
+                a={}
+                for k,v in d.items():
+                    if k == 'status_id':
+                        a['status'] = { 'id': employee_leave_status.objects.get(id=v).id, 'value': employee_leave_status.objects.get(id=v).title }
+                    else:
+                        a[k] = v
+
+                fin_data.append(a)
+            serializer = viewLeaveSerializer(data=fin_data, many=True)
+            serializer.is_valid(raise_exception=True)
+            res = resFun(status.HTTP_200_OK, 'request successful', serializer.data)
+            return res
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+
+
+class edit_leave(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = applyForLeaveSerializer
+    def put(self, request, leave_id):
+        try:
+            # leave_check_instance = leavesValidationFun(request)
+            # if leave_check_instance.exists():
+            leavesValidationFun(request)
+
+            employee_instance = Employee_leaves.objects.filter(id=leave_id)
+
+            if employee_instance.exists() and employee_instance.first().status.title == 'pending' :
+                serializer = applyForLeaveSerializer(employee_instance.first(), data=request.data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                serializer.update(employee_instance.first(), serializer.validated_data)
+                res = resFun(status.HTTP_200_OK, 'request successful', [])
+            else:
+                res =resFun(status.HTTP_400_BAD_REQUEST, "leave can not be edited", [])
+            return res
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+
+
+
+class cancel_leave(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = applyForLeaveSerializer
+    def put(self, request, leave_id):
+        try:
+            # leave_check_instance = leavesValidationFun(request)
+            # if leave_check_instance.exists():
+            # leavesValidationFun(request)
+            try:
+                employee_instance = Employee_leaves.objects.get(id=leave_id)
+            except:
+                employee_instance = None
+
+            if employee_instance != None:
+
+                employee_instance.status = employee_leave_status.objects.get(title='cancelled')
+                employee_instance.save()
+                # serializer = applyForLeaveSerializer(employee_instance.first(), data=request.data, partial=True)
+                # serializer.is_valid(raise_exception=True)
+                # serializer.update(employee_instance.first(), serializer.validated_data)
+                res = resFun(status.HTTP_200_OK, 'leave cancelled successfully', [])
+            else:
+                res =resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+            return res
+        except:
+            return resFun(status.HTTP_400_BAD_REQUEST, 'request failed', [])
+
 
 
 

@@ -348,6 +348,20 @@ class my_infoSerializer(serializers.Serializer):
         fields = ['employee_id', 'name', 'email','department','designation','director','user_manager','lead_manager','team_leader','employee_status']
 
 
+class applyForLeaveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Employee_leaves
+        fields = '__all__'
+
+
+class viewLeaveSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    date_from = serializers.DateField()
+    date_to = serializers.DateField()
+    notes = serializers.CharField()
+    status = serializers.DictField()
+
+
 class userDeleteSerializer(serializers.ModelSerializer):
     visibility = serializers.BooleanField()
     class Meta:
