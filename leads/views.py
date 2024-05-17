@@ -73,7 +73,7 @@ class dashboard(GenericAPIView):
 
         if type == 'this_month':
             main_date = datetime.now().month
-            print('main_date',main_date)
+            # print('main_date',main_date)
         if type == 'last_week':
             today = datetime.now().date()
             start_date = today - timedelta(days=today.weekday() + 7)
@@ -307,24 +307,60 @@ class dashboard(GenericAPIView):
                 pass
             elif user.designation.title == 'team_member':
                 
-                service_category_instance = Service_category.objects.filter(associate=request.user, created_date__range = [start_date, last_date])
-                assigned_leads = [s.lead_id for s in service_category_instance]
-                
-                service_category_instance_2 = Service_category.objects.filter(associate=request.user, status_history_all__status_date__range=[start_date, last_date]).distinct()
-                
-                print('service_category_instance',service_category_instance_2)
-                # print('service_category_instance_2',[ s.lead_id for s in service_category_instance_2])
+                if type == 'this_month' or type == 'last_month':
+                    service_category_instance = Service_category.objects.filter(associate=request.user, created_date__month = main_date)
+                    closed_leads_instance = Service_category.objects.filter(associate=request.user, status_history_all__status_date__month=main_date).distinct()
+                    # print('service_category_instance',closed_leads_instance)
+                    open_leads_instance = Service_category.objects.exclude(status_history_all__status_date__month__lte=main_date, status_history_all__status__title='closed').distinct()
+                else:
+                    service_category_instance = Service_category.objects.filter(associate=request.user, created_date__range = [start_date, last_date])
+                    closed_leads_instance = Service_category.objects.filter(associate=request.user, status_history_all__status_date__range=[start_date, last_date]).distinct()
+                    # print('service_category_instance',closed_leads_instance)
+                    open_leads_instance = Service_category.objects.exclude(status_history_all__status_date__lte=start_date, status_history_all__status__title='closed').distinct()
+                    # print('open_leads_instance', len(open_leads_instance), open_leads_instance)
 
-                service_category_instance_3 = Service_category.objects.filter(status_history_all__status_date__lte=start_date, status_history_all__status__title='closed').distinct()
-                print('service_category_instance_3',service_category_instance_3)
+
 
                 closed_leads = []
-                for s in service_category_instance_2:
-                    if s.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first().status.title == 'closed':
-                        closed_leads.append(s.lead_id)
+                for s in closed_leads_instance:
+                    if type == 'this_month' or type == 'last_month':
+                        if s.status_history_all.filter(status_date__month=main_date).order_by('-id').first().status.title == 'closed':
+                            closed_leads.append(s.lead_id)
+                    else:
+                        if s.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first().status.title == 'closed':
+                            closed_leads.append(s.lead_id)
+                # print('closed_leads', closed_leads)
 
-                print('closed_leads', closed_leads)
+                # print('type.type',type)
 
+                if type == 'this_month' or type == 'last_month':
+                    pitch_in_progress = [ o.lead_id for o in open_leads_instance if o.associate == request.user if o.status_history_all.filter(status_date__month=main_date).order_by('-id').first() if o.status_history_all.filter(status_date__month=main_date).order_by('-id').first().status.title == 'pitch in progress' ]
+                    pending_for_mou = [ o.lead_id for o in open_leads_instance if o.associate == request.user if o.status_history_all.filter(status_date__month=main_date).order_by('-id').first() if o.status_history_all.filter(status_date__month=main_date).order_by('-id').first().status.title == 'pending for mou' ]
+                    pending_for_pending = [ o.lead_id for o in open_leads_instance if o.associate == request.user if o.status_history_all.filter(status_date__month=main_date).order_by('-id').first() if o.status_history_all.filter(status_date__month=main_date).order_by('-id').first().status.title == 'pending for pending' ]
+                    pending_for_payment_validation = [ o.lead_id for o in open_leads_instance if o.associate == request.user if o.status_history_all.filter(status_date__month=main_date).order_by('-id').first() if o.status_history_all.filter(status_date__month=main_date).order_by('-id').first().status.title == 'pending for payment validation' ]
+                    unresponsive = [ o.lead_id for o in open_leads_instance if o.associate == request.user if o.status_history_all.filter(status_date__month=main_date).order_by('-id').first() if o.status_history_all.filter(status_date__month=main_date).order_by('-id').first().status.title == 'unresponsive' ]
+                    not_interested = [ o.lead_id for o in open_leads_instance if o.associate == request.user if o.status_history_all.filter(status_date__month=main_date).order_by('-id').first() if o.status_history_all.filter(status_date__month=main_date).order_by('-id').first().status.title == 'not interested' ]
+                else:
+                    pitch_in_progress = [ o.lead_id for o in open_leads_instance if o.associate == request.user if o.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first() if o.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first().status.title == 'pitch in progress' ]
+                    pending_for_mou = [ o.lead_id for o in open_leads_instance if o.associate == request.user if o.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first() if o.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first().status.title == 'pending for mou' ]
+                    pending_for_pending = [ o.lead_id for o in open_leads_instance if o.associate == request.user if o.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first() if o.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first().status.title == 'pending for pending' ]
+                    pending_for_payment_validation = [ o.lead_id for o in open_leads_instance if o.associate == request.user if o.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first() if o.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first().status.title == 'pending for payment validation' ]
+                    unresponsive = [ o.lead_id for o in open_leads_instance if o.associate == request.user if o.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first() if o.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first().status.title == 'unresponsive' ]
+                    not_interested = [ o.lead_id for o in open_leads_instance if o.associate == request.user if o.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first() if o.status_history_all.filter(status_date__range=[start_date, last_date]).order_by('-id').first().status.title == 'not interested' ]
+
+
+
+                converted_leads = [ o.lead_id for o in closed_leads_instance if o.associate == request.user ]
+                assigned_leads = [s.lead_id for s in service_category_instance if s.associate == request.user ]
+
+                print('pitch_in_progress',pitch_in_progress)
+                print('pending_for_mou',pending_for_mou)
+                print('pending_for_pending',pending_for_pending)
+                print('pending_for_payment_validation',pending_for_payment_validation)
+                print('unresponsive',unresponsive)
+                print('not_interested',not_interested)
+                print('assigned_leads',assigned_leads)
+                print('converted_leads',converted_leads)
 
 
 
@@ -1099,7 +1135,6 @@ def viewLeadBd_tm(request, user, offset, limit, page, client_id, department):
 
 
 
-
 class viewAllLeads(GenericAPIView):
     serializer_class = lead_managerBlSerializer_admin
     permission_classes = [IsAuthenticated]
@@ -1128,13 +1163,8 @@ class viewAllLeads(GenericAPIView):
         elif user.department.title == 'business_development':
             if user.designation.title == 'team_leader':
                 res = viewLeadBd_tl(user,offset,limit,page, None,user.department.title)
-                # print('res',res)
             elif user.designation.title == 'team_member':
-
                 res = viewLeadBd_tm(request, user,offset,limit,page, None,user.department.title)
-
-                # res = resFun(status.HTTP_204_NO_CONTENT, 'no data', [])
-        
         elif user.department.title == 'accounts' and user.designation.title == 'payment_followup' :
             res = viewLeadAccount(user, offset, limit, page, None, user.department.title)
             
@@ -1693,12 +1723,13 @@ def viewLeadSeachFun(request, client_id, visibility):
             else:
                 res = resFun(status.HTTP_403_FORBIDDEN,'invalid client id',[])
 
-        elif user.department.title == 'business_development' and user.designation.title == 'team_leader':
-            print('user',user)
+        elif user.department.title == 'business_development':
             leads = Leads.objects.select_related().filter(client_id = client_id, visibility = visibility)
-            
             if leads.exists():
-                res = viewLeadBd_tl(user,None,None,None, client_id, user.department.title)
+                if user.designation.title == 'team_leader':
+                    res = viewLeadBd_tl(user,None,None,None, client_id, user.department.title)
+                elif user.designation.title == 'team_member':
+                    viewLeadBd_tm(request, user,None,None,None, client_id, user.department.title)
             
         #     product = getProduct(user.id)
         #     data = []

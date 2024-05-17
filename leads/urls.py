@@ -21,14 +21,12 @@ urlpatterns = [
             path('restore_lead/<int:id>', restore_lead.as_view()), #view_all_leads
             path('update_lead/<str:client_id>', UpdateLeads.as_view()), #view_all_leads
 
-
             path('view_lead_search/approval/<str:approval_type>/<str:lead_id>', viewAllLeadsApprovalSearch.as_view()), #view_all_leads
             path('view_all_leads/approval/<str:approval_type>/<int:page>', viewAllLeadsApproval.as_view()), #view_all_leads
             path('approve_commercial/<str:approval_type>/<str:lead_id>', approveCommercial.as_view()), #view_all_leads
             path('reject_commercial/<str:approval_type>/<str:lead_id>', rejectCommercial.as_view()), #view_all_leads
 
             path('view_all_services/<str:client_id>', viewAllservices.as_view()), #view_all_leads
-
 
 
             #services   
