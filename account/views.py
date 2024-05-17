@@ -234,7 +234,7 @@ class registration_VF(GenericAPIView):
 
                 message = canned_email.objects.get(email_type = 'welcome_email')
                 message = message.email
-                message = str(message).replace("{{{link}}}", f'<a href="http://127.0.0.1:8000/account/generate_password/{ua_ser.pk}/{ua_ser.user_pwd_token}">fill more details</a>')
+                message = str(message).replace("{{{link}}}", f'<a href="https://lms-backend-ren.onrender.com/account/generate_password/{ua_ser.pk}/{ua_ser.user_pwd_token}">fill more details</a>')
     
                 email_id = ua_ser.email
     
