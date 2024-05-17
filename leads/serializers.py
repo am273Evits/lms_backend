@@ -971,36 +971,39 @@ class createLeadManualSerializer(serializers.Serializer):
         print(email_id_list)
 
         for ph in phone_number_list:
-            if len(ph) < 9:
-                raise serializers.ValidationError('a valid digit number is required')
-            else:
-                dup_contact = Leads.objects.filter(contact_number = ph)
-                # dup_contact_list = []
-                if dup_contact.exists():
-                    for dup in dup_contact:
-                        if dup.client_id != None:
-                            duplicate_leads.append({'client_id': str(dup.client_id), 'remark': [r.remark for r in dup.remark.all()]})
+            if ph != None:
+                if len(ph) < 9:
+                    raise serializers.ValidationError('a valid digit number is required')
+                else:
+                    dup_contact = Leads.objects.filter(contact_number = ph)
+                    # dup_contact_list = []
+                    if dup_contact.exists():
+                        for dup in dup_contact:
+                            if dup.client_id != None:
+                                duplicate_leads.append({'client_id': str(dup.client_id), 'remark': [r.remark for r in dup.remark.all()]})
 
                             # [str(r.remark) for r in  Remark_history.objects.filter(client_id = dup.id)]
                 
         for em in email_id_list:
-            pattern = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
-            input_string = em
-            if pattern.match(input_string):
-                dup_email = Leads.objects.filter(email_id = em)
-                if dup_email.exists():
-                    for dup in dup_email:
-                        for dcl in duplicate_leads:
-                            if str(dcl['client_id']) != str(dup.client_id):
-                                print(dcl['client_id'])
-                                print(dup.client_id)
-                                duplicate_leads.append({'client_id': str(dup.client_id) , 'remarks': [r.remark for r in dup.remark.all()]})
-                                break
-
-                                # [str(d.remark) for d in Remark_history.objects.filter(client_id = dup.id)]
-                                
-            else:
-                raise serializers.ValidationError(f'{em} is not a valid email address')
+            if em != None:
+                pattern = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
+                input_string = em
+                if pattern.match(input_string):
+                    dup_email = Leads.objects.filter(email_id = em)
+                    if dup_email.exists():
+                        for dup in dup_email:
+                            for dcl in duplicate_leads:
+                                if str(dcl['client_id']) != str(dup.client_id):
+                                    print(dcl['client_id'])
+                                    print(dup.client_id)
+                                    duplicate_leads.append({'client_id': str(dup.client_id) , 'remarks': [r.remark for r in dup.remark.all()]})
+                                    break
+                    
+                                # [str(d.remark) for d in Remark_history.objects.filter(client_id = dup.id)]         
+                else:
+                    raise serializers.ValidationError(f'{em} is not a valid email address')
+            
+        print('working')
 
         if duplicate_leads and len(duplicate_leads) > 0:
             # return resFun(status.HTTP_400_BAD_REQUEST, 'lead already exists with this contact number or email id')
@@ -1016,6 +1019,7 @@ class createLeadManualSerializer(serializers.Serializer):
             business_cat_INST = Business_category.objects.filter(id = business_category).exists()
             if not business_cat_INST:
                 raise serializers.ValidationError('business category field is not valid')
+            
             
                     
         if not Segment.objects.filter(id = segment).exists():
