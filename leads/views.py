@@ -1311,7 +1311,7 @@ def leadAppovalDir(request, page, approval_type, lead_id):
 
 class viewAllLeadsApproval(GenericAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = lead_managerBlSerializer_bd
+    serializer_class = viewAllLeadsApprovalAdmin
     def get(self, request, approval_type, page):
         # try:
             data = leadAppovalDir(request, page, approval_type, '')

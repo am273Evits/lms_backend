@@ -84,7 +84,7 @@ class lead_managerBlSerializer_bd(lead_managerBlSerializer):
     program = serializers.DictField()
 
 
-class viewAllLeadsApprovalAdmin(lead_managerBlSerializer_bd):
+class viewAllLeadsApprovalAdmin(lead_managerBlSerializer):
     commercial = serializers.CharField()
     department = serializers.CharField()
     designation = serializers.CharField()
