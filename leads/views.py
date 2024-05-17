@@ -933,9 +933,15 @@ def viewLeadBd_tl(user, offset, limit, page, client_id, department):
                 service_category_all__service__sub_program__in= user.sub_program.all(),  
                 visibility = True
                 ).all()[offset : offset + limit]
-        
-        # print(leadsData)
-        # print('leadsData',leadsData)
+            
+
+        TEST = Leads.objects.filter(service_category_all__service__service__service=user.service.all()[0])
+
+        for t in TEST:
+            print(t)
+
+        print('test', TEST)
+        print('*******************')
     else:
         if len(user.sub_program.all()) == 0:
             leadsData = Leads.objects.select_related().filter(client_id=client_id,
